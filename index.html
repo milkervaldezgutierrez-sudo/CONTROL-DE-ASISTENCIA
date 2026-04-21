@@ -908,6 +908,38 @@
             return "t_" + String(batch.uploaded_at || "").replace(/[^a-zA-Z0-9_]/g, "_");
         }
 
+        function sustentoReviewKey(fecha, turno) {
+            return `sustento_${fecha}_${turno}`;
+        }
+
+        function safeReviewDomId(key) {
+            return String(key).replace(/[^a-zA-Z0-9_]/g, "_");
+        }
+
+        function escHtml(s) {
+            return String(s)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;");
+        }
+
+        function collectEvidenceDates(p) {
+            const s = new Set();
+            s.add(fechaCarpetaLima());
+            if (Array.isArray(p.evidence_log)) {
+                p.evidence_log.forEach((b) => {
+                    if (b.fecha) s.add(String(b.fecha));
+                });
+            }
+            const rev = p.evidence_reviews || {};
+            Object.keys(rev).forEach((k) => {
+                const m = k.match(/^sustento_(\d{4}-\d{2}-\d{2})_(mañana|tarde)$/);
+                if (m) s.add(m[1]);
+            });
+            return [...s].sort((a, b) => (a < b ? 1 : a > b ? -1 : 0)).slice(0, 21);
+        }
+
         function hasPendingEvidenceReview(p) {
             const reviews = p.evidence_reviews || {};
             if (Array.isArray(p.evidence_log) && p.evidence_log.length > 0) {
@@ -1020,43 +1052,39 @@
             }
         };
 
-        function renderEvidenceReview(p) {
-            const list = document.getElementById("evidenceReviewList");
-            if (!list) return;
-            const reviews = p.evidence_reviews || {};
-            let batches = [];
-            if (Array.isArray(p.evidence_log) && p.evidence_log.length > 0) {
-                batches = [...p.evidence_log].sort((a, b) => String(b.uploaded_at || "").localeCompare(String(a.uploaded_at || "")));
-            } else if (Array.isArray(p.last_evidence_files) && p.last_evidence_files.length > 0) {
-                batches = [{
-                    batchId: "last",
-                    uploaded_at: p.last_report || "",
-                    fecha: "",
-                    turno: "",
-                    cui: p.cui || "",
-                    files: p.last_evidence_files
-                }];
-            }
-            if (batches.length === 0) {
-                list.innerHTML = '<p class="text-[10px] opacity-50">No hay evidencias registradas para este proyecto.</p>';
-                return;
-            }
-            list.innerHTML = batches.map((batch) => {
-                const bkey = batchReviewKey(batch);
-                const safeId = bkey.replace(/[^a-zA-Z0-9_]/g, "_");
-                const rev = reviews[bkey] || {};
-                const st = rev.status || "pendiente";
-                const stColor = st === "aprobado" ? "text-green-500" : st === "rechazado" ? "text-red-500" : "text-yellow-500";
-                const stLabel = st === "aprobado" ? "APROBADO" : st === "rechazado" ? "RECHAZADO" : "PENDIENTE";
-                const files = Array.isArray(batch.files) ? batch.files : [];
-                const mediaHtml = files.map((f) => {
-                    const isVid = (f.contentType || "").startsWith("video") || (f.name || "").toLowerCase().endsWith(".mp4");
+        function renderBatchReviewCardHtml(p, batch, reviews) {
+            const bkey = batchReviewKey(batch);
+            const safeId = safeReviewDomId(bkey);
+            const rev = reviews[bkey] || {};
+            const st = rev.status || "pendiente";
+            const stColor =
+                st === "aprobado"
+                    ? "text-green-500"
+                    : st === "rechazado"
+                      ? "text-red-500"
+                      : st === "sustentado"
+                        ? "text-sky-400"
+                        : "text-yellow-500";
+            const stLabel =
+                st === "aprobado"
+                    ? "APROBADO"
+                    : st === "rechazado"
+                      ? "RECHAZADO"
+                      : st === "sustentado"
+                        ? "SUSTENTADO"
+                        : "PENDIENTE";
+            const files = Array.isArray(batch.files) ? batch.files : [];
+            const mediaHtml = files
+                .map((f) => {
+                    const isVid =
+                        (f.contentType || "").startsWith("video") || (f.name || "").toLowerCase().endsWith(".mp4");
                     if (isVid) {
                         return `<div class="relative rounded-lg overflow-hidden border border-white/10 bg-black/40"><video src="${f.url}" class="w-full h-24 object-cover" controls preload="metadata"></video><span class="absolute bottom-0 left-0 right-0 text-[7px] p-1 bg-black/70 truncate">${(f.name || "video").replace(/</g, "")}</span></div>`;
                     }
                     return `<div class="relative rounded-lg overflow-hidden border border-white/10"><img src="${f.url}" alt="" class="w-full h-24 object-cover" loading="lazy"/><span class="absolute bottom-0 left-0 right-0 text-[7px] p-1 bg-black/70 truncate">${(f.name || "imagen").replace(/</g, "")}</span></div>`;
-                }).join("");
-                return `
+                })
+                .join("");
+            return `
                     <div class="rounded-xl border border-gray-400/20 p-3 bg-black/5">
                         <div class="flex flex-wrap justify-between gap-2 mb-2">
                             <div class="text-[9px] font-bold opacity-80">
@@ -1073,7 +1101,99 @@
                             <button type="button" data-pid="${p.id}" data-bkey="${bkey}" data-st="rechazado" class="reviewActBtn flex-1 min-w-[100px] bg-red-900/40 border border-red-600/40 text-red-300 py-2 rounded-lg text-[9px] font-black uppercase">Rechazar</button>
                         </div>
                     </div>`;
-            }).join("");
+        }
+
+        function renderEmptyTurnSlotHtml(p, fecha, turno, reviews) {
+            const sustKey = sustentoReviewKey(fecha, turno);
+            const safeId = safeReviewDomId(sustKey);
+            const sustRev = reviews[sustKey] || {};
+            const turnoLabel =
+                turno === "mañana" ? "Mañana (07:00–09:00)" : "Tarde (L-V 17–18 / Sáb 12–13)";
+            if (sustRev.status === "sustentado") {
+                return `
+                    <div class="rounded-xl border border-sky-500/30 p-3 bg-sky-950/15">
+                        <div class="flex flex-wrap justify-between gap-2 mb-2">
+                            <div class="text-[9px] font-bold opacity-80">
+                                <span class="text-[#991b1b]">${escHtml(fecha)}</span> · ${turnoLabel}
+                            </div>
+                            <span class="text-[9px] font-black text-sky-400">SUSTENTADO</span>
+                        </div>
+                        <p class="text-[10px] opacity-55 mb-2">No hay evidencias registradas para este proyecto.</p>
+                        <p class="text-[9px] font-bold opacity-70 uppercase tracking-wide mb-1">Motivo registrado</p>
+                        <p class="text-[9px] leading-relaxed border border-white/10 rounded-lg p-2 bg-black/20">${escHtml(sustRev.note || "—")}</p>
+                    </div>`;
+            }
+            return `
+                    <div class="rounded-xl border border-dashed border-gray-500/40 p-3 bg-black/5">
+                        <div class="flex flex-wrap justify-between gap-2 mb-2">
+                            <div class="text-[9px] font-bold opacity-80">
+                                <span class="text-[#991b1b]">${escHtml(fecha)}</span> · ${turnoLabel}
+                            </div>
+                            <span class="text-[9px] font-black text-orange-400/90">SIN CARGA</span>
+                        </div>
+                        <p class="text-[10px] opacity-50 mb-3">No hay evidencias registradas para este proyecto.</p>
+                        <textarea id="reviewNote_${safeId}" rows="2" placeholder="Motivo del sustento (obligatorio)" class="w-full rounded-lg px-2 py-2 text-[10px] mb-2"></textarea>
+                        <button type="button" data-pid="${p.id}" data-bkey="${sustKey}" data-st="sustentado" class="reviewActBtn w-full bg-sky-900/45 border border-sky-500/45 text-sky-200 py-2 rounded-lg text-[9px] font-black uppercase">Marcar como sustentado</button>
+                    </div>`;
+        }
+
+        function renderEvidenceReview(p) {
+            const list = document.getElementById("evidenceReviewList");
+            if (!list) return;
+            const reviews = p.evidence_reviews || {};
+            const log = Array.isArray(p.evidence_log) ? p.evidence_log : [];
+            const dates = collectEvidenceDates(p);
+            const slots = ["mañana", "tarde"];
+            const shownBatchKeys = new Set();
+            const parts = [];
+
+            dates.forEach((fecha) => {
+                parts.push(`<div class="mb-8 last:mb-0">
+                    <h5 class="text-[11px] font-black text-[#991b1b] uppercase tracking-widest mb-3 pb-2 border-b border-gray-400/15">${escHtml(fecha)}</h5>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">`);
+                slots.forEach((turno) => {
+                    const batchesHere = log
+                        .filter((b) => String(b.fecha || "") === fecha && String(b.turno || "") === turno)
+                        .sort((a, b) => String(b.uploaded_at || "").localeCompare(String(a.uploaded_at || "")));
+                    if (batchesHere.length > 0) {
+                        batchesHere.forEach((batch) => {
+                            parts.push(renderBatchReviewCardHtml(p, batch, reviews));
+                            shownBatchKeys.add(batchReviewKey(batch));
+                        });
+                    } else {
+                        parts.push(renderEmptyTurnSlotHtml(p, fecha, turno, reviews));
+                    }
+                });
+                parts.push(`</div></div>`);
+            });
+
+            const orphans = log.filter((b) => !shownBatchKeys.has(batchReviewKey(b)));
+            if (orphans.length > 0) {
+                parts.push(`<div class="mt-8 pt-6 border-t border-gray-400/15">
+                    <h5 class="text-[10px] font-black text-[#991b1b] uppercase mb-3">Otros envíos (sin turno estándar o fecha distinta)</h5>
+                    <div class="space-y-3">`);
+                orphans.forEach((batch) => {
+                    parts.push(renderBatchReviewCardHtml(p, batch, reviews));
+                });
+                parts.push(`</div></div>`);
+            }
+
+            if (log.length === 0 && Array.isArray(p.last_evidence_files) && p.last_evidence_files.length > 0) {
+                const legacyBatch = {
+                    batchId: "last",
+                    uploaded_at: p.last_report || "",
+                    fecha: "",
+                    turno: "",
+                    cui: p.cui || "",
+                    files: p.last_evidence_files
+                };
+                parts.push(`<div class="mt-8 pt-6 border-t border-gray-400/15">
+                    <h5 class="text-[10px] font-black uppercase opacity-60 mb-3">Último envío (sin turno en historial)</h5>`);
+                parts.push(renderBatchReviewCardHtml(p, legacyBatch, reviews));
+                parts.push(`</div>`);
+            }
+
+            list.innerHTML = parts.join("");
             list.querySelectorAll(".reviewActBtn").forEach((btn) => {
                 btn.onclick = () => {
                     const pid = btn.getAttribute("data-pid");
@@ -1082,9 +1202,9 @@
                     submitEvidenceReview(pid, bkey, st);
                 };
             });
-            batches.forEach((batch) => {
+            log.forEach((batch) => {
                 const bkey = batchReviewKey(batch);
-                const safeId = bkey.replace(/[^a-zA-Z0-9_]/g, "_");
+                const safeId = safeReviewDomId(bkey);
                 const ta = document.getElementById(`reviewNote_${safeId}`);
                 const rev = reviews[bkey] || {};
                 if (ta && rev.note) ta.value = rev.note;
@@ -1092,11 +1212,15 @@
         }
 
         window.submitEvidenceReview = async (projectId, batchKey, status) => {
-            const safeId = batchKey.replace(/[^a-zA-Z0-9_]/g, "_");
+            const safeId = safeReviewDomId(batchKey);
             const noteEl = document.getElementById(`reviewNote_${safeId}`);
             const note = noteEl ? noteEl.value.trim() : "";
             if (status === "rechazado" && !note) {
                 showFeedback("Indique el motivo del rechazo en observaciones.", "error");
+                return;
+            }
+            if (status === "sustentado" && !note) {
+                showFeedback("Indique el motivo del sustento antes de guardar.", "error");
                 return;
             }
             try {
@@ -1109,12 +1233,21 @@
                 });
                 const idx = masterProjects.findIndex((x) => x.id === projectId);
                 if (idx >= 0) {
-                    masterProjects[idx].evidence_reviews = { ...(masterProjects[idx].evidence_reviews || {}), [batchKey]: { status, note, reviewed_at: new Date().toISOString() } };
+                    masterProjects[idx].evidence_reviews = {
+                        ...(masterProjects[idx].evidence_reviews || {}),
+                        [batchKey]: { status, note, reviewed_at: new Date().toISOString() }
+                    };
                     renderEvidenceReview(masterProjects[idx]);
                 }
                 renderEvidenceAdminProjectTable();
                 renderAdminTable();
-                showFeedback(status === "aprobado" ? "Evidencia aprobada." : "Evidencia rechazada.", "success");
+                const okMsg =
+                    status === "aprobado"
+                        ? "Evidencia aprobada."
+                        : status === "sustentado"
+                          ? "Turno marcado como sustentado."
+                          : "Evidencia rechazada.";
+                showFeedback(okMsg, "success");
             } catch (e) {
                 console.error(e);
                 showFeedback(`No se pudo guardar la verificación: ${e.code || e.message}`, "error");
