@@ -361,7 +361,8 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, onSnapshot, updateDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, doc, onSnapshot, updateDoc, setDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
         const appId = window.APP_ID || 'gra-ayacucho-prod';
         const firebaseConfig = window.FIREBASE_CONFIG || {
@@ -376,6 +377,8 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+        const storage = getStorage(app);
+        const MAX_UPLOAD_BYTES = 80 * 1024 * 1024;
 
         let masterProjects = [];
         let activeProjects = [];
@@ -860,11 +863,71 @@
 
         window.simulateUpload = async () => {
             const btn = document.getElementById('uploadBtn');
+            if (!activeProjectId || selectedFiles.length === 0) {
+                showFeedback("Selecciona archivos antes de sincronizar.", "error");
+                return;
+            }
+            for (const f of selectedFiles) {
+                if (f.size > MAX_UPLOAD_BYTES) {
+                    showFeedback(`Archivo demasiado grande (max ${Math.round(MAX_UPLOAD_BYTES / 1024 / 1024)} MB): ${f.name}`, "error");
+                    return;
+                }
+            }
             btn.disabled = true;
+            const originalLabel = btn.textContent;
             try {
-                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'projects', activeProjectId), { last_report: new Date().toISOString() });
-                setTimeout(() => goBackToHome(), 1000);
-            } catch (e) { btn.disabled = false; }
+                const uploaded = [];
+                const batchId = Date.now();
+                for (let i = 0; i < selectedFiles.length; i++) {
+                    const file = selectedFiles[i];
+                    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+                    const path = `evidencias/${activeProjectId}/${batchId}_${i}_${safeName}`;
+                    const storageRef = ref(storage, path);
+                    btn.textContent = `Subiendo ${i + 1}/${selectedFiles.length}...`;
+                    await new Promise((resolve, reject) => {
+                        const task = uploadBytesResumable(storageRef, file, { contentType: file.type || undefined });
+                        task.on(
+                            "state_changed",
+                            null,
+                            (err) => reject(err),
+                            async () => {
+                                try {
+                                    const url = await getDownloadURL(task.snapshot.ref);
+                                    uploaded.push({
+                                        url,
+                                        storagePath: path,
+                                        name: file.name,
+                                        contentType: file.type || "",
+                                        size: file.size
+                                    });
+                                    resolve();
+                                } catch (e) {
+                                    reject(e);
+                                }
+                            }
+                        );
+                    });
+                }
+                const now = new Date().toISOString();
+                await updateDoc(doc(db, "artifacts", appId, "public", "data", "projects", activeProjectId), {
+                    last_report: now,
+                    last_evidence_files: uploaded,
+                    evidence_log: arrayUnion({ uploaded_at: now, files: uploaded })
+                });
+                selectedFiles = [];
+                renderPreviews();
+                showFeedback("Evidencia subida correctamente.", "success");
+                btn.textContent = originalLabel;
+                setTimeout(() => goBackToHome(), 1200);
+            } catch (e) {
+                console.error(e);
+                showFeedback(
+                    `No se pudo subir (Storage/Firestore): ${e.code || e.message}. Activa Firebase Storage y reglas que permitan escribir usuarios autenticados.`,
+                    "error"
+                );
+                btn.textContent = originalLabel;
+                btn.disabled = false;
+            }
         };
 
         function showFeedback(msg, type = "error") {
