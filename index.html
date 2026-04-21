@@ -392,7 +392,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, onSnapshot, updateDoc, setDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, doc, onSnapshot, updateDoc, setDoc, arrayUnion, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
         const appId = window.APP_ID || 'gra-ayacucho-prod';
@@ -755,6 +755,29 @@
             }
         };
 
+        function updateAuthNavLabels() {
+            const adminLbl = document.getElementById('adminBtnLabel');
+            const regToggle = document.getElementById('toggleBtn');
+            const formTitle = document.getElementById('formTitle');
+            const btnText = document.getElementById('btnText');
+            if (adminLbl) {
+                adminLbl.textContent = currentMode === 'ADMIN' ? 'Panel Usuario' : 'Panel Administrativo';
+            }
+            if (regToggle) {
+                regToggle.textContent = currentMode === 'REGISTER' ? 'Regresar' : 'Solicitar Registro';
+            }
+            if (formTitle) {
+                if (currentMode === 'ADMIN') formTitle.textContent = 'Acceso administrativo';
+                else if (currentMode === 'REGISTER') formTitle.textContent = 'Registro de proyecto';
+                else formTitle.textContent = 'Gestión de Inversiones';
+            }
+            if (btnText) {
+                if (currentMode === 'ADMIN') btnText.textContent = 'Ingresar al panel';
+                else if (currentMode === 'REGISTER') btnText.textContent = 'Registrar proyecto';
+                else btnText.textContent = 'Ingresar al Sistema';
+            }
+        }
+
         window.setMode = (mode) => {
             currentMode = mode;
             const container = document.getElementById('dynamicInputContainer');
@@ -765,6 +788,7 @@
                 if (!projectsLoaded || masterProjects.length === 0) {
                     container.innerHTML = `<label class="label-gold">PROYECTO DE INVERSIÓN</label><select id="projectSelector" disabled class="w-full rounded-xl px-4 py-4 text-sm font-bold shadow-sm"><option value="" selected>Cargando obras...</option></select>`;
                     submitBtn.disabled = true;
+                    updateAuthNavLabels();
                     return;
                 }
                 let opts = masterProjects.map(p => `<option value="${p.id}">CUI: ${p.cui} - ${p.nombre.substring(0,30)}...</option>`).join('');
@@ -779,6 +803,7 @@
                 document.getElementById('regName').value = prevRegName;
                 submitBtn.disabled = false;
             }
+            updateAuthNavLabels();
         };
 
         document.getElementById('projectForm').addEventListener('submit', async (e) => {
@@ -907,6 +932,46 @@
             return '<span class="text-green-500 text-xs font-black" title="Revisado">✓</span>';
         }
 
+        window.deleteProject = async (projectId) => {
+            const p = masterProjects.find((x) => x.id === projectId);
+            if (!p) return;
+            const cui = String(p.cui || '').replace(/</g, '');
+            const nom = String(p.nombre || '').slice(0, 80).replace(/</g, '');
+            if (!confirm(`¿Eliminar permanentemente el proyecto CUI ${cui} — ${nom}? Esta acción no se puede deshacer.`)) return;
+            try {
+                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'projects', projectId));
+                if (evidenceSelectedProjectId === projectId) {
+                    evidenceSelectedProjectId = null;
+                    const lbl = document.getElementById('evidenceSelectedLabel');
+                    const revList = document.getElementById('evidenceReviewList');
+                    if (lbl) lbl.textContent = 'Seleccione un proyecto en la lista de la izquierda.';
+                    if (revList) revList.innerHTML = '';
+                }
+                const editId = document.getElementById('editDocId');
+                if (editId && editId.value === projectId) {
+                    document.getElementById('editSection')?.classList.add('opacity-30', 'pointer-events-none');
+                    editId.value = '';
+                }
+                if (activeProjectId === projectId) {
+                    activeProjectId = null;
+                    stopResidentGateTimer();
+                    selectedFiles = [];
+                    const fi = document.getElementById('fileInput');
+                    if (fi) fi.value = '';
+                    const resV = document.getElementById('residentModuleView');
+                    if (resV && !resV.classList.contains('hidden')) {
+                        resV.classList.add('hidden');
+                        authView.classList.remove('hidden');
+                        setMode('LOGIN');
+                    }
+                }
+                showFeedback('Proyecto eliminado.', 'success');
+            } catch (e) {
+                console.error(e);
+                showFeedback(`No se pudo eliminar: ${e.code || e.message}`, 'error');
+            }
+        };
+
         function renderAdminTable() {
             const body = document.getElementById('adminTableBody');
             if(!body) return;
@@ -916,7 +981,10 @@
                     <td class="p-5 text-xs font-semibold">${p.nombre}</td>
                     <td class="p-5 text-center">${evidenceReviewTableCell(p)}</td>
                     <td class="p-5 text-center">
-                        <button onclick="editProject('${p.id}')" class="bg-[#991b1b]/5 text-[#991b1b] px-3 py-1 rounded text-[10px] font-black border border-[#991b1b]/10 hover:bg-[#991b1b] hover:text-white transition-all uppercase font-bold">Detalles</button>
+                        <div class="flex flex-wrap gap-2 justify-center items-center">
+                            <button type="button" onclick="editProject('${p.id}')" class="bg-[#991b1b]/5 text-[#991b1b] px-3 py-1 rounded text-[10px] font-black border border-[#991b1b]/10 hover:bg-[#991b1b] hover:text-white transition-all uppercase font-bold">Detalles</button>
+                            <button type="button" onclick="deleteProject('${p.id}')" class="bg-red-500/10 text-red-600 px-3 py-1 rounded text-[10px] font-black border border-red-500/20 hover:bg-red-600 hover:text-white transition-all uppercase font-bold">Eliminar</button>
+                        </div>
                     </td>
                 </tr>`).join('');
         }
