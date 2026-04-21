@@ -164,6 +164,8 @@
         </span>
     </button>
 
+    <div id="feedback" class="hidden fixed top-5 left-1/2 -translate-x-1/2 z-[3000] text-center text-xs px-4 py-3 rounded-xl border max-w-sm pointer-events-none"></div>
+
     <div id="initialLoader" class="flex flex-col items-center gap-4">
         <div class="custom-loader w-12 h-12"></div>
         <p class="text-yellow-500 font-bold animate-pulse uppercase tracking-widest text-xs">Sincronizando con Sede Central Ayacucho...</p>
@@ -199,7 +201,6 @@
                 <span id="btnText">Ingresar al Sistema</span>
                 <div id="loader" class="custom-loader hidden mx-auto"></div>
             </button>
-            <div id="feedback" class="hidden fixed top-5 left-1/2 -translate-x-1/2 z-[2000] text-center text-xs px-4 py-3 rounded-xl border max-w-sm"></div>
         </form>
 
         <div class="mt-8 flex justify-between items-center pt-6 border-t border-gray-400/10">
@@ -377,7 +378,7 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const storage = getStorage(app);
+        const storage = getStorage(app, `gs://${firebaseConfig.storageBucket}`);
         const MAX_UPLOAD_BYTES = 80 * 1024 * 1024;
 
         let masterProjects = [];
@@ -867,6 +868,14 @@
                 showFeedback("Selecciona archivos antes de sincronizar.", "error");
                 return;
             }
+            if (!auth.currentUser) {
+                try {
+                    await signInAnonymously(auth);
+                } catch (e) {
+                    showFeedback("Debes estar conectado para subir archivos. Recarga la pagina.", "error");
+                    return;
+                }
+            }
             for (const f of selectedFiles) {
                 if (f.size > MAX_UPLOAD_BYTES) {
                     showFeedback(`Archivo demasiado grande (max ${Math.round(MAX_UPLOAD_BYTES / 1024 / 1024)} MB): ${f.name}`, "error");
@@ -888,7 +897,7 @@
                         const task = uploadBytesResumable(storageRef, file, { contentType: file.type || undefined });
                         task.on(
                             "state_changed",
-                            null,
+                            () => {},
                             (err) => reject(err),
                             async () => {
                                 try {
@@ -909,11 +918,19 @@
                     });
                 }
                 const now = new Date().toISOString();
-                await updateDoc(doc(db, "artifacts", appId, "public", "data", "projects", activeProjectId), {
-                    last_report: now,
-                    last_evidence_files: uploaded,
-                    evidence_log: arrayUnion({ uploaded_at: now, files: uploaded })
-                });
+                const projectRef = doc(db, "artifacts", appId, "public", "data", "projects", activeProjectId);
+                try {
+                    await updateDoc(projectRef, {
+                        last_report: now,
+                        last_evidence_files: uploaded,
+                        evidence_log: arrayUnion({ uploaded_at: now, files: uploaded })
+                    });
+                } catch (fe) {
+                    await updateDoc(projectRef, {
+                        last_report: now,
+                        last_evidence_files: uploaded
+                    });
+                }
                 selectedFiles = [];
                 renderPreviews();
                 showFeedback("Evidencia subida correctamente.", "success");
@@ -922,7 +939,7 @@
             } catch (e) {
                 console.error(e);
                 showFeedback(
-                    `No se pudo subir (Storage/Firestore): ${e.code || e.message}. Activa Firebase Storage y reglas que permitan escribir usuarios autenticados.`,
+                    `Subida fallida: ${e.code || e.message}. En Storage > Reglas permite escribir a usuarios autenticados (match /evidencias/{pid}/{allPaths=**}).`,
                     "error"
                 );
                 btn.textContent = originalLabel;
