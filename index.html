@@ -396,10 +396,18 @@
             renderElegantFaultReport();
         };
 
+        function showLoaderError(msg) {
+            initialLoader.innerHTML = `<p class="text-red-400 font-bold text-center max-w-md">${msg}</p>`;
+        }
+
         async function init() {
             try {
                 await signInAnonymously(auth);
-            } catch (e) { console.error(e); }
+            } catch (e) {
+                console.error(e);
+                showLoaderError(`Error de autenticacion Firebase: ${e.code || e.message}. Activa 'Anonymous' en Authentication > Sign-in method.`);
+                return;
+            }
 
             onAuthStateChanged(auth, (user) => {
                 if (user) {
@@ -421,6 +429,9 @@
                     renderAdminTable();
                     renderElegantFaultReport();
                 }
+            }, (error) => {
+                console.error(error);
+                showLoaderError(`Error de Firestore: ${error.code || error.message}. Revisa reglas de Firestore y permisos del proyecto.`);
             });
         }
 
