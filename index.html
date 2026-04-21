@@ -240,7 +240,7 @@
             </div>
         </div>
 
-        <div class="bg-black/5 rounded-3xl p-10 border-2 border-dashed border-gray-400/20 text-center cursor-pointer hover:border-[#991b1b]/50 group" onclick="document.getElementById('fileInput').click()">
+        <div id="evidenceDropZone" class="bg-black/5 rounded-3xl p-10 border-2 border-dashed border-gray-400/20 text-center cursor-pointer hover:border-[#991b1b]/50 group" onclick="residentClickPickFiles()">
             <input type="file" id="fileInput" multiple accept="image/*,video/*" class="hidden" onchange="handleFileSelect(event)">
             <div class="w-16 h-16 bg-[#991b1b]/5 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
                 <svg class="w-8 h-8 text-[#991b1b]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" stroke-width="1.5"/></svg>
@@ -416,6 +416,7 @@
         let currentMode = 'LOGIN';
         let activeProjectId = null;
         let selectedFiles = [];
+        let residentGateIntervalId = null;
         let reportPeriod = 'semanal';
         let weekOffset = 0;
         let isDarkMode = true;
@@ -495,6 +496,10 @@
                     }
                     renderAdminTable();
                     renderEvidenceAdminProjectTable();
+                    const resV = document.getElementById("residentModuleView");
+                    if (resV && !resV.classList.contains("hidden") && activeProjectId) {
+                        refreshResidentEvidenceGate();
+                    }
                     if (evidenceSelectedProjectId) {
                         const pSel = masterProjects.find((x) => x.id === evidenceSelectedProjectId);
                         const evView = document.getElementById("adminEvidenceView");
@@ -800,7 +805,12 @@
                     authView.classList.add('hidden');
                     residentModuleView.classList.remove('hidden');
                     document.getElementById('residentProjectName').textContent = p.nombre;
+                    selectedFiles = [];
+                    const fi = document.getElementById('fileInput');
+                    if (fi) fi.value = '';
                     renderPreviews();
+                    refreshResidentEvidenceGate();
+                    startResidentGateTimer();
                 } else showFeedback("Clave incorrecta", "error");
             } else if (currentMode === 'REGISTER') {
                 const regCui = document.getElementById('regCui').value.trim();
@@ -844,7 +854,24 @@
             }
         });
 
+        function stopResidentGateTimer() {
+            if (residentGateIntervalId) {
+                clearInterval(residentGateIntervalId);
+                residentGateIntervalId = null;
+            }
+        }
+
+        function startResidentGateTimer() {
+            stopResidentGateTimer();
+            residentGateIntervalId = setInterval(() => refreshResidentEvidenceGate(), 45000);
+        }
+
         window.goBackToHome = () => {
+            stopResidentGateTimer();
+            selectedFiles = [];
+            const fi = document.getElementById('fileInput');
+            if (fi) fi.value = '';
+            activeProjectId = null;
             adminPanelView.classList.add('hidden');
             residentModuleView.classList.add('hidden');
             authView.classList.remove('hidden');
@@ -1060,28 +1087,165 @@
             }
         };
 
+        function getLimaUploadSlot() {
+            const d = new Date();
+            const wd = new Intl.DateTimeFormat("en-US", { timeZone: "America/Lima", weekday: "short" }).format(d);
+            const hour = parseInt(
+                new Intl.DateTimeFormat("en-US", { timeZone: "America/Lima", hour: "numeric", hour12: false }).format(d),
+                10
+            );
+            const minute = parseInt(
+                new Intl.DateTimeFormat("en-US", { timeZone: "America/Lima", minute: "numeric" }).format(d),
+                10
+            );
+            const minutesOfDay = hour * 60 + minute;
+            const mañanaIni = 7 * 60;
+            const mañanaFin = 9 * 60;
+            const tardeLvIni = 17 * 60;
+            const tardeLvFin = 18 * 60;
+            const tardeSabIni = 12 * 60;
+            const tardeSabFin = 13 * 60;
+            const esLv = ["Mon", "Tue", "Wed", "Thu", "Fri"].includes(wd);
+            const esSab = wd === "Sat";
+            const esDom = wd === "Sun";
+
+            if (esDom) return { ok: false, slot: null, code: "domingo" };
+            if (minutesOfDay >= mañanaIni && minutesOfDay < mañanaFin) {
+                if (esLv || esSab) return { ok: true, slot: "mañana", code: null };
+                return { ok: false, slot: null, code: "fuera_horario" };
+            }
+            if (esLv && minutesOfDay >= tardeLvIni && minutesOfDay < tardeLvFin) {
+                return { ok: true, slot: "tarde", code: null };
+            }
+            if (esSab && minutesOfDay >= tardeSabIni && minutesOfDay < tardeSabFin) {
+                return { ok: true, slot: "tarde", code: null };
+            }
+            return { ok: false, slot: null, code: "fuera_horario" };
+        }
+
+        function todayEvidenceSlotsUsed(p, fechaLima) {
+            let manana = false;
+            let tarde = false;
+            if (!p || !Array.isArray(p.evidence_log)) return { manana, tarde };
+            for (const b of p.evidence_log) {
+                if (String(b.fecha || "") !== fechaLima) continue;
+                const t = String(b.turno || "");
+                if (t === "mañana") manana = true;
+                if (t === "tarde") tarde = true;
+            }
+            return { manana, tarde };
+        }
+
+        function getResidentUploadGate(project) {
+            const fecha = fechaCarpetaLima();
+            const slotInfo = getLimaUploadSlot();
+            if (!project) {
+                return { blocked: true, message: "Sesión inválida." };
+            }
+            if (!slotInfo.ok) {
+                if (slotInfo.code === "domingo") {
+                    return { blocked: true, message: "Domingo no hay ventana de entrega de evidencias." };
+                }
+                return {
+                    blocked: true,
+                    message: "Fuera de horario. L-V: 07:00–09:00 y 17:00–18:00. Sábados: 07:00–09:00 y 12:00–13:00 (hora Lima)."
+                };
+            }
+            const used = todayEvidenceSlotsUsed(project, fecha);
+            if (slotInfo.slot === "mañana" && used.manana) {
+                return { blocked: true, message: "Ya envió la evidencia del turno mañana hoy." };
+            }
+            if (slotInfo.slot === "tarde" && used.tarde) {
+                return { blocked: true, message: "Ya envió la evidencia del turno tarde hoy." };
+            }
+            return { blocked: false, message: "", slot: slotInfo.slot };
+        }
+
+        function refreshResidentEvidenceGate() {
+            const residentEl = document.getElementById("residentModuleView");
+            if (!residentEl || residentEl.classList.contains("hidden")) return;
+            const fileInput = document.getElementById("fileInput");
+            const dropZone = document.getElementById("evidenceDropZone");
+            const uploadBtn = document.getElementById("uploadBtn");
+            const videoStatus = document.getElementById("videoStatus");
+            const statusDot = document.getElementById("statusDot");
+            const p = masterProjects.find((x) => x.id === activeProjectId);
+            const gate = getResidentUploadGate(p);
+
+            if (gate.blocked) {
+                selectedFiles = [];
+                if (fileInput) fileInput.value = "";
+            }
+
+            const hasVideo = selectedFiles.some((f) => f.type.startsWith("video/"));
+            if (dropZone) {
+                dropZone.classList.toggle("opacity-40", gate.blocked);
+                dropZone.classList.toggle("pointer-events-none", gate.blocked);
+                dropZone.classList.toggle("cursor-not-allowed", gate.blocked);
+                dropZone.classList.toggle("hover:border-[#991b1b]/50", !gate.blocked);
+            }
+            if (fileInput) fileInput.disabled = !!gate.blocked;
+
+            let msg;
+            let tone;
+            if (gate.blocked) {
+                msg = gate.message;
+                tone = "red";
+            } else if (!hasVideo) {
+                msg = "VIDEO OBLIGATORIO PENDIENTE";
+                tone = "red";
+            } else {
+                msg = "LISTO PARA SINCRONIZAR";
+                tone = "green";
+            }
+            if (videoStatus) {
+                videoStatus.textContent = msg;
+                videoStatus.className =
+                    tone === "green"
+                        ? "text-xs font-bold uppercase text-green-600"
+                        : "text-xs font-bold uppercase text-red-600";
+            }
+            if (statusDot) {
+                statusDot.className =
+                    "w-3 h-3 rounded-full " + (tone === "green" ? "bg-green-500" : "bg-red-500 animate-pulse");
+            }
+            if (uploadBtn) uploadBtn.disabled = gate.blocked || !hasVideo;
+        }
+
+        window.residentClickPickFiles = () => {
+            const p = masterProjects.find((x) => x.id === activeProjectId);
+            const gate = getResidentUploadGate(p);
+            if (gate.blocked) {
+                showFeedback(gate.message, "error");
+                return;
+            }
+            document.getElementById("fileInput").click();
+        };
+
         window.handleFileSelect = (e) => {
+            const p = masterProjects.find((x) => x.id === activeProjectId);
+            const gate = getResidentUploadGate(p);
+            if (gate.blocked) {
+                e.target.value = "";
+                showFeedback(gate.message, "error");
+                return;
+            }
             selectedFiles = [...selectedFiles, ...Array.from(e.target.files)];
+            e.target.value = "";
             renderPreviews();
         };
 
         function renderPreviews() {
             const container = document.getElementById('filePreviewContainer');
-            const videoStatus = document.getElementById('videoStatus');
-            const uploadBtn = document.getElementById('uploadBtn');
             if(!container) return;
             container.innerHTML = '';
-            let hasVideo = false;
             selectedFiles.forEach((f) => {
-                if(f.type.startsWith('video/')) hasVideo = true;
                 const d = document.createElement('div');
                 d.className = "relative bg-black/5 rounded-xl aspect-square border border-gray-400/20 flex items-center justify-center overflow-hidden";
                 d.innerHTML = `<span class="text-[7px] p-2 truncate w-full text-center font-bold opacity-50">${f.name}</span>`;
                 container.appendChild(d);
             });
-            uploadBtn.disabled = !hasVideo;
-            videoStatus.textContent = hasVideo ? "✓ VIDEO CARGADO" : "VIDEO OBLIGATORIO PENDIENTE";
-            videoStatus.className = `text-xs font-bold uppercase ${hasVideo ? 'text-green-600' : 'text-red-600'}`;
+            refreshResidentEvidenceGate();
         }
 
         function fechaCarpetaLima() {
@@ -1102,37 +1266,22 @@
             }
         }
 
-        function turnoEntregaLima() {
-            const d = new Date();
-            const wd = new Intl.DateTimeFormat("en-US", { timeZone: "America/Lima", weekday: "short" }).format(d);
-            const hour = parseInt(
-                new Intl.DateTimeFormat("en-US", { timeZone: "America/Lima", hour: "numeric", hour12: false }).format(d),
-                10
-            );
-            const minute = parseInt(
-                new Intl.DateTimeFormat("en-US", { timeZone: "America/Lima", minute: "numeric" }).format(d),
-                10
-            );
-            const minutesOfDay = hour * 60 + minute;
-            const mañanaIni = 7 * 60;
-            const mañanaFin = 9 * 60;
-            const tardeLvIni = 17 * 60;
-            const tardeLvFin = 18 * 60;
-            const tardeSabIni = 12 * 60;
-            const tardeSabFin = 13 * 60;
-            const esLv = ["Mon", "Tue", "Wed", "Thu", "Fri"].includes(wd);
-            const esSab = wd === "Sat";
-
-            if (minutesOfDay >= mañanaIni && minutesOfDay < mañanaFin) return "mañana";
-            if (esLv && minutesOfDay >= tardeLvIni && minutesOfDay < tardeLvFin) return "tarde";
-            if (esSab && minutesOfDay >= tardeSabIni && minutesOfDay < tardeSabFin) return "tarde";
-            return "otro_horario";
-        }
-
         window.simulateUpload = async () => {
             const btn = document.getElementById('uploadBtn');
             if (!activeProjectId || selectedFiles.length === 0) {
                 showFeedback("Selecciona archivos antes de sincronizar.", "error");
+                return;
+            }
+            const proyectoActivo = masterProjects.find((p) => p.id === activeProjectId);
+            const gate = getResidentUploadGate(proyectoActivo);
+            if (gate.blocked) {
+                showFeedback(gate.message, "error");
+                refreshResidentEvidenceGate();
+                return;
+            }
+            const hasVideo = selectedFiles.some((f) => f.type.startsWith("video/"));
+            if (!hasVideo) {
+                showFeedback("Debe adjuntar al menos un video.", "error");
                 return;
             }
             if (!auth.currentUser) {
@@ -1143,11 +1292,10 @@
                     return;
                 }
             }
-            const proyectoActivo = masterProjects.find((p) => p.id === activeProjectId);
             const cuiRaw = proyectoActivo?.cui != null ? String(proyectoActivo.cui) : "SIN_CUI";
             const cuiCarpeta = cuiRaw.replace(/[^a-zA-Z0-9_-]/g, "_");
             const fechaDir = fechaCarpetaLima();
-            const turnoDir = turnoEntregaLima();
+            const turnoDir = gate.slot;
             const carpetaSesion = `CUI_${cuiCarpeta}_${turnoDir}`;
             for (const f of selectedFiles) {
                 if (f.size > MAX_UPLOAD_BYTES) {
