@@ -446,14 +446,18 @@
             onSnapshot(ref, (snap) => {
                 masterProjects = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                 if (masterProjects.length === 0) {
-                    setMode(currentMode);
+                    if (currentMode === 'LOGIN') {
+                        setMode(currentMode);
+                    }
                     seed();
                 }
                 else {
                     projectsLoaded = true;
                     activeProjects = [...masterProjects];
                     localStorage.setItem(PROJECTS_CACHE_KEY, JSON.stringify(masterProjects));
-                    setMode(currentMode);
+                    if (currentMode === 'LOGIN') {
+                        setMode(currentMode);
+                    }
                     renderAdminTable();
                     renderElegantFaultReport();
                 }
@@ -686,6 +690,8 @@
             currentMode = mode;
             const container = document.getElementById('dynamicInputContainer');
             const submitBtn = document.getElementById('submitBtn');
+            const prevRegCui = document.getElementById('regCui')?.value || '';
+            const prevRegName = document.getElementById('regName')?.value || '';
             if (mode === 'LOGIN') {
                 if (!projectsLoaded || masterProjects.length === 0) {
                     container.innerHTML = `<label class="label-gold">PROYECTO DE INVERSIÓN</label><select id="projectSelector" disabled class="w-full rounded-xl px-4 py-4 text-sm font-bold shadow-sm"><option value="" selected>Cargando obras...</option></select>`;
@@ -700,6 +706,8 @@
                 submitBtn.disabled = false;
             } else {
                 container.innerHTML = `<label class="label-gold">NUEVO PROYECTO</label><input type="text" id="regCui" placeholder="Código CUI" class="w-full rounded-xl px-4 py-4 mb-2 font-bold"><textarea id="regName" placeholder="Denominación" class="w-full rounded-xl px-4 py-4 h-24 font-bold shadow-sm"></textarea>`;
+                document.getElementById('regCui').value = prevRegCui;
+                document.getElementById('regName').value = prevRegName;
                 submitBtn.disabled = false;
             }
         };
