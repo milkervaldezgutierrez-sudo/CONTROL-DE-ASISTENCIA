@@ -699,7 +699,7 @@
                 container.innerHTML = `<label class="label-gold">CORREO INSTITUCIONAL</label><input type="email" id="adminEmail" value="u202418465@upc.edu.pe" class="w-full rounded-xl px-4 py-4 text-sm font-bold shadow-sm">`;
                 submitBtn.disabled = false;
             } else {
-                container.innerHTML = `<input type="text" id="regCui" placeholder="Código CUI" class="w-full rounded-xl px-4 py-4 mb-2 font-bold"><textarea id="regName" placeholder="Denominación" class="w-full rounded-xl px-4 py-4 h-24 font-bold shadow-sm"></textarea>`;
+                container.innerHTML = `<label class="label-gold">NUEVO PROYECTO</label><input type="text" id="regCui" placeholder="Código CUI" class="w-full rounded-xl px-4 py-4 mb-2 font-bold"><textarea id="regName" placeholder="Denominación" class="w-full rounded-xl px-4 py-4 h-24 font-bold shadow-sm"></textarea>`;
                 submitBtn.disabled = false;
             }
         };
@@ -727,6 +727,40 @@
                     document.getElementById('residentProjectName').textContent = p.nombre;
                     renderPreviews();
                 } else showFeedback("Clave incorrecta");
+            } else if (currentMode === 'REGISTER') {
+                const regCui = document.getElementById('regCui').value.trim();
+                const regName = document.getElementById('regName').value.trim();
+                const currentMonth = new Date().toISOString().slice(0, 7);
+
+                if (!regCui || !regName || !pass) {
+                    showFeedback("Completa CUI, denominación y clave.");
+                    return;
+                }
+
+                const duplicated = masterProjects.some(p => String(p.cui).trim() === regCui);
+                if (duplicated) {
+                    showFeedback("Ese CUI ya está registrado.");
+                    return;
+                }
+
+                try {
+                    await setDoc(doc(collection(db, 'artifacts', appId, 'public', 'data', 'projects')), {
+                        cui: regCui,
+                        nombre: regName,
+                        pass,
+                        residente: "Por asignar",
+                        supervisor: "Por asignar",
+                        last_report: null,
+                        faults_accumulated: 0,
+                        last_reset_month: currentMonth
+                    });
+                    showFeedback("Proyecto registrado correctamente.");
+                    document.getElementById('password').value = '';
+                    setMode('LOGIN');
+                } catch (error) {
+                    console.error(error);
+                    showFeedback("No se pudo registrar el proyecto.");
+                }
             }
         });
 
