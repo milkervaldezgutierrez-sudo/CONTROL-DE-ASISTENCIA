@@ -261,8 +261,9 @@
                 </div>
                 <div>
                     <h2 class="text-2xl font-black uppercase tracking-tight">Sede Central Ayacucho</h2>
-                    <div class="flex gap-6 mt-2">
+                    <div class="flex flex-wrap gap-4 md:gap-6 mt-2">
                         <button onclick="switchAdminTab('list')" id="tabList" class="text-[10px] font-black active-tab pb-1">GESTIÓN</button>
+                        <button onclick="switchAdminTab('evidence')" id="tabEvidence" class="text-[10px] font-black opacity-40 hover:opacity-100 transition-colors uppercase">Evidencias</button>
                         <button onclick="switchAdminTab('report')" id="tabReport" class="text-[10px] font-black opacity-40 hover:opacity-100 transition-colors uppercase">Cumplimiento Regional</button>
                     </div>
                 </div>
@@ -306,11 +307,34 @@
                     <input type="number" id="editFaults" placeholder="Faltas Históricas" class="w-full rounded-xl px-4 py-3 text-sm text-red-600 font-bold">
                     <button onclick="saveEdit()" id="saveBtn" class="w-full btn-primary py-4 rounded-xl text-xs mt-2">Sincronizar Ficha</button>
                 </div>
-                <div id="evidenceReviewBox" class="hidden mt-6 pt-6 border-t border-gray-400/20">
-                    <h4 class="text-[#991b1b] text-[10px] font-black uppercase mb-3">Verificación de evidencias</h4>
-                    <p class="text-[9px] opacity-60 mb-3">Revise fotos y videos enviados por el residente. Marque cada envío como aprobado o rechazado.</p>
-                    <div id="evidenceReviewList" class="max-h-[28rem] overflow-y-auto space-y-4 pr-1"></div>
+            </div>
+        </div>
+
+        <div id="adminEvidenceView" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <div class="lg:col-span-5 bg-black/5 rounded-3xl border border-gray-400/10 overflow-hidden">
+                <div class="p-4 border-b border-gray-400/10 bg-black/5">
+                    <h4 class="text-[#991b1b] text-[10px] font-black uppercase">Proyectos con evidencias</h4>
+                    <p class="text-[9px] opacity-50 mt-1">Elija un proyecto para revisar fotos y videos.</p>
                 </div>
+                <div class="overflow-x-auto max-h-[32rem] overflow-y-auto">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="bg-black/5 border-b border-gray-400/10">
+                                <th class="p-3 text-[#991b1b] text-[9px] font-black uppercase">CUI</th>
+                                <th class="p-3 text-[#991b1b] text-[9px] font-black uppercase">Proyecto</th>
+                                <th class="p-3 text-[#991b1b] text-[9px] font-black uppercase text-center">Evid.</th>
+                                <th class="p-3 text-[#991b1b] text-[9px] font-black uppercase text-center">Abrir</th>
+                            </tr>
+                        </thead>
+                        <tbody id="evidenceAdminTableBody" class="divide-y divide-gray-400/10"></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="lg:col-span-7 bg-black/5 rounded-3xl border border-gray-400/10 p-6 md:p-8">
+                <h4 class="text-[#991b1b] text-[10px] font-black uppercase mb-2">Verificación de evidencias</h4>
+                <p id="evidenceSelectedLabel" class="text-[10px] font-bold opacity-60 mb-4">Seleccione un proyecto en la lista de la izquierda.</p>
+                <p class="text-[9px] opacity-50 mb-3">Marque cada envío como aprobado o rechazado. Si rechaza, indique el motivo.</p>
+                <div id="evidenceReviewList" class="max-h-[32rem] overflow-y-auto space-y-4 pr-1"></div>
             </div>
         </div>
 
@@ -396,6 +420,7 @@
         let weekOffset = 0;
         let isDarkMode = true;
         let projectsLoaded = false;
+        let evidenceSelectedProjectId = null;
         const PROJECTS_CACHE_KEY = `projects_cache_${appId}`;
 
         const authView = document.getElementById('authView');
@@ -469,6 +494,14 @@
                         setMode(currentMode);
                     }
                     renderAdminTable();
+                    renderEvidenceAdminProjectTable();
+                    if (evidenceSelectedProjectId) {
+                        const pSel = masterProjects.find((x) => x.id === evidenceSelectedProjectId);
+                        const evView = document.getElementById("adminEvidenceView");
+                        if (pSel && evView && !evView.classList.contains("hidden")) {
+                            renderEvidenceReview(pSel);
+                        }
+                    }
                     renderElegantFaultReport();
                 }
             }, (error) => {
@@ -679,21 +712,42 @@
         window.switchAdminTab = (tab) => {
             const list = document.getElementById('adminListView');
             const report = document.getElementById('adminReportView');
+            const evidence = document.getElementById('adminEvidenceView');
             const exportBtn = document.getElementById('exportJpgBtn');
             const resetBtn = document.getElementById('resetMonthBtn');
             const criticoBtn = document.getElementById('exportCriticosBtn');
             const btnList = document.getElementById('tabList');
             const btnReport = document.getElementById('tabReport');
+            const btnEvidence = document.getElementById('tabEvidence');
+            const tabInactive = "text-[10px] font-black opacity-40 hover:opacity-100 transition-colors uppercase";
+            const tabActive = "text-[10px] font-black active-tab pb-1";
 
             list.classList.toggle('hidden', tab !== 'list');
             report.classList.toggle('hidden', tab !== 'report');
-            exportBtn.classList.toggle('hidden', tab !== 'report');
-            resetBtn.classList.toggle('hidden', tab !== 'report');
-            criticoBtn.classList.toggle('hidden', tab !== 'report');
-            
-            btnList.className = tab === 'list' ? "text-[10px] font-black active-tab pb-1" : "text-[10px] font-black opacity-40 hover:opacity-100 transition-colors uppercase";
-            btnReport.className = tab === 'report' ? "text-[10px] font-black active-tab pb-1" : "text-[10px] font-black opacity-40 hover:opacity-100 transition-colors uppercase";
-            if(tab === 'report') renderElegantFaultReport();
+            if (evidence) evidence.classList.toggle('hidden', tab !== 'evidence');
+            const showReportExports = tab === 'report';
+            exportBtn.classList.toggle('hidden', !showReportExports);
+            resetBtn.classList.toggle('hidden', !showReportExports);
+            criticoBtn.classList.toggle('hidden', !showReportExports);
+
+            btnList.className = tab === 'list' ? tabActive : tabInactive;
+            if (btnEvidence) btnEvidence.className = tab === 'evidence' ? tabActive : tabInactive;
+            btnReport.className = tab === 'report' ? tabActive : tabInactive;
+            if (tab === 'report') renderElegantFaultReport();
+            if (tab === 'evidence') {
+                renderEvidenceAdminProjectTable();
+                const lbl = document.getElementById('evidenceSelectedLabel');
+                const revList = document.getElementById('evidenceReviewList');
+                const p = masterProjects.find((x) => x.id === evidenceSelectedProjectId);
+                if (p) {
+                    if (lbl) lbl.textContent = `CUI ${p.cui} — ${p.nombre}`;
+                    renderEvidenceReview(p);
+                } else {
+                    evidenceSelectedProjectId = null;
+                    if (lbl) lbl.textContent = 'Seleccione un proyecto en la lista de la izquierda.';
+                    if (revList) revList.innerHTML = '';
+                }
+            }
         };
 
         window.setMode = (mode) => {
@@ -840,11 +894,40 @@
                 </tr>`).join('');
         }
 
+        function renderEvidenceAdminProjectTable() {
+            const tbody = document.getElementById('evidenceAdminTableBody');
+            if (!tbody) return;
+            const sel = evidenceSelectedProjectId;
+            tbody.innerHTML = masterProjects.map((p) => {
+                const rowClass = p.id === sel ? 'bg-[#991b1b]/10' : 'hover:bg-black/5';
+                return `
+                <tr class="${rowClass}">
+                    <td class="p-3 font-mono text-[#991b1b] font-bold text-xs">${p.cui}</td>
+                    <td class="p-3 text-xs font-semibold">${p.nombre}</td>
+                    <td class="p-3 text-center">${evidenceReviewTableCell(p)}</td>
+                    <td class="p-3 text-center">
+                        <button type="button" onclick="openEvidenceReviewTab('${p.id}')" class="bg-[#991b1b]/5 text-[#991b1b] px-3 py-1 rounded text-[10px] font-black border border-[#991b1b]/10 hover:bg-[#991b1b] hover:text-white transition-all uppercase font-bold">Revisar</button>
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+
+        window.openEvidenceReviewTab = (id) => {
+            evidenceSelectedProjectId = id;
+            const p = masterProjects.find((x) => x.id === id);
+            const label = document.getElementById('evidenceSelectedLabel');
+            if (label && p) label.textContent = `CUI ${p.cui} — ${p.nombre}`;
+            renderEvidenceAdminProjectTable();
+            if (p) renderEvidenceReview(p);
+            else {
+                const list = document.getElementById('evidenceReviewList');
+                if (list) list.innerHTML = '';
+            }
+        };
+
         function renderEvidenceReview(p) {
-            const box = document.getElementById("evidenceReviewBox");
             const list = document.getElementById("evidenceReviewList");
-            if (!box || !list) return;
-            box.classList.remove("hidden");
+            if (!list) return;
             const reviews = p.evidence_reviews || {};
             let batches = [];
             if (Array.isArray(p.evidence_log) && p.evidence_log.length > 0) {
@@ -934,6 +1017,8 @@
                     masterProjects[idx].evidence_reviews = { ...(masterProjects[idx].evidence_reviews || {}), [batchKey]: { status, note, reviewed_at: new Date().toISOString() } };
                     renderEvidenceReview(masterProjects[idx]);
                 }
+                renderEvidenceAdminProjectTable();
+                renderAdminTable();
                 showFeedback(status === "aprobado" ? "Evidencia aprobada." : "Evidencia rechazada.", "success");
             } catch (e) {
                 console.error(e);
@@ -951,7 +1036,6 @@
             document.getElementById('editSupervisor').value = p.supervisor || '';
             document.getElementById('editFaults').value = p.faults_accumulated || 0;
             document.getElementById('editSection').classList.remove('opacity-30', 'pointer-events-none');
-            renderEvidenceReview(p);
         };
 
         window.saveEdit = async () => {
