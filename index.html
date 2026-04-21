@@ -342,11 +342,19 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, doc, onSnapshot, updateDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'gra-ayacucho-prod';
-        const firebaseConfig = JSON.parse(__firebase_config);
+        const appId = window.APP_ID || 'gra-ayacucho-prod';
+        const firebaseConfig = window.FIREBASE_CONFIG || {
+            apiKey: "REEMPLAZA_API_KEY",
+            authDomain: "REEMPLAZA_AUTH_DOMAIN",
+            projectId: "REEMPLAZA_PROJECT_ID"
+        };
+        if (!firebaseConfig.apiKey || firebaseConfig.apiKey.startsWith("REEMPLAZA_")) {
+            document.getElementById('initialLoader').innerHTML = '<p class="text-red-400 font-bold text-center">Configura FIREBASE_CONFIG en index.html para usar GitHub Pages.</p>';
+            throw new Error('Falta configurar Firebase para despliegue estatico.');
+        }
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
@@ -377,11 +385,7 @@
 
         async function init() {
             try {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
-                }
+                await signInAnonymously(auth);
             } catch (e) { console.error(e); }
 
             onAuthStateChanged(auth, (user) => {
