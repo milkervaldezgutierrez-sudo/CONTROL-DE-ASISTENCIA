@@ -862,6 +862,51 @@
             videoStatus.className = `text-xs font-bold uppercase ${hasVideo ? 'text-green-600' : 'text-red-600'}`;
         }
 
+        function fechaCarpetaLima() {
+            try {
+                const parts = new Intl.DateTimeFormat("en-CA", {
+                    timeZone: "America/Lima",
+                    year: "numeric",
+                    month: "2-digit",
+                    day: "2-digit"
+                }).formatToParts(new Date());
+                const y = parts.find((p) => p.type === "year").value;
+                const mo = parts.find((p) => p.type === "month").value;
+                const da = parts.find((p) => p.type === "day").value;
+                return `${y}-${mo}-${da}`;
+            } catch {
+                const d = new Date();
+                return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+            }
+        }
+
+        function turnoEntregaLima() {
+            const d = new Date();
+            const wd = new Intl.DateTimeFormat("en-US", { timeZone: "America/Lima", weekday: "short" }).format(d);
+            const hour = parseInt(
+                new Intl.DateTimeFormat("en-US", { timeZone: "America/Lima", hour: "numeric", hour12: false }).format(d),
+                10
+            );
+            const minute = parseInt(
+                new Intl.DateTimeFormat("en-US", { timeZone: "America/Lima", minute: "numeric" }).format(d),
+                10
+            );
+            const minutesOfDay = hour * 60 + minute;
+            const mañanaIni = 7 * 60;
+            const mañanaFin = 9 * 60;
+            const tardeLvIni = 17 * 60;
+            const tardeLvFin = 18 * 60;
+            const tardeSabIni = 12 * 60;
+            const tardeSabFin = 13 * 60;
+            const esLv = ["Mon", "Tue", "Wed", "Thu", "Fri"].includes(wd);
+            const esSab = wd === "Sat";
+
+            if (minutesOfDay >= mañanaIni && minutesOfDay < mañanaFin) return "mañana";
+            if (esLv && minutesOfDay >= tardeLvIni && minutesOfDay < tardeLvFin) return "tarde";
+            if (esSab && minutesOfDay >= tardeSabIni && minutesOfDay < tardeSabFin) return "tarde";
+            return "otro_horario";
+        }
+
         window.simulateUpload = async () => {
             const btn = document.getElementById('uploadBtn');
             if (!activeProjectId || selectedFiles.length === 0) {
@@ -876,6 +921,12 @@
                     return;
                 }
             }
+            const proyectoActivo = masterProjects.find((p) => p.id === activeProjectId);
+            const cuiRaw = proyectoActivo?.cui != null ? String(proyectoActivo.cui) : "SIN_CUI";
+            const cuiCarpeta = cuiRaw.replace(/[^a-zA-Z0-9_-]/g, "_");
+            const fechaDir = fechaCarpetaLima();
+            const turnoDir = turnoEntregaLima();
+            const carpetaSesion = `CUI_${cuiCarpeta}_${turnoDir}`;
             for (const f of selectedFiles) {
                 if (f.size > MAX_UPLOAD_BYTES) {
                     showFeedback(`Archivo demasiado grande (max ${Math.round(MAX_UPLOAD_BYTES / 1024 / 1024)} MB): ${f.name}`, "error");
@@ -890,7 +941,7 @@
                 for (let i = 0; i < selectedFiles.length; i++) {
                     const file = selectedFiles[i];
                     const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
-                    const path = `evidencias/${activeProjectId}/${batchId}_${i}_${safeName}`;
+                    const path = `evidencias/${fechaDir}/${carpetaSesion}/${batchId}_${i}_${safeName}`;
                     const storageRef = ref(storage, path);
                     btn.textContent = `Subiendo ${i + 1}/${selectedFiles.length}...`;
                     await new Promise((resolve, reject) => {
@@ -923,7 +974,14 @@
                     await updateDoc(projectRef, {
                         last_report: now,
                         last_evidence_files: uploaded,
-                        evidence_log: arrayUnion({ uploaded_at: now, files: uploaded })
+                        evidence_log: arrayUnion({
+                            uploaded_at: now,
+                            fecha: fechaDir,
+                            turno: turnoDir,
+                            cui: cuiRaw,
+                            storage_folder: carpetaSesion,
+                            files: uploaded
+                        })
                     });
                 } catch (fe) {
                     await updateDoc(projectRef, {
@@ -939,7 +997,7 @@
             } catch (e) {
                 console.error(e);
                 showFeedback(
-                    `Subida fallida: ${e.code || e.message}. En Storage > Reglas permite escribir a usuarios autenticados (match /evidencias/{pid}/{allPaths=**}).`,
+                    `Subida fallida: ${e.code || e.message}. En Storage > Reglas permite escribir bajo evidencias/ (usuarios autenticados).`,
                     "error"
                 );
                 btn.textContent = originalLabel;
