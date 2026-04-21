@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GRA Ayacucho - Control de Inversiones</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+
+        :root {
+            --gra-red: #991b1b; 
+            --gra-gold: #facc15; 
+            --gra-dark: #0f172a;
+            --input-bg: rgba(15, 23, 42, 0.85);
+            --body-bg: linear-gradient(135deg, #450a0a 0%, #0f172a 100%);
+            --card-bg: rgba(15, 23, 42, 0.9);
+            --text-main: #ffffff;
+            --border-color: rgba(250, 204, 21, 0.3);
+            --accent-gold: #facc15;
+        }
+
+        body.light-mode {
+            --body-bg: linear-gradient(135deg, #fff7ed 0%, #f8fafc 100%);
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --text-main: #1e293b;
+            --input-bg: #ffffff;
+            --border-color: rgba(153, 27, 27, 0.1);
+            --accent-gold: #b45309;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: var(--body-bg);
+            background-attachment: fixed;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            padding: 20px;
+            color: var(--text-main);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glass-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            border-radius: 28px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            color: var(--text-main);
+        }
+
+        body.light-mode .glass-card {
+            box-shadow: 0 20px 25px -5px rgba(153, 27, 27, 0.05);
+            border: 1px solid rgba(153, 27, 27, 0.1);
+        }
+
+        select, input, textarea {
+            background-color: var(--input-bg) !important;
+            color: var(--text-main) !important;
+            border: 2px solid rgba(128, 128, 128, 0.2) !important;
+            transition: all 0.2s ease;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--gra-gold) !important;
+            box-shadow: 0 0 15px rgba(250, 204, 21, 0.3);
+            outline: none;
+        }
+
+        .btn-primary {
+            background-color: #991b1b;
+            color: #ffffff;
+            font-weight: 800;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            filter: brightness(1.2);
+        }
+
+        .label-gold {
+            color: var(--accent-gold);
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        .logo-container {
+            width: 75px;
+            height: 90px;
+            background: white;
+            padding: 8px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .custom-loader {
+            border: 3px solid rgba(153, 27, 27, 0.1);
+            border-top: 3px solid var(--gra-gold);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .status-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+        .status-dot.success { background-color: #22c55e; box-shadow: 0 0 10px rgba(34, 197, 94, 0.5); }
+        .status-dot.fail { background-color: #ef4444; box-shadow: 0 0 10px rgba(239, 68, 68, 0.5); }
+        .status-dot.pending { background-color: rgba(128,128,128,0.2); border: 1px solid rgba(128,128,128,0.3); }
+
+        .active-tab {
+            color: var(--accent-gold);
+            border-bottom: 3px solid var(--accent-gold);
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 25px;
+            right: 25px;
+            z-index: 1000;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        body.light-mode .text-white\/50 { color: rgba(30, 41, 59, 0.6); }
+        body.light-mode .bg-black\/40 { background-color: rgba(255,255,255,1); }
+        body.light-mode tr.bg-white\/5 { background-color: rgba(153, 27, 27, 0.01); }
+    </style>
+</head>
+<body class="dark-mode">
+
+    <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">
+        <span id="themeIcon">
+            <svg class="w-6 h-6 text-yellow-400" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+        </span>
+    </button>
+
+    <div id="initialLoader" class="flex flex-col items-center gap-4">
+        <div class="custom-loader w-12 h-12"></div>
+        <p class="text-yellow-500 font-bold animate-pulse uppercase tracking-widest text-xs">Sincronizando con Sede Central Ayacucho...</p>
+    </div>
+
+    <div id="authView" class="glass-card p-10 w-full max-w-md hidden border-t-4 border-t-[#991b1b]">
+        <div class="flex flex-col items-center mb-6 text-center">
+            <div class="logo-container mb-4">
+                <img src="image_bda025.jpg" alt="Logo GRA" class="h-full object-contain">
+            </div>
+            <h1 class="text-xs font-bold uppercase tracking-[0.3em] text-[#991b1b] leading-none mb-1">Gobierno Regional</h1>
+            <h2 class="text-2xl font-black uppercase tracking-tight">Ayacucho</h2>
+            <div class="h-1 w-12 bg-yellow-500 mt-2 rounded-full"></div>
+        </div>
+
+        <div class="mb-8 text-center">
+            <h3 id="formTitle" class="text-xl font-bold">Gestión de Inversiones</h3>
+            <p class="text-white/50 text-[10px] mt-1 uppercase tracking-widest font-bold">Control de Obras Públicas</p>
+        </div>
+
+        <form id="projectForm" class="space-y-6">
+            <div id="dynamicInputContainer"></div>
+            <div class="space-y-1">
+                <label class="label-gold">CLAVE DE SEGURIDAD</label>
+                <input type="password" id="password" placeholder="••••••••" class="w-full rounded-xl px-4 py-4 text-lg shadow-sm">
+            </div>
+            <button type="submit" id="submitBtn" class="w-full btn-primary py-4 rounded-xl shadow-xl">
+                <span id="btnText">Ingresar al Sistema</span>
+                <div id="loader" class="custom-loader hidden mx-auto"></div>
+            </button>
+            <div id="feedback" class="hidden text-center text-xs p-4 rounded-xl border border-red-500/50 bg-red-950/40 text-red-200"></div>
+        </form>
+
+        <div class="mt-8 flex justify-between items-center pt-6 border-t border-gray-400/10">
+            <button id="adminModeBtn" class="text-[9px] font-bold opacity-40 hover:opacity-100 uppercase tracking-widest transition-all">
+                <span id="adminBtnLabel">Panel Administrativo</span>
+            </button>
+            <button id="toggleBtn" class="text-[#991b1b] opacity-60 hover:opacity-100 text-[9px] uppercase font-black tracking-widest">Solicitar Registro</button>
+        </div>
+    </div>
+
+    <div id="residentModuleView" class="glass-card p-10 w-full max-w-2xl hidden border-t-4 border-t-green-600">
+        <div class="flex justify-between items-start mb-8 border-b border-gray-400/10 pb-6">
+            <div class="flex items-center gap-4">
+                <div class="logo-container h-16 w-14 rounded-lg">
+                    <img src="image_bda025.jpg" alt="Logo GRA" class="h-full object-contain">
+                </div>
+                <div>
+                    <span class="label-gold">Residencia Autorizada</span>
+                    <h2 id="residentProjectName" class="text-xl font-black leading-tight max-w-sm">Cargando...</h2>
+                </div>
+            </div>
+            <button onclick="goBackToHome()" class="bg-red-500/10 text-red-600 p-2 rounded-lg hover:bg-red-500/20 transition-all font-bold text-[10px] uppercase px-4">Salir</button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div class="bg-black/5 rounded-2xl p-5 border border-white/5">
+                <h4 class="text-[10px] font-bold opacity-50 uppercase mb-3 text-current">Estado del Reporte</h4>
+                <div class="flex items-center gap-3">
+                    <div id="statusDot" class="w-3 h-3 rounded-full bg-red-500 animate-pulse"></div>
+                    <span id="videoStatus" class="text-xs font-bold uppercase text-red-600">Video Obligatorio Pendiente</span>
+                </div>
+            </div>
+            <div class="bg-black/5 rounded-2xl p-5 border border-white/5 text-[9px]">
+                <h4 class="text-[10px] font-bold opacity-50 uppercase mb-2 text-current">Horarios de Entrega</h4>
+                <p class="font-bold">L-V: 07:00 - 09:00 / 17:00 - 18:00</p>
+                <p class="font-bold">Sáb: 07:00 - 09:00 / 12:00 - 13:00</p>
+            </div>
+        </div>
+
+        <div class="bg-black/5 rounded-3xl p-10 border-2 border-dashed border-gray-400/20 text-center cursor-pointer hover:border-[#991b1b]/50 group" onclick="document.getElementById('fileInput').click()">
+            <input type="file" id="fileInput" multiple accept="image/*,video/*" class="hidden" onchange="handleFileSelect(event)">
+            <div class="w-16 h-16 bg-[#991b1b]/5 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                <svg class="w-8 h-8 text-[#991b1b]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" stroke-width="1.5"/></svg>
+            </div>
+            <p class="font-bold text-sm">Adjuntar Evidencia Diaria</p>
+            <p class="text-[10px] opacity-50 uppercase mt-1">Imágenes y Video del Avance Físico</p>
+        </div>
+
+        <div id="filePreviewContainer" class="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-4"></div>
+        <button id="uploadBtn" disabled onclick="simulateUpload()" class="w-full mt-10 btn-primary py-5 rounded-2xl text-sm shadow-lg">Sincronizar Datos</button>
+    </div>
+
+    <div id="adminPanelView" class="glass-card p-10 w-full max-w-6xl hidden border-t-4 border-t-[#991b1b]">
+        <div class="flex flex-col md:flex-row justify-between items-center mb-10 gap-6">
+            <div class="flex items-center gap-5">
+                <div class="logo-container h-20 w-16">
+                    <img src="image_bda025.jpg" alt="Logo GRA" class="h-full object-contain">
+                </div>
+                <div>
+                    <h2 class="text-2xl font-black uppercase tracking-tight">Sede Central Ayacucho</h2>
+                    <div class="flex gap-6 mt-2">
+                        <button onclick="switchAdminTab('list')" id="tabList" class="text-[10px] font-black active-tab pb-1">GESTIÓN</button>
+                        <button onclick="switchAdminTab('report')" id="tabReport" class="text-[10px] font-black opacity-40 hover:opacity-100 transition-colors uppercase">Cumplimiento Regional</button>
+                    </div>
+                </div>
+            </div>
+            <div class="flex gap-3">
+                <button id="resetMonthBtn" onclick="confirmResetMonth()" class="hidden bg-red-600/20 px-4 py-3 rounded-xl text-[10px] font-black text-red-500 hover:bg-red-600/40 uppercase transition-all border border-red-600/20">Cierre de Mes</button>
+                <button id="exportCriticosBtn" onclick="exportCriticosJPG()" class="hidden bg-red-600/10 px-4 py-3 rounded-xl text-[10px] font-black text-red-500 hover:bg-red-600/20 uppercase transition-all border border-red-600/20">Reporte Crítico</button>
+                <button id="exportJpgBtn" onclick="exportToJPG()" class="hidden bg-black/5 px-6 py-3 rounded-xl text-[10px] font-black uppercase border border-current/10">Descargar JPG</button>
+                <button onclick="goBackToHome()" class="bg-red-600/10 px-6 py-3 rounded-xl text-xs font-black text-red-600 uppercase border border-red-600/10">Cerrar Sesión</button>
+            </div>
+        </div>
+
+        <div id="adminListView" class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <div class="lg:col-span-8 bg-black/5 rounded-3xl border border-gray-400/10 overflow-hidden">
+                <table class="w-full text-left">
+                    <thead>
+                        <tr class="bg-black/5 border-b border-gray-400/10">
+                            <th class="p-5 text-[#991b1b] text-[10px] font-black uppercase">CUI</th>
+                            <th class="p-5 text-[#991b1b] text-[10px] font-black uppercase">Proyecto</th>
+                            <th class="p-5 text-[#991b1b] text-[10px] font-black uppercase text-center">Gestión</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminTableBody" class="divide-y divide-gray-400/10"></tbody>
+                </table>
+            </div>
+            <div class="lg:col-span-4 bg-black/5 rounded-3xl p-8 border border-gray-400/10 opacity-30 pointer-events-none transition-all" id="editSection">
+                <h4 class="text-[#991b1b] text-[10px] font-black uppercase mb-6">Detalles del Expediente</h4>
+                <div class="space-y-4">
+                    <input type="hidden" id="editDocId">
+                    <input type="text" id="editCui" placeholder="Código CUI" class="w-full rounded-xl px-4 py-3 text-sm">
+                    <textarea id="editName" rows="3" placeholder="Nombre de la Obra" class="w-full rounded-xl px-4 py-3 text-sm resize-none"></textarea>
+                    <div class="grid grid-cols-2 gap-2">
+                        <input type="text" id="editResidente" placeholder="Residente" class="w-full rounded-xl px-4 py-2 text-xs">
+                        <input type="text" id="editSupervisor" placeholder="Supervisor" class="w-full rounded-xl px-4 py-2 text-xs">
+                    </div>
+                    <div class="bg-[#991b1b]/5 p-4 rounded-xl border border-[#991b1b]/10">
+                        <label class="label-gold">CLAVE DE ACCESO</label>
+                        <input type="text" id="editPass" class="w-full bg-transparent border-none text-lg font-black text-[#991b1b] p-0 focus:ring-0">
+                    </div>
+                    <input type="number" id="editFaults" placeholder="Faltas Históricas" class="w-full rounded-xl px-4 py-3 text-sm text-red-600 font-bold">
+                    <button onclick="saveEdit()" id="saveBtn" class="w-full btn-primary py-4 rounded-xl text-xs mt-2">Sincronizar Ficha</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="adminReportView" class="hidden">
+            <div id="captureArea" class="bg-inherit rounded-3xl border border-gray-400/10 overflow-hidden shadow-2xl p-10">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
+                    <div>
+                        <h3 class="text-2xl font-black uppercase tracking-tight text-[#991b1b]">Reporte de Cumplimiento</h3>
+                        <p class="text-[11px] font-bold text-gray-500 uppercase">Sub Gerencia de Ejecución de Inversiones</p>
+                        <p id="currentControlMonthLabel" class="text-[10px] font-black text-gray-400 uppercase mt-1">Periodo de Control: CARGANDO...</p>
+                        <div class="flex gap-4 mt-3 items-center">
+                            <button onclick="setReportPeriod('semanal')" id="btnPeriodSemanal" class="text-[10px] font-black uppercase transition-all pb-1 active-tab">Semanal</button>
+                            <button onclick="setReportPeriod('mensual')" id="btnPeriodMensual" class="text-[10px] font-black opacity-30 uppercase transition-all pb-1">Mensual</button>
+                            <div class="h-4 w-px bg-gray-400/30 mx-2"></div>
+                            <div id="weekNavigator" class="flex items-center gap-3">
+                                <button onclick="changeWeek(-1)" class="p-1 hover:text-[#991b1b]"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7" stroke-width="3"/></svg></button>
+                                <span id="currentWeekRange" class="text-[10px] font-black uppercase font-mono opacity-50"></span>
+                                <button onclick="changeWeek(1)" class="p-1 hover:text-[#991b1b]"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" stroke-width="3"/></svg></button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap gap-4 items-center bg-black/5 p-5 rounded-2xl border border-gray-400/10">
+                        <div class="flex items-center gap-2 text-[10px] font-bold"><div class="status-dot success"></div> OK</div>
+                        <div class="flex items-center gap-2 text-[10px] font-bold"><div class="status-dot fail"></div> FALTA</div>
+                        <div class="flex items-center gap-2 text-[10px] font-bold"><div class="status-dot pending"></div> PEND.</div>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-separate border-spacing-y-4">
+                        <thead id="faultTableHead"></thead>
+                        <tbody id="elegantFaultTable"></tbody>
+                    </table>
+                </div>
+                <div class="mt-10 pt-6 border-t border-gray-400/10 text-center opacity-30">
+                    <p class="text-[10px] font-black uppercase">Gobierno Regional de Ayacucho - Sede Central</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, onSnapshot, updateDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'gra-ayacucho-prod';
+        const firebaseConfig = JSON.parse(__firebase_config);
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let masterProjects = [];
+        let activeProjects = [];
+        let currentMode = 'LOGIN';
+        let activeProjectId = null;
+        let selectedFiles = [];
+        let reportPeriod = 'semanal';
+        let weekOffset = 0;
+        let isDarkMode = true;
+
+        const authView = document.getElementById('authView');
+        const adminPanelView = document.getElementById('adminPanelView');
+        const residentModuleView = document.getElementById('residentModuleView');
+        const initialLoader = document.getElementById('initialLoader');
+
+        window.toggleTheme = () => {
+            isDarkMode = !isDarkMode;
+            document.body.className = isDarkMode ? 'dark-mode' : 'light-mode';
+            const icon = document.getElementById('themeIcon');
+            icon.innerHTML = isDarkMode ? 
+                `<svg class="w-6 h-6 text-yellow-400" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>` : 
+                `<svg class="w-6 h-6 text-[#991b1b]" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"></path></svg>`;
+            renderElegantFaultReport();
+        };
+
+        async function init() {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (e) { console.error(e); }
+
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    initialLoader.classList.add('hidden');
+                    authView.classList.remove('hidden');
+                    startSync();
+                }
+            });
+        }
+
+        function startSync() {
+            const ref = collection(db, 'artifacts', appId, 'public', 'data', 'projects');
+            onSnapshot(ref, (snap) => {
+                masterProjects = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                if (masterProjects.length === 0) seed();
+                else {
+                    activeProjects = [...masterProjects];
+                    setMode(currentMode);
+                    renderAdminTable();
+                    renderElegantFaultReport();
+                }
+            });
+        }
+
+        async function seed() {
+            const currentMonth = new Date().toISOString().slice(0, 7);
+            const data = [
+                { cui: "2345678", nombre: "Mejoramiento Transitabilidad Av. Independencia", pass: "123456", residente: "Ing. Juan Pérez", supervisor: "Ing. Marco Díaz", last_report: null, faults_accumulated: 0, last_reset_month: currentMonth },
+                { cui: "2501234", nombre: "Mantenimiento Canales Río Cachi", pass: "654321", residente: "Ing. Ana López", supervisor: "Ing. Raúl Torres", last_report: null, faults_accumulated: 0, last_reset_month: currentMonth }
+            ];
+            for (const p of data) await setDoc(doc(collection(db, 'artifacts', appId, 'public', 'data', 'projects')), p);
+        }
+
+        window.confirmResetMonth = async () => {
+            if (confirm("¿Confirmar cierre de mes? Se reiniciarán todos los contadores.")) {
+                const currentMonth = new Date().toISOString().slice(0, 7);
+                for (const p of masterProjects) {
+                    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'projects', p.id), {
+                        faults_accumulated: 0,
+                        last_reset_month: currentMonth
+                    });
+                }
+                showFeedback("✓ Mes reiniciado.");
+            }
+        };
+
+        window.setReportPeriod = (period) => {
+            reportPeriod = period;
+            document.getElementById('btnPeriodSemanal').classList.toggle('active-tab', period === 'semanal');
+            document.getElementById('btnPeriodMensual').classList.toggle('active-tab', period === 'mensual');
+            document.getElementById('weekNavigator').classList.toggle('hidden', period === 'mensual');
+            renderElegantFaultReport();
+        };
+
+        window.changeWeek = (offset) => {
+            weekOffset += offset;
+            renderElegantFaultReport();
+        };
+
+        window.exportToJPG = () => {
+            const area = document.getElementById('captureArea');
+            const btn = document.getElementById('exportJpgBtn');
+            const originalText = btn.textContent;
+            btn.textContent = "Procesando...";
+            html2canvas(area, { backgroundColor: isDarkMode ? '#0f172a' : '#f8fafc', scale: 2 }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `Reporte_General_GRA_${new Date().toISOString().slice(0,10)}.jpg`;
+                link.href = canvas.toDataURL('image/jpeg', 0.9);
+                link.click();
+                btn.textContent = originalText;
+            });
+        };
+
+        window.exportCriticosJPG = async () => {
+            const btn = document.getElementById('exportCriticosBtn');
+            const originalText = btn.textContent;
+            btn.textContent = "Filtrando...";
+
+            const currentMonthISO = new Date().toISOString().slice(0, 7);
+            const todayStr = new Date().toDateString();
+
+            // Filtrar infractores críticos
+            const criticos = masterProjects.filter(p => {
+                let prev = Number(p.faults_accumulated) || 0;
+                if (p.last_reset_month && p.last_reset_month < currentMonthISO) prev = 0;
+                const lastReportDate = p.last_report ? new Date(p.last_report) : null;
+                const reportedToday = lastReportDate && lastReportDate.toDateString() === todayStr;
+                const total = prev + (reportedToday ? 0 : 1);
+                return total >= 3;
+            });
+
+            // Feedback visual pero NO retornamos si está vacío
+            if (criticos.length === 0) {
+                showFeedback("Nota: Generando reporte sin infractores críticos detectados.");
+            }
+
+            // Cambiar vista temporalmente (incluso si está vacío)
+            activeProjects = criticos;
+            renderElegantFaultReport();
+            
+            setTimeout(() => {
+                const area = document.getElementById('captureArea');
+                html2canvas(area, { 
+                    backgroundColor: isDarkMode ? '#0f172a' : '#f8fafc', 
+                    scale: 2,
+                    useCORS: true 
+                }).then(canvas => {
+                    const link = document.createElement('a');
+                    link.download = `REPORTE_CRITICO_GRA_${new Date().toISOString().slice(0,10)}.jpg`;
+                    link.href = canvas.toDataURL('image/jpeg', 0.9);
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    
+                    // Restaurar vista completa
+                    activeProjects = [...masterProjects];
+                    renderElegantFaultReport();
+                    btn.textContent = originalText;
+                });
+            }, 600);
+        };
+
+        function getWeekDates(offset) {
+            const now = new Date();
+            const day = now.getDay();
+            const diff = now.getDate() - day + (day === 0 ? -6 : 1) + (offset * 7);
+            const monday = new Date(now.setDate(diff));
+            const dates = [];
+            for(let i=0; i<6; i++) {
+                const d = new Date(monday);
+                d.setDate(monday.getDate() + i);
+                dates.push(d);
+            }
+            return dates;
+        }
+
+        function renderElegantFaultReport() {
+            const tableBody = document.getElementById('elegantFaultTable');
+            const tableHead = document.getElementById('faultTableHead');
+            const weekRangeLabel = document.getElementById('currentWeekRange');
+            const controlMonthLabel = document.getElementById('currentControlMonthLabel');
+            if(!tableBody || !tableHead) return;
+
+            const weekDates = getWeekDates(weekOffset);
+            const todayStr = new Date().toDateString();
+            const nowMonth = new Date().toLocaleString('es-PE', {month: 'long', year: 'numeric'}).toUpperCase();
+            
+            if(weekRangeLabel) weekRangeLabel.textContent = `${weekDates[0].getDate()} ${weekDates[0].toLocaleString('es-PE', {month:'short'})} - ${weekDates[5].getDate()} ${weekDates[5].toLocaleString('es-PE', {month:'short'})}`;
+            if(controlMonthLabel) controlMonthLabel.textContent = `Periodo de Control: ${nowMonth}`;
+
+            if (reportPeriod === 'semanal') {
+                const dayNames = ['Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab'];
+                const ths = dayNames.map((name, i) => `<th class="p-4 text-center font-black"><div>${name}</div><div class="text-[8px] opacity-40 font-mono">${weekDates[i].getDate()}</div></th>`).join('');
+                tableHead.innerHTML = `<tr class="text-[#991b1b] text-[10px] font-black uppercase border-b border-gray-400/10"><th class="p-4 w-2/5 text-xs font-black">Información del Proyecto</th><th class="p-4 text-center bg-[#991b1b]/5 w-24">Previas</th>${ths}<th class="p-4 text-center bg-[#991b1b]/5 w-24">Totales</th></tr>`;
+            } else {
+                tableHead.innerHTML = `<tr class="text-[#991b1b] text-[10px] font-black uppercase border-b border-gray-400/10"><th class="p-4 w-2/5 text-xs font-black">Información del Proyecto</th><th class="p-4 text-center bg-[#991b1b]/5 w-24">Previas</th><th class="p-4 text-center">Sem 1</th><th class="p-4 text-center">Sem 2</th><th class="p-4 text-center">Sem 3</th><th class="p-4 text-center">Sem 4</th><th class="p-4 text-center bg-[#991b1b]/5 w-24">Mensual</th></tr>`;
+            }
+
+            if (activeProjects.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="10" class="p-20 text-center opacity-20 font-black uppercase tracking-widest">Sin registros que mostrar</td></tr>`;
+                return;
+            }
+
+            tableBody.innerHTML = activeProjects.map(p => {
+                const currentMonthISO = new Date().toISOString().slice(0, 7);
+                let faultsAccumulated = Number(p.faults_accumulated) || 0;
+                if (p.last_reset_month && p.last_reset_month < currentMonthISO) faultsAccumulated = 0; 
+
+                const lastReportDate = p.last_report ? new Date(p.last_report) : null;
+                const reportedToday = lastReportDate && lastReportDate.toDateString() === todayStr;
+                let cellsArr = [];
+                let periodFaults = 0;
+
+                if (reportPeriod === 'semanal') {
+                    cellsArr = weekDates.map((date) => {
+                        let dotClass = 'pending';
+                        if (date.toDateString() === todayStr) {
+                            dotClass = reportedToday ? 'success' : 'fail';
+                            if (!reportedToday) periodFaults++;
+                        } else if (date < new Date(new Date().setHours(0,0,0,0))) { dotClass = 'success'; }
+                        return `<div class="flex justify-center"><div class="status-dot ${dotClass}"></div></div>`;
+                    });
+                } else {
+                    cellsArr = [`<div class="status-dot success mx-auto"></div>`,`<div class="status-dot success mx-auto"></div>`,`<div class="status-dot ${reportedToday ? 'success' : 'fail'} mx-auto"></div>`,`<div class="status-dot pending mx-auto"></div>`];
+                    if(!reportedToday) periodFaults++;
+                }
+
+                const total = faultsAccumulated + periodFaults;
+                let borderColor = isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(153, 27, 27, 0.1)';
+                let totalCellBg = 'rgba(34, 197, 94, 0.1)';
+                let totalTextColor = '#22c55e';
+
+                if (total === 1) {
+                    borderColor = '#fbbf24'; totalCellBg = 'rgba(251, 191, 36, 0.15)'; totalTextColor = isDarkMode ? '#fbbf24' : '#b45309';
+                } else if (total === 2) {
+                    borderColor = '#f97316'; totalCellBg = 'rgba(249, 115, 22, 0.2)'; totalTextColor = '#f97316';
+                } else if (total >= 3) {
+                    borderColor = '#dc2626'; totalCellBg = 'rgba(220, 38, 38, 0.2)'; totalTextColor = '#dc2626';
+                }
+
+                const contrastText = isDarkMode ? 'text-white' : 'text-slate-800';
+                const contrastSub = isDarkMode ? 'text-gray-400' : 'text-gray-500';
+
+                return `
+                    <tr class="group">
+                        <td class="p-4 rounded-l-2xl border-y-2 border-l-2" style="border-color: ${borderColor}">
+                            <div class="flex flex-col">
+                                <span class="text-[10px] font-black text-[#991b1b] uppercase tracking-widest">${p.cui}</span>
+                                <span class="text-sm font-bold ${contrastText} leading-tight mt-1">${p.nombre}</span>
+                                <div class="text-[9px] uppercase font-bold ${contrastSub} mt-2">RESIDENTE: <span class="${contrastText}">${p.residente || 'ND'}</span></div>
+                            </div>
+                        </td>
+                        <td class="p-4 text-center border-y-2" style="border-color: ${borderColor}">
+                            <span class="text-base font-black ${contrastText}/60">${faultsAccumulated}</span>
+                        </td>
+                        ${cellsArr.map(html => `<td class="p-4 border-y-2" style="border-color: ${borderColor}">${html}</td>`).join('')}
+                        <td class="p-4 text-center rounded-r-2xl border-y-2 border-r-2" style="border-color: ${borderColor}; background: ${totalCellBg}">
+                            <span class="text-xl font-black" style="color: ${totalTextColor}">${total}</span>
+                        </td>
+                    </tr>`;
+            }).join('');
+        }
+
+        window.switchAdminTab = (tab) => {
+            const list = document.getElementById('adminListView');
+            const report = document.getElementById('adminReportView');
+            const exportBtn = document.getElementById('exportJpgBtn');
+            const resetBtn = document.getElementById('resetMonthBtn');
+            const criticoBtn = document.getElementById('exportCriticosBtn');
+            const btnList = document.getElementById('tabList');
+            const btnReport = document.getElementById('tabReport');
+
+            list.classList.toggle('hidden', tab !== 'list');
+            report.classList.toggle('hidden', tab !== 'report');
+            exportBtn.classList.toggle('hidden', tab !== 'report');
+            resetBtn.classList.toggle('hidden', tab !== 'report');
+            criticoBtn.classList.toggle('hidden', tab !== 'report');
+            
+            btnList.className = tab === 'list' ? "text-[10px] font-black active-tab pb-1" : "text-[10px] font-black opacity-40 hover:opacity-100 transition-colors uppercase";
+            btnReport.className = tab === 'report' ? "text-[10px] font-black active-tab pb-1" : "text-[10px] font-black opacity-40 hover:opacity-100 transition-colors uppercase";
+            if(tab === 'report') renderElegantFaultReport();
+        };
+
+        window.setMode = (mode) => {
+            currentMode = mode;
+            const container = document.getElementById('dynamicInputContainer');
+            if (mode === 'LOGIN') {
+                let opts = masterProjects.map(p => `<option value="${p.id}">CUI: ${p.cui} - ${p.nombre.substring(0,30)}...</option>`).join('');
+                container.innerHTML = `<label class="label-gold">PROYECTO DE INVERSIÓN</label><select id="projectSelector" class="w-full rounded-xl px-4 py-4 text-sm font-bold shadow-sm"><option value="" disabled selected>Seleccione una obra...</option>${opts}</select>`;
+            } else if (mode === 'ADMIN') {
+                container.innerHTML = `<label class="label-gold">CORREO INSTITUCIONAL</label><input type="email" id="adminEmail" value="u202418465@upc.edu.pe" class="w-full rounded-xl px-4 py-4 text-sm font-bold shadow-sm">`;
+            } else {
+                container.innerHTML = `<input type="text" id="regCui" placeholder="Código CUI" class="w-full rounded-xl px-4 py-4 mb-2 font-bold"><textarea id="regName" placeholder="Denominación" class="w-full rounded-xl px-4 py-4 h-24 font-bold shadow-sm"></textarea>`;
+            }
+        };
+
+        document.getElementById('projectForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const pass = document.getElementById('password').value;
+            if (currentMode === 'ADMIN') {
+                if (document.getElementById('adminEmail').value === "u202418465@upc.edu.pe" && pass === "Valdez250396@.") {
+                    authView.classList.add('hidden');
+                    adminPanelView.classList.remove('hidden');
+                    switchAdminTab('list');
+                } else showFeedback("Credenciales incorrectas");
+            } else if (currentMode === 'LOGIN') {
+                const pId = document.getElementById('projectSelector').value;
+                const p = masterProjects.find(x => x.id === pId);
+                if (p && p.pass === pass) {
+                    activeProjectId = pId;
+                    authView.classList.add('hidden');
+                    residentModuleView.classList.remove('hidden');
+                    document.getElementById('residentProjectName').textContent = p.nombre;
+                    renderPreviews();
+                } else showFeedback("Clave incorrecta");
+            }
+        });
+
+        window.goBackToHome = () => {
+            adminPanelView.classList.add('hidden');
+            residentModuleView.classList.add('hidden');
+            authView.classList.remove('hidden');
+            setMode('LOGIN');
+        };
+
+        function renderAdminTable() {
+            const body = document.getElementById('adminTableBody');
+            if(!body) return;
+            body.innerHTML = masterProjects.map(p => `
+                <tr class="hover:bg-black/5">
+                    <td class="p-5 font-mono text-[#991b1b] font-bold text-xs">${p.cui}</td>
+                    <td class="p-5 text-xs font-semibold">${p.nombre}</td>
+                    <td class="p-5 text-center">
+                        <button onclick="editProject('${p.id}')" class="bg-[#991b1b]/5 text-[#991b1b] px-3 py-1 rounded text-[10px] font-black border border-[#991b1b]/10 hover:bg-[#991b1b] hover:text-white transition-all uppercase font-bold">Detalles</button>
+                    </td>
+                </tr>`).join('');
+        }
+
+        window.editProject = (id) => {
+            const p = masterProjects.find(x => x.id === id);
+            document.getElementById('editDocId').value = p.id;
+            document.getElementById('editCui').value = p.cui;
+            document.getElementById('editName').value = p.nombre;
+            document.getElementById('editPass').value = p.pass;
+            document.getElementById('editResidente').value = p.residente || '';
+            document.getElementById('editSupervisor').value = p.supervisor || '';
+            document.getElementById('editFaults').value = p.faults_accumulated || 0;
+            document.getElementById('editSection').classList.remove('opacity-30', 'pointer-events-none');
+        };
+
+        window.saveEdit = async () => {
+            const id = document.getElementById('editDocId').value;
+            const btn = document.getElementById('saveBtn');
+            const originalText = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = "Sincronizando...";
+            try {
+                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'projects', id), {
+                    cui: document.getElementById('editCui').value,
+                    nombre: document.getElementById('editName').value,
+                    pass: document.getElementById('editPass').value,
+                    residente: document.getElementById('editResidente').value,
+                    supervisor: document.getElementById('editSupervisor').value,
+                    faults_accumulated: Number(document.getElementById('editFaults').value)
+                });
+                document.getElementById('editSection').classList.add('opacity-30', 'pointer-events-none');
+            } catch(e) { console.error(e); } finally { 
+                btn.disabled = false; 
+                btn.textContent = originalText;
+            }
+        };
+
+        window.handleFileSelect = (e) => {
+            selectedFiles = [...selectedFiles, ...Array.from(e.target.files)];
+            renderPreviews();
+        };
+
+        function renderPreviews() {
+            const container = document.getElementById('filePreviewContainer');
+            const videoStatus = document.getElementById('videoStatus');
+            const uploadBtn = document.getElementById('uploadBtn');
+            if(!container) return;
+            container.innerHTML = '';
+            let hasVideo = false;
+            selectedFiles.forEach((f) => {
+                if(f.type.startsWith('video/')) hasVideo = true;
+                const d = document.createElement('div');
+                d.className = "relative bg-black/5 rounded-xl aspect-square border border-gray-400/20 flex items-center justify-center overflow-hidden";
+                d.innerHTML = `<span class="text-[7px] p-2 truncate w-full text-center font-bold opacity-50">${f.name}</span>`;
+                container.appendChild(d);
+            });
+            uploadBtn.disabled = !hasVideo;
+            videoStatus.textContent = hasVideo ? "✓ VIDEO CARGADO" : "VIDEO OBLIGATORIO PENDIENTE";
+            videoStatus.className = `text-xs font-bold uppercase ${hasVideo ? 'text-green-600' : 'text-red-600'}`;
+        }
+
+        window.simulateUpload = async () => {
+            const btn = document.getElementById('uploadBtn');
+            btn.disabled = true;
+            try {
+                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'projects', activeProjectId), { last_report: new Date().toISOString() });
+                setTimeout(() => goBackToHome(), 1000);
+            } catch (e) { btn.disabled = false; }
+        };
+
+        function showFeedback(msg) {
+            const fb = document.getElementById('feedback');
+            fb.textContent = msg;
+            fb.classList.remove('hidden');
+            setTimeout(() => fb.classList.add('hidden'), 4000);
+        }
+
+        document.getElementById('adminModeBtn').onclick = () => setMode(currentMode === 'ADMIN' ? 'LOGIN' : 'ADMIN');
+        document.getElementById('toggleBtn').onclick = () => setMode(currentMode === 'LOGIN' ? 'REGISTER' : 'LOGIN');
+
+        init();
+    </script>
+</body>
+</html>
