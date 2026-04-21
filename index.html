@@ -199,7 +199,7 @@
                 <span id="btnText">Ingresar al Sistema</span>
                 <div id="loader" class="custom-loader hidden mx-auto"></div>
             </button>
-            <div id="feedback" class="hidden text-center text-xs p-4 rounded-xl border border-red-500/50 bg-red-950/40 text-red-200"></div>
+            <div id="feedback" class="hidden fixed top-5 left-1/2 -translate-x-1/2 z-[2000] text-center text-xs px-4 py-3 rounded-xl border max-w-sm"></div>
         </form>
 
         <div class="mt-8 flex justify-between items-center pt-6 border-t border-gray-400/10">
@@ -706,8 +706,11 @@
 
         document.getElementById('projectForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+            const submitBtn = document.getElementById('submitBtn');
+            const btnText = document.getElementById('btnText');
+            const originalBtnText = btnText.textContent;
             if (currentMode === 'LOGIN' && (!projectsLoaded || masterProjects.length === 0)) {
-                showFeedback("Aun estamos cargando proyectos, intenta en unos segundos.");
+                showFeedback("Aun estamos cargando proyectos, intenta en unos segundos.", "error");
                 return;
             }
             const pass = document.getElementById('password').value;
@@ -726,24 +729,26 @@
                     residentModuleView.classList.remove('hidden');
                     document.getElementById('residentProjectName').textContent = p.nombre;
                     renderPreviews();
-                } else showFeedback("Clave incorrecta");
+                } else showFeedback("Clave incorrecta", "error");
             } else if (currentMode === 'REGISTER') {
                 const regCui = document.getElementById('regCui').value.trim();
                 const regName = document.getElementById('regName').value.trim();
                 const currentMonth = new Date().toISOString().slice(0, 7);
 
                 if (!regCui || !regName || !pass) {
-                    showFeedback("Completa CUI, denominación y clave.");
+                    showFeedback("Completa CUI, denominación y clave.", "error");
                     return;
                 }
 
                 const duplicated = masterProjects.some(p => String(p.cui).trim() === regCui);
                 if (duplicated) {
-                    showFeedback("Ese CUI ya está registrado.");
+                    showFeedback("Ese CUI ya está registrado.", "error");
                     return;
                 }
 
                 try {
+                    submitBtn.disabled = true;
+                    btnText.textContent = "Registrando...";
                     await setDoc(doc(collection(db, 'artifacts', appId, 'public', 'data', 'projects')), {
                         cui: regCui,
                         nombre: regName,
@@ -754,12 +759,15 @@
                         faults_accumulated: 0,
                         last_reset_month: currentMonth
                     });
-                    showFeedback("Proyecto registrado correctamente.");
+                    showFeedback("Proyecto registrado correctamente.", "success");
                     document.getElementById('password').value = '';
                     setMode('LOGIN');
                 } catch (error) {
                     console.error(error);
-                    showFeedback("No se pudo registrar el proyecto.");
+                    showFeedback(`No se pudo registrar: ${error.code || error.message}`, "error");
+                } finally {
+                    submitBtn.disabled = false;
+                    btnText.textContent = originalBtnText;
                 }
             }
         });
@@ -851,9 +859,10 @@
             } catch (e) { btn.disabled = false; }
         };
 
-        function showFeedback(msg) {
+        function showFeedback(msg, type = "error") {
             const fb = document.getElementById('feedback');
             fb.textContent = msg;
+            fb.className = `fixed top-5 left-1/2 -translate-x-1/2 z-[2000] text-center text-xs px-4 py-3 rounded-xl border max-w-sm ${type === "success" ? "border-green-500/50 bg-green-950/60 text-green-200" : "border-red-500/50 bg-red-950/60 text-red-200"}`;
             fb.classList.remove('hidden');
             setTimeout(() => fb.classList.add('hidden'), 4000);
         }
