@@ -147,6 +147,11 @@
         .status-dot.success { background-color: #22c55e; box-shadow: 0 0 10px rgba(34, 197, 94, 0.5); }
         .status-dot.fail { background-color: #ef4444; box-shadow: 0 0 10px rgba(239, 68, 68, 0.5); }
         .status-dot.pending { background-color: rgba(128,128,128,0.2); border: 1px solid rgba(128,128,128,0.3); }
+        /* Cumplimiento: faltas acumuladas en el mes (por día hábil sin evidencia) */
+        .status-dot.tier-0 { background-color: #22c55e; box-shadow: 0 0 8px rgba(34, 197, 94, 0.45); }
+        .status-dot.tier-1 { background-color: #eab308; box-shadow: 0 0 8px rgba(234, 179, 8, 0.45); }
+        .status-dot.tier-2 { background-color: #f97316; box-shadow: 0 0 8px rgba(249, 115, 22, 0.45); }
+        .status-dot.tier-3 { background-color: #dc2626; box-shadow: 0 0 8px rgba(220, 38, 38, 0.5); }
 
         .active-tab {
             color: var(--accent-gold);
@@ -376,10 +381,12 @@
                             </div>
                         </div>
                     </div>
-                    <div class="flex flex-wrap gap-4 items-center bg-black/5 p-5 rounded-2xl border border-gray-400/10">
-                        <div class="flex items-center gap-2 text-[10px] font-bold"><div class="status-dot success"></div> OK</div>
-                        <div class="flex items-center gap-2 text-[10px] font-bold"><div class="status-dot fail"></div> FALTA</div>
-                        <div class="flex items-center gap-2 text-[10px] font-bold"><div class="status-dot pending"></div> PEND.</div>
+                    <div class="flex flex-wrap gap-3 md:gap-4 items-center bg-black/5 p-4 md:p-5 rounded-2xl border border-gray-400/10 max-w-xl">
+                        <div class="flex items-center gap-2 text-[9px] font-bold leading-tight"><div class="status-dot tier-0"></div> Cumplido</div>
+                        <div class="flex items-center gap-2 text-[9px] font-bold leading-tight"><div class="status-dot tier-1"></div> 1 falta</div>
+                        <div class="flex items-center gap-2 text-[9px] font-bold leading-tight"><div class="status-dot tier-2"></div> 2 faltas</div>
+                        <div class="flex items-center gap-2 text-[9px] font-bold leading-tight"><div class="status-dot tier-3"></div> 3+ faltas (funcionario a sancionar)</div>
+                        <div class="flex items-center gap-2 text-[9px] font-bold leading-tight opacity-80"><div class="status-dot pending"></div> Pend. / fuera de mes</div>
                     </div>
                 </div>
 
@@ -589,18 +596,7 @@
             const originalText = btn.textContent;
             btn.textContent = "Filtrando...";
 
-            const currentMonthISO = new Date().toISOString().slice(0, 7);
-            const todayStr = new Date().toDateString();
-
-            // Filtrar infractores críticos
-            const criticos = masterProjects.filter(p => {
-                let prev = Number(p.faults_accumulated) || 0;
-                if (p.last_reset_month && p.last_reset_month < currentMonthISO) prev = 0;
-                const lastReportDate = p.last_report ? new Date(p.last_report) : null;
-                const reportedToday = lastReportDate && lastReportDate.toDateString() === todayStr;
-                const total = prev + (reportedToday ? 0 : 1);
-                return total >= 3;
-            });
+            const criticos = masterProjects.filter((p) => complianceTotalForProject(p) >= 3);
 
             // Feedback visual pero NO retornamos si está vacío
             if (criticos.length === 0) {
@@ -647,6 +643,69 @@
             return dates;
         }
 
+        function dateToLimaYMD(d) {
+            return new Intl.DateTimeFormat("en-CA", {
+                timeZone: "America/Lima",
+                year: "numeric",
+                month: "2-digit",
+                day: "2-digit"
+            }).format(d);
+        }
+
+        function daysInMonthYm(ym) {
+            const [y, m] = ym.split("-").map(Number);
+            return new Date(y, m, 0).getDate();
+        }
+
+        /** Lunes a sábado (domingo no hay entrega de evidencia). */
+        function isReportingDayYmd(ymd) {
+            const [y, mo, da] = ymd.split("-").map(Number);
+            const dt = new Date(y, mo - 1, da);
+            return dt.getDay() !== 0;
+        }
+
+        function hasEvidenceOnDate(p, ymd) {
+            if (Array.isArray(p.evidence_log) && p.evidence_log.some((b) => String(b.fecha || "") === ymd)) return true;
+            if (p.last_report) {
+                const lrYmd = dateToLimaYMD(new Date(p.last_report));
+                return lrYmd === ymd;
+            }
+            return false;
+        }
+
+        /** Faltas = días hábiles de reporte en [startYmd, endYmd] sin registro de evidencia (fecha en log o last_report ese día, Lima). */
+        function countMissedReportingDaysBetween(p, startYmd, endYmd) {
+            if (!startYmd || !endYmd || endYmd < startYmd) return 0;
+            const ym = startYmd.slice(0, 7);
+            let n = 0;
+            const dim = daysInMonthYm(ym);
+            for (let d = 1; d <= dim; d++) {
+                const ymd = `${ym}-${String(d).padStart(2, "0")}`;
+                if (ymd < startYmd || ymd > endYmd) continue;
+                if (!isReportingDayYmd(ymd)) continue;
+                if (!hasEvidenceOnDate(p, ymd)) n++;
+            }
+            return n;
+        }
+
+        function tierClassFromMonthlyFaultCount(n) {
+            if (n <= 0) return "tier-0";
+            if (n === 1) return "tier-1";
+            if (n === 2) return "tier-2";
+            return "tier-3";
+        }
+
+        /** Previas (faltas históricas del doc) + faltas acumuladas en el mes corriente (Lima) hasta hoy. */
+        function complianceTotalForProject(p) {
+            const todayYmd = fechaCarpetaLima();
+            const currentMonthISO = todayYmd.slice(0, 7);
+            let prev = Number(p.faults_accumulated) || 0;
+            if (p.last_reset_month && p.last_reset_month < currentMonthISO) prev = 0;
+            const monthStartYmd = `${currentMonthISO}-01`;
+            const missesMes = countMissedReportingDaysBetween(p, monthStartYmd, todayYmd);
+            return prev + missesMes;
+        }
+
         function renderElegantFaultReport() {
             const tableBody = document.getElementById('elegantFaultTable');
             const tableHead = document.getElementById('faultTableHead');
@@ -655,9 +714,11 @@
             if(!tableBody || !tableHead) return;
 
             const weekDates = getWeekDates(weekOffset);
-            const todayStr = new Date().toDateString();
+            const todayYmd = fechaCarpetaLima();
+            const currentMonthISO = todayYmd.slice(0, 7);
+            const monthStartYmd = `${currentMonthISO}-01`;
             const nowMonth = new Date().toLocaleString('es-PE', {month: 'long', year: 'numeric'}).toUpperCase();
-            
+
             if(weekRangeLabel) weekRangeLabel.textContent = `${weekDates[0].getDate()} ${weekDates[0].toLocaleString('es-PE', {month:'short'})} - ${weekDates[5].getDate()} ${weekDates[5].toLocaleString('es-PE', {month:'short'})}`;
             if(controlMonthLabel) controlMonthLabel.textContent = `Periodo de Control: ${nowMonth}`;
 
@@ -666,39 +727,61 @@
                 const ths = dayNames.map((name, i) => `<th class="p-4 text-center font-black"><div>${name}</div><div class="text-[8px] opacity-40 font-mono">${weekDates[i].getDate()}</div></th>`).join('');
                 tableHead.innerHTML = `<tr class="text-[#991b1b] text-[10px] font-black uppercase border-b border-gray-400/10"><th class="p-4 w-2/5 text-xs font-black">Información del Proyecto</th><th class="p-4 text-center bg-[#991b1b]/5 w-24">Previas</th>${ths}<th class="p-4 text-center bg-[#991b1b]/5 w-24">Totales</th></tr>`;
             } else {
-                tableHead.innerHTML = `<tr class="text-[#991b1b] text-[10px] font-black uppercase border-b border-gray-400/10"><th class="p-4 w-2/5 text-xs font-black">Información del Proyecto</th><th class="p-4 text-center bg-[#991b1b]/5 w-24">Previas</th><th class="p-4 text-center">Sem 1</th><th class="p-4 text-center">Sem 2</th><th class="p-4 text-center">Sem 3</th><th class="p-4 text-center">Sem 4</th><th class="p-4 text-center bg-[#991b1b]/5 w-24">Mensual</th></tr>`;
+                const dim = daysInMonthYm(currentMonthISO);
+                const w1e = Math.min(7, dim);
+                const w2e = Math.min(14, dim);
+                const w3e = Math.min(21, dim);
+                const w4e = dim;
+                const thM = [
+                    `Sem 1<br><span class="text-[8px] opacity-50 font-mono">1–${w1e}</span>`,
+                    `Sem 2<br><span class="text-[8px] opacity-50 font-mono">${Math.min(8, dim)}–${w2e}</span>`,
+                    `Sem 3<br><span class="text-[8px] opacity-50 font-mono">${Math.min(15, dim)}–${w3e}</span>`,
+                    `Sem 4<br><span class="text-[8px] opacity-50 font-mono">${Math.min(22, dim)}–${w4e}</span>`
+                ].map((h) => `<th class="p-3 text-center font-black leading-tight">${h}</th>`).join('');
+                tableHead.innerHTML = `<tr class="text-[#991b1b] text-[10px] font-black uppercase border-b border-gray-400/10"><th class="p-4 w-2/5 text-xs font-black">Información del Proyecto</th><th class="p-4 text-center bg-[#991b1b]/5 w-24">Previas</th>${thM}<th class="p-4 text-center bg-[#991b1b]/5 w-24">Totales</th></tr>`;
             }
 
             if (activeProjects.length === 0) {
-                tableBody.innerHTML = `<tr><td colspan="10" class="p-20 text-center opacity-20 font-black uppercase tracking-widest">Sin registros que mostrar</td></tr>`;
+                tableBody.innerHTML = `<tr><td colspan="12" class="p-20 text-center opacity-20 font-black uppercase tracking-widest">Sin registros que mostrar</td></tr>`;
                 return;
             }
 
             tableBody.innerHTML = activeProjects.map(p => {
-                const currentMonthISO = new Date().toISOString().slice(0, 7);
                 let faultsAccumulated = Number(p.faults_accumulated) || 0;
-                if (p.last_reset_month && p.last_reset_month < currentMonthISO) faultsAccumulated = 0; 
+                if (p.last_reset_month && p.last_reset_month < currentMonthISO) faultsAccumulated = 0;
 
-                const lastReportDate = p.last_report ? new Date(p.last_report) : null;
-                const reportedToday = lastReportDate && lastReportDate.toDateString() === todayStr;
                 let cellsArr = [];
-                let periodFaults = 0;
 
                 if (reportPeriod === 'semanal') {
                     cellsArr = weekDates.map((date) => {
-                        let dotClass = 'pending';
-                        if (date.toDateString() === todayStr) {
-                            dotClass = reportedToday ? 'success' : 'fail';
-                            if (!reportedToday) periodFaults++;
-                        } else if (date < new Date(new Date().setHours(0,0,0,0))) { dotClass = 'success'; }
-                        return `<div class="flex justify-center"><div class="status-dot ${dotClass}"></div></div>`;
+                        const cellYmd = dateToLimaYMD(date);
+                        if (cellYmd > todayYmd) {
+                            return `<div class="flex justify-center"><div class="status-dot pending mx-auto"></div></div>`;
+                        }
+                        if (cellYmd.slice(0, 7) !== currentMonthISO) {
+                            return `<div class="flex justify-center"><span class="text-[10px] opacity-30">—</span></div>`;
+                        }
+                        const rangeEnd = cellYmd <= todayYmd ? cellYmd : todayYmd;
+                        const cum = countMissedReportingDaysBetween(p, monthStartYmd, rangeEnd);
+                        const tier = tierClassFromMonthlyFaultCount(cum);
+                        return `<div class="flex justify-center"><div class="status-dot ${tier} mx-auto"></div></div>`;
                     });
                 } else {
-                    cellsArr = [`<div class="status-dot success mx-auto"></div>`,`<div class="status-dot success mx-auto"></div>`,`<div class="status-dot ${reportedToday ? 'success' : 'fail'} mx-auto"></div>`,`<div class="status-dot pending mx-auto"></div>`];
-                    if(!reportedToday) periodFaults++;
+                    const dim = daysInMonthYm(currentMonthISO);
+                    const weekEnds = [Math.min(7, dim), Math.min(14, dim), Math.min(21, dim), dim];
+                    cellsArr = weekEnds.map((endD) => {
+                        const weekEndYmd = `${currentMonthISO}-${String(endD).padStart(2, "0")}`;
+                        const rangeEnd = Math.min(weekEndYmd, todayYmd);
+                        if (rangeEnd < monthStartYmd) {
+                            return `<div class="flex justify-center"><div class="status-dot pending mx-auto"></div></div>`;
+                        }
+                        const cum = countMissedReportingDaysBetween(p, monthStartYmd, rangeEnd);
+                        const tier = tierClassFromMonthlyFaultCount(cum);
+                        return `<div class="flex justify-center"><div class="status-dot ${tier} mx-auto"></div></div>`;
+                    });
                 }
 
-                const total = faultsAccumulated + periodFaults;
+                const total = complianceTotalForProject(p);
                 let borderColor = isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(153, 27, 27, 0.1)';
                 let totalCellBg = 'rgba(34, 197, 94, 0.1)';
                 let totalTextColor = '#22c55e';
