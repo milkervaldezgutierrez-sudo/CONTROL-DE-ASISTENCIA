@@ -530,11 +530,25 @@
             projectSelector.innerHTML = `<option value="" disabled selected>${filtered.length ? "Seleccione una obra..." : "Sin coincidencias..."}</option>${optionsHtml}`;
             if (selectedValue && filtered.some((p) => p.id === selectedValue)) {
                 projectSelector.value = selectedValue;
+            } else if (filtered.length === 1) {
+                projectSelector.value = filtered[0].id;
             }
         }
 
         window.filterLoginProjects = (query) => {
             renderLoginProjectOptions(query);
+        };
+
+        window.syncLoginSelectorToSearch = () => {
+            const projectSelector = document.getElementById("projectSelector");
+            const projectSearchInput = document.getElementById("projectSearchInput");
+            if (!projectSelector || !projectSearchInput) return;
+            const selectedId = projectSelector.value;
+            const selectedProject = masterProjects.find((p) => p.id === selectedId);
+            if (!selectedProject) return;
+            const syncText = `${selectedProject.cui} - ${selectedProject.nombre}`;
+            projectSearchInput.value = syncText;
+            loginProjectQuery = syncText;
         };
 
         async function init() {
@@ -1042,7 +1056,7 @@
                     updateAuthNavLabels();
                     return;
                 }
-                container.innerHTML = `<label class="label-gold">PROYECTO DE INVERSIÓN</label><input type="text" id="projectSearchInput" placeholder="Buscar por CUI o nombre..." class="w-full rounded-xl px-4 py-3 mb-2 text-sm font-bold shadow-sm" oninput="filterLoginProjects(this.value)"><select id="projectSelector" class="w-full rounded-xl px-4 py-4 text-sm font-bold shadow-sm"></select>`;
+                container.innerHTML = `<label class="label-gold">PROYECTO DE INVERSIÓN</label><input type="text" id="projectSearchInput" placeholder="Buscar por CUI o nombre..." class="w-full rounded-xl px-4 py-3 mb-2 text-sm font-bold shadow-sm" oninput="filterLoginProjects(this.value)"><select id="projectSelector" class="w-full rounded-xl px-4 py-4 text-sm font-bold shadow-sm" onchange="syncLoginSelectorToSearch()"></select>`;
                 const projectSearchInput = document.getElementById("projectSearchInput");
                 if (projectSearchInput) projectSearchInput.value = loginProjectQuery;
                 renderLoginProjectOptions(loginProjectQuery);
@@ -1057,6 +1071,8 @@
                 document.getElementById('regResident').value = prevRegResident;
                 submitBtn.disabled = false;
             }
+            const passInput = document.getElementById("password");
+            if (passInput) passInput.value = "";
             updateAuthNavLabels();
         };
 
