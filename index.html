@@ -360,6 +360,12 @@
             <div class="lg:col-span-7 bg-black/5 rounded-3xl border border-gray-400/10 p-6 md:p-8">
                 <h4 class="text-[#991b1b] text-[10px] font-black uppercase mb-2">Verificación de evidencias</h4>
                 <p id="evidenceSelectedLabel" class="text-[10px] font-bold opacity-60 mb-4">Seleccione un proyecto en la lista de la izquierda.</p>
+                <div class="flex flex-wrap items-center gap-2 mb-3">
+                    <label for="evidenceDateFilter" class="text-[9px] font-bold uppercase opacity-70">Fecha</label>
+                    <select id="evidenceDateFilter" class="rounded-lg px-2 py-1 text-[10px] font-bold bg-black/10 border border-gray-400/20">
+                        <option value="">Todas las fechas</option>
+                    </select>
+                </div>
                 <p class="text-[9px] opacity-50 mb-1">El administrador puede revisar las entregas anteriores, aprobarlas o rechazarlas con observación.</p>
                 <p class="text-[9px] opacity-50 mb-3">Los videos y fotos se eliminan automáticamente 4 días después de la entrega.</p>
                 <div id="evidenceReviewList" class="max-h-[32rem] overflow-y-auto space-y-4 pr-1"></div>
@@ -456,6 +462,7 @@
         let isDarkMode = true;
         let projectsLoaded = false;
         let evidenceSelectedProjectId = null;
+        let evidenceFilterDate = "";
         const PROJECTS_CACHE_KEY = `projects_cache_${appId}`;
 
         const authView = document.getElementById('authView');
@@ -539,6 +546,7 @@
                         const pSel = masterProjects.find((x) => x.id === evidenceSelectedProjectId);
                         const evView = document.getElementById("adminEvidenceView");
                         if (pSel && evView && !evView.classList.contains("hidden")) {
+                            updateEvidenceDateFilterOptions(pSel);
                             renderEvidenceReview(pSel);
                         }
                     }
@@ -732,6 +740,18 @@
 
         function hasEvidenceOnDate(p, ymd) {
             if (Array.isArray(p.evidence_log) && p.evidence_log.some((b) => String(b.fecha || "") === ymd)) return true;
+            const reviews = p?.evidence_reviews || {};
+            if (
+                Object.keys(reviews).some((k) => {
+                    const rev = reviews[k] || {};
+                    return (
+                        rev.status === "sustentado" &&
+                        k.startsWith(`sustento_${ymd}_`)
+                    );
+                })
+            ) {
+                return true;
+            }
             if (p.last_report) {
                 const lrYmd = dateToLimaYMD(new Date(p.last_report));
                 return lrYmd === ymd;
@@ -1210,16 +1230,32 @@
 
         window.openEvidenceReviewTab = (id) => {
             evidenceSelectedProjectId = id;
+            evidenceFilterDate = "";
             const p = masterProjects.find((x) => x.id === id);
             const label = document.getElementById('evidenceSelectedLabel');
             if (label && p) label.textContent = `CUI ${p.cui} — ${p.nombre}`;
             renderEvidenceAdminProjectTable();
-            if (p) renderEvidenceReview(p);
+            if (p) {
+                updateEvidenceDateFilterOptions(p);
+                renderEvidenceReview(p);
+            }
             else {
                 const list = document.getElementById('evidenceReviewList');
                 if (list) list.innerHTML = '';
             }
         };
+
+        function updateEvidenceDateFilterOptions(p) {
+            const sel = document.getElementById("evidenceDateFilter");
+            if (!sel) return;
+            const dates = collectEvidenceDates(p);
+            const currentValue = evidenceFilterDate && dates.includes(evidenceFilterDate) ? evidenceFilterDate : "";
+            evidenceFilterDate = currentValue;
+            sel.innerHTML = `<option value="">Todas las fechas</option>${dates
+                .map((d) => `<option value="${escHtml(d)}">${escHtml(d)}</option>`)
+                .join("")}`;
+            sel.value = currentValue;
+        }
 
         function renderBatchReviewCardHtml(p, batch, reviews) {
             const bkey = batchReviewKey(batch);
@@ -1312,11 +1348,15 @@
             const reviews = p.evidence_reviews || {};
             const log = Array.isArray(p.evidence_log) ? p.evidence_log : [];
             const dates = collectEvidenceDates(p);
+            const effectiveDates =
+                evidenceFilterDate && dates.includes(evidenceFilterDate)
+                    ? [evidenceFilterDate]
+                    : dates;
             const slots = ["mañana", "tarde"];
             const shownBatchKeys = new Set();
             const parts = [];
 
-            dates.forEach((fecha) => {
+            effectiveDates.forEach((fecha) => {
                 parts.push(`<div class="mb-8 last:mb-0">
                     <h5 class="text-[11px] font-black text-[#991b1b] uppercase tracking-widest mb-3 pb-2 border-b border-gray-400/15">${escHtml(fecha)}</h5>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">`);
@@ -1378,6 +1418,15 @@
                 const rev = reviews[bkey] || {};
                 if (ta && rev.note) ta.value = rev.note;
             });
+        }
+
+        const evidenceDateFilterEl = document.getElementById("evidenceDateFilter");
+        if (evidenceDateFilterEl) {
+            evidenceDateFilterEl.onchange = () => {
+                evidenceFilterDate = evidenceDateFilterEl.value || "";
+                const p = masterProjects.find((x) => x.id === evidenceSelectedProjectId);
+                if (p) renderEvidenceReview(p);
+            };
         }
 
         window.submitEvidenceReview = async (projectId, batchKey, status) => {
