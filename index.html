@@ -815,7 +815,7 @@
                 container.innerHTML = `<label class="label-gold">PROYECTO DE INVERSIÓN</label><select id="projectSelector" class="w-full rounded-xl px-4 py-4 text-sm font-bold shadow-sm"><option value="" disabled selected>Seleccione una obra...</option>${opts}</select>`;
                 submitBtn.disabled = false;
             } else if (mode === 'ADMIN') {
-                container.innerHTML = `<label class="label-gold">CORREO INSTITUCIONAL</label><input type="email" id="adminEmail" value="u202418465@upc.edu.pe" class="w-full rounded-xl px-4 py-4 text-sm font-bold shadow-sm">`;
+                container.innerHTML = `<label class="label-gold">CORREO INSTITUCIONAL</label><input type="email" id="adminEmail" value="" autocomplete="username" placeholder="Ingrese su correo institucional" class="w-full rounded-xl px-4 py-4 text-sm font-bold shadow-sm">`;
                 submitBtn.disabled = false;
             } else {
                 container.innerHTML = `<label class="label-gold">NUEVO PROYECTO</label><input type="text" id="regCui" placeholder="Código CUI" class="w-full rounded-xl px-4 py-4 mb-2 font-bold"><textarea id="regName" placeholder="Denominación" class="w-full rounded-xl px-4 py-4 h-24 font-bold shadow-sm"></textarea>`;
