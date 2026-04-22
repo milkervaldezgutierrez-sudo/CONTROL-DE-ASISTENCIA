@@ -358,7 +358,8 @@
             <div class="lg:col-span-7 bg-black/5 rounded-3xl border border-gray-400/10 p-6 md:p-8">
                 <h4 class="text-[#991b1b] text-[10px] font-black uppercase mb-2">Verificación de evidencias</h4>
                 <p id="evidenceSelectedLabel" class="text-[10px] font-bold opacity-60 mb-4">Seleccione un proyecto en la lista de la izquierda.</p>
-                <p class="text-[9px] opacity-50 mb-3">Marque cada envío como aprobado o rechazado. Si rechaza, indique el motivo.</p>
+                <p class="text-[9px] opacity-50 mb-1">El administrador puede revisar las entregas anteriores, aprobarlas o rechazarlas con observación.</p>
+                <p class="text-[9px] opacity-50 mb-3">Los videos y fotos se eliminan automáticamente 4 días después de la entrega.</p>
                 <div id="evidenceReviewList" class="max-h-[32rem] overflow-y-auto space-y-4 pr-1"></div>
             </div>
         </div>
@@ -398,6 +399,8 @@
                 </div>
                 <div class="mt-10 pt-6 border-t border-gray-400/10 text-center opacity-30">
                     <p class="text-[10px] font-black uppercase">Gobierno Regional de Ayacucho - Sede Central</p>
+                    <p class="text-[10px] font-black uppercase mt-1">Sub Gerencia de Ejecución de Inversiones</p>
+                    <p class="text-[10px] font-black uppercase mt-1">Versión 1.0</p>
                 </div>
             </div>
         </div>
@@ -420,7 +423,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, doc, onSnapshot, updateDoc, setDoc, arrayUnion, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
+        import { getStorage, ref, uploadBytesResumable, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
         const appId = window.APP_ID || 'gra-ayacucho-prod';
         const firebaseConfig = window.FIREBASE_CONFIG || {
@@ -437,6 +440,8 @@
         const db = getFirestore(app);
         const storage = getStorage(app, `gs://${firebaseConfig.storageBucket}`);
         const MAX_UPLOAD_BYTES = 80 * 1024 * 1024;
+        const EVIDENCE_RETENTION_MS = 4 * 24 * 60 * 60 * 1000;
+        const evidenceCleanupInFlight = new Set();
 
         let masterProjects = [];
         let activeProjects = [];
@@ -508,6 +513,7 @@
             const ref = collection(db, 'artifacts', appId, 'public', 'data', 'projects');
             onSnapshot(ref, (snap) => {
                 masterProjects = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                queueEvidenceRetentionCleanup(masterProjects);
                 if (masterProjects.length === 0) {
                     if (currentMode === 'LOGIN') {
                         setMode(currentMode);
@@ -539,6 +545,64 @@
             }, (error) => {
                 console.error(error);
                 showLoaderError(`Error de Firestore: ${error.code || error.message}. Revisa reglas de Firestore y permisos del proyecto.`);
+            });
+        }
+
+        function isEvidenceBatchExpired(batch, nowMs) {
+            const uploadedAtMs = Date.parse(String(batch?.uploaded_at || ""));
+            if (!Number.isFinite(uploadedAtMs)) return false;
+            return nowMs - uploadedAtMs > EVIDENCE_RETENTION_MS;
+        }
+
+        function getBatchStoragePaths(batch) {
+            if (!batch || !Array.isArray(batch.files)) return [];
+            return batch.files
+                .map((f) => String(f?.storagePath || "").trim())
+                .filter((path) => path.length > 0);
+        }
+
+        async function purgeExpiredEvidenceForProject(project) {
+            if (!project || !project.id) return;
+            if (evidenceCleanupInFlight.has(project.id)) return;
+            const log = Array.isArray(project.evidence_log) ? project.evidence_log : [];
+            if (log.length === 0) return;
+
+            const nowMs = Date.now();
+            const kept = [];
+            const expired = [];
+            for (const batch of log) {
+                if (isEvidenceBatchExpired(batch, nowMs)) expired.push(batch);
+                else kept.push(batch);
+            }
+            if (expired.length === 0) return;
+
+            evidenceCleanupInFlight.add(project.id);
+            try {
+                const storagePaths = expired.flatMap((batch) => getBatchStoragePaths(batch));
+                await Promise.all(
+                    storagePaths.map((path) =>
+                        deleteObject(ref(storage, path)).catch(() => null)
+                    )
+                );
+                const sortedKept = [...kept].sort((a, b) => String(b.uploaded_at || "").localeCompare(String(a.uploaded_at || "")));
+                const latestBatch = sortedKept[0] || null;
+                const payload = {
+                    evidence_log: kept,
+                    last_evidence_files: latestBatch?.files || []
+                };
+                if (!latestBatch) payload.last_report = null;
+                await updateDoc(doc(db, "artifacts", appId, "public", "data", "projects", project.id), payload);
+            } catch (e) {
+                console.warn("No se pudo aplicar la retencion automatica de evidencias", e);
+            } finally {
+                evidenceCleanupInFlight.delete(project.id);
+            }
+        }
+
+        function queueEvidenceRetentionCleanup(projects) {
+            if (!Array.isArray(projects) || projects.length === 0) return;
+            projects.forEach((p) => {
+                purgeExpiredEvidenceForProject(p);
             });
         }
 
