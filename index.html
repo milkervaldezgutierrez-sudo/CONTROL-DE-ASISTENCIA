@@ -981,6 +981,7 @@
             const submitBtn = document.getElementById('submitBtn');
             const prevRegCui = document.getElementById('regCui')?.value || '';
             const prevRegName = document.getElementById('regName')?.value || '';
+            const prevRegResident = document.getElementById('regResident')?.value || '';
             if (mode === 'LOGIN') {
                 if (!projectsLoaded || masterProjects.length === 0) {
                     container.innerHTML = `<label class="label-gold">PROYECTO DE INVERSIÓN</label><select id="projectSelector" disabled class="w-full rounded-xl px-4 py-4 text-sm font-bold shadow-sm"><option value="" selected>Cargando obras...</option></select>`;
@@ -995,9 +996,10 @@
                 container.innerHTML = `<label class="label-gold">CORREO INSTITUCIONAL</label><input type="email" id="adminEmail" value="" autocomplete="username" placeholder="Ingrese su correo institucional" class="w-full rounded-xl px-4 py-4 text-sm font-bold shadow-sm">`;
                 submitBtn.disabled = false;
             } else {
-                container.innerHTML = `<label class="label-gold">NUEVO PROYECTO</label><input type="text" id="regCui" placeholder="Código CUI" class="w-full rounded-xl px-4 py-4 mb-2 font-bold"><textarea id="regName" placeholder="Denominación" class="w-full rounded-xl px-4 py-4 h-24 font-bold shadow-sm"></textarea>`;
+                container.innerHTML = `<label class="label-gold">NUEVO PROYECTO</label><input type="text" id="regCui" placeholder="Código CUI" class="w-full rounded-xl px-4 py-4 mb-2 font-bold"><textarea id="regName" placeholder="Denominación" class="w-full rounded-xl px-4 py-4 h-24 font-bold shadow-sm mb-2"></textarea><input type="text" id="regResident" placeholder="Nombre del residente" class="w-full rounded-xl px-4 py-4 font-bold shadow-sm">`;
                 document.getElementById('regCui').value = prevRegCui;
                 document.getElementById('regName').value = prevRegName;
+                document.getElementById('regResident').value = prevRegResident;
                 submitBtn.disabled = false;
             }
             updateAuthNavLabels();
@@ -1037,10 +1039,11 @@
             } else if (currentMode === 'REGISTER') {
                 const regCui = document.getElementById('regCui').value.trim();
                 const regName = document.getElementById('regName').value.trim();
+                const regResident = document.getElementById('regResident').value.trim();
                 const currentMonth = new Date().toISOString().slice(0, 7);
 
-                if (!regCui || !regName || !pass) {
-                    showFeedback("Completa CUI, denominación y clave.", "error");
+                if (!regCui || !regName || !regResident || !pass) {
+                    showFeedback("Completa CUI, denominación, residente y clave.", "error");
                     return;
                 }
 
@@ -1057,7 +1060,7 @@
                         cui: regCui,
                         nombre: regName,
                         pass,
-                        residente: "Por asignar",
+                        residente: regResident,
                         supervisor: "Por asignar",
                         last_report: null,
                         faults_accumulated: 0,
