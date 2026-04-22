@@ -1502,7 +1502,11 @@
                         </div>
                         <p class="text-[10px] opacity-55 mb-2">No hay evidencias registradas para este proyecto.</p>
                         <p class="text-[9px] font-bold opacity-70 uppercase tracking-wide mb-1">Motivo registrado</p>
-                        <p class="text-[9px] leading-relaxed border border-white/10 rounded-lg p-2 bg-black/20">${escHtml(sustRev.note || "—")}</p>
+                        <textarea id="reviewNote_${safeId}" rows="2" class="w-full rounded-lg px-2 py-2 text-[10px] mb-2">${escHtml(sustRev.note || "")}</textarea>
+                        <div class="flex flex-wrap gap-2">
+                            <button type="button" data-pid="${p.id}" data-bkey="${sustKey}" data-st="sustentado" class="reviewActBtn flex-1 min-w-[130px] bg-sky-900/45 border border-sky-500/45 text-sky-200 py-2 rounded-lg text-[9px] font-black uppercase">Actualizar sustento</button>
+                            <button type="button" data-pid="${p.id}" data-bkey="${sustKey}" data-st="pendiente" class="reviewActBtn flex-1 min-w-[130px] bg-red-900/35 border border-red-600/40 text-red-200 py-2 rounded-lg text-[9px] font-black uppercase">Quitar sustento</button>
+                        </div>
                     </div>`;
             }
             return `
@@ -1647,6 +1651,8 @@
                         ? "Evidencia aprobada."
                         : status === "sustentado"
                           ? "Turno marcado como sustentado."
+                          : status === "pendiente"
+                            ? "Sustento retirado correctamente."
                           : "Evidencia rechazada.";
                 showFeedback(okMsg, "success");
             } catch (e) {
