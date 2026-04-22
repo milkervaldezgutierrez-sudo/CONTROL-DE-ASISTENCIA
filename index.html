@@ -305,6 +305,15 @@
 
         <div id="adminListView" class="grid grid-cols-1 lg:grid-cols-12 gap-8">
             <div class="lg:col-span-8 bg-black/5 rounded-3xl border border-gray-400/10 overflow-hidden">
+                <div class="p-4 border-b border-gray-400/10 bg-black/5">
+                    <input
+                        type="text"
+                        id="adminListSearch"
+                        placeholder="Buscar proyecto (CUI o nombre)..."
+                        class="w-full rounded-xl px-4 py-2 text-xs font-bold bg-black/10 border border-gray-400/20"
+                        oninput="setAdminListSearch(this.value)"
+                    >
+                </div>
                 <table class="w-full text-left">
                     <thead>
                         <tr class="bg-black/5 border-b border-gray-400/10">
@@ -342,6 +351,13 @@
                 <div class="p-4 border-b border-gray-400/10 bg-black/5">
                     <h4 class="text-[#991b1b] text-[10px] font-black uppercase">Proyectos con evidencias</h4>
                     <p class="text-[9px] opacity-50 mt-1">Elija un proyecto para revisar fotos y videos.</p>
+                    <input
+                        type="text"
+                        id="evidenceProjectSearch"
+                        placeholder="Filtrar proyecto (CUI o nombre)..."
+                        class="w-full rounded-xl px-3 py-2 text-[10px] font-bold bg-black/10 border border-gray-400/20 mt-3"
+                        oninput="setEvidenceProjectSearch(this.value)"
+                    >
                 </div>
                 <div class="overflow-x-auto max-h-[32rem] overflow-y-auto">
                     <table class="w-full text-left">
@@ -463,6 +479,9 @@
         let projectsLoaded = false;
         let evidenceSelectedProjectId = null;
         let evidenceFilterDate = "";
+        let loginProjectQuery = "";
+        let adminListQuery = "";
+        let adminEvidenceQuery = "";
         const PROJECTS_CACHE_KEY = `projects_cache_${appId}`;
 
         const authView = document.getElementById('authView');
@@ -483,6 +502,40 @@
         function showLoaderError(msg) {
             initialLoader.innerHTML = `<p class="text-red-400 font-bold text-center max-w-md">${msg}</p>`;
         }
+
+        function normalizeText(v) {
+            return String(v || "")
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "")
+                .toLowerCase()
+                .trim();
+        }
+
+        function projectMatchesQuery(p, query) {
+            const q = normalizeText(query);
+            if (!q) return true;
+            const haystack = `${p.cui || ""} ${p.nombre || ""}`;
+            return normalizeText(haystack).includes(q);
+        }
+
+        function renderLoginProjectOptions(query = loginProjectQuery) {
+            const projectSelector = document.getElementById("projectSelector");
+            if (!projectSelector) return;
+            loginProjectQuery = query || "";
+            const filtered = masterProjects.filter((p) => projectMatchesQuery(p, loginProjectQuery));
+            const selectedValue = projectSelector.value || "";
+            const optionsHtml = filtered
+                .map((p) => `<option value="${p.id}">CUI: ${p.cui} - ${p.nombre.substring(0, 30)}...</option>`)
+                .join("");
+            projectSelector.innerHTML = `<option value="" disabled selected>${filtered.length ? "Seleccione una obra..." : "Sin coincidencias..."}</option>${optionsHtml}`;
+            if (selectedValue && filtered.some((p) => p.id === selectedValue)) {
+                projectSelector.value = selectedValue;
+            }
+        }
+
+        window.filterLoginProjects = (query) => {
+            renderLoginProjectOptions(query);
+        };
 
         async function init() {
             authView.classList.remove('hidden');
@@ -984,13 +1037,15 @@
             const prevRegResident = document.getElementById('regResident')?.value || '';
             if (mode === 'LOGIN') {
                 if (!projectsLoaded || masterProjects.length === 0) {
-                    container.innerHTML = `<label class="label-gold">PROYECTO DE INVERSIÓN</label><select id="projectSelector" disabled class="w-full rounded-xl px-4 py-4 text-sm font-bold shadow-sm"><option value="" selected>Cargando obras...</option></select>`;
+                    container.innerHTML = `<label class="label-gold">PROYECTO DE INVERSIÓN</label><input type="text" id="projectSearchInput" placeholder="Buscar por CUI o nombre..." class="w-full rounded-xl px-4 py-3 mb-2 text-sm font-bold shadow-sm" disabled><select id="projectSelector" disabled class="w-full rounded-xl px-4 py-4 text-sm font-bold shadow-sm"><option value="" selected>Cargando obras...</option></select>`;
                     submitBtn.disabled = true;
                     updateAuthNavLabels();
                     return;
                 }
-                let opts = masterProjects.map(p => `<option value="${p.id}">CUI: ${p.cui} - ${p.nombre.substring(0,30)}...</option>`).join('');
-                container.innerHTML = `<label class="label-gold">PROYECTO DE INVERSIÓN</label><select id="projectSelector" class="w-full rounded-xl px-4 py-4 text-sm font-bold shadow-sm"><option value="" disabled selected>Seleccione una obra...</option>${opts}</select>`;
+                container.innerHTML = `<label class="label-gold">PROYECTO DE INVERSIÓN</label><input type="text" id="projectSearchInput" placeholder="Buscar por CUI o nombre..." class="w-full rounded-xl px-4 py-3 mb-2 text-sm font-bold shadow-sm" oninput="filterLoginProjects(this.value)"><select id="projectSelector" class="w-full rounded-xl px-4 py-4 text-sm font-bold shadow-sm"></select>`;
+                const projectSearchInput = document.getElementById("projectSearchInput");
+                if (projectSearchInput) projectSearchInput.value = loginProjectQuery;
+                renderLoginProjectOptions(loginProjectQuery);
                 submitBtn.disabled = false;
             } else if (mode === 'ADMIN') {
                 container.innerHTML = `<label class="label-gold">CORREO INSTITUCIONAL</label><input type="email" id="adminEmail" value="" autocomplete="username" placeholder="Ingrese su correo institucional" class="w-full rounded-xl px-4 py-4 text-sm font-bold shadow-sm">`;
@@ -1215,7 +1270,12 @@
         function renderAdminTable() {
             const body = document.getElementById('adminTableBody');
             if(!body) return;
-            body.innerHTML = masterProjects.map(p => `
+            const filteredProjects = masterProjects.filter((p) => projectMatchesQuery(p, adminListQuery));
+            if (filteredProjects.length === 0) {
+                body.innerHTML = `<tr><td colspan="4" class="p-6 text-center opacity-40 text-xs font-bold uppercase">Sin proyectos que coincidan con la búsqueda</td></tr>`;
+                return;
+            }
+            body.innerHTML = filteredProjects.map(p => `
                 <tr class="hover:bg-black/5">
                     <td class="p-5 font-mono text-[#991b1b] font-bold text-xs">${p.cui}</td>
                     <td class="p-5 text-xs font-semibold">${p.nombre}</td>
@@ -1233,7 +1293,12 @@
             const tbody = document.getElementById('evidenceAdminTableBody');
             if (!tbody) return;
             const sel = evidenceSelectedProjectId;
-            tbody.innerHTML = masterProjects.map((p) => {
+            const filteredProjects = masterProjects.filter((p) => projectMatchesQuery(p, adminEvidenceQuery));
+            if (filteredProjects.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center opacity-40 text-[10px] font-bold uppercase">Sin coincidencias</td></tr>`;
+                return;
+            }
+            tbody.innerHTML = filteredProjects.map((p) => {
                 const rowClass = p.id === sel ? 'bg-[#991b1b]/10' : 'hover:bg-black/5';
                 return `
                 <tr class="${rowClass}">
@@ -1246,6 +1311,16 @@
                 </tr>`;
             }).join('');
         }
+
+        window.setAdminListSearch = (value) => {
+            adminListQuery = value || "";
+            renderAdminTable();
+        };
+
+        window.setEvidenceProjectSearch = (value) => {
+            adminEvidenceQuery = value || "";
+            renderEvidenceAdminProjectTable();
+        };
 
         window.openEvidenceReviewTab = (id) => {
             evidenceSelectedProjectId = id;
