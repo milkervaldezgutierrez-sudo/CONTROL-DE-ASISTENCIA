@@ -174,7 +174,7 @@
     <div id="authView" class="glass-card p-10 w-full max-w-md hidden border-t-4 border-t-[#991b1b]">
         <div class="flex flex-col items-center mb-6 text-center">
             <div class="logo-container mb-4">
-                <img src="image_bda025.jpg" alt="Logo GRA" class="h-full object-contain">
+                <img src="Imagen1.jpg" alt="Logo GRA" class="h-full object-contain">
             </div>
             <h1 class="text-xs font-bold uppercase tracking-[0.3em] text-[#991b1b] leading-none mb-1">Gobierno Regional</h1>
             <h2 class="text-2xl font-black uppercase tracking-tight">Ayacucho</h2>
@@ -215,7 +215,7 @@
         <div class="flex justify-between items-start mb-8 border-b border-gray-400/10 pb-6">
             <div class="flex items-center gap-4">
                 <div class="logo-container h-16 w-14 rounded-lg">
-                    <img src="image_bda025.jpg" alt="Logo GRA" class="h-full object-contain">
+                    <img src="Imagen1.jpg" alt="Logo GRA" class="h-full object-contain">
                 </div>
                 <div>
                     <span class="label-gold">Residencia Autorizada</span>
@@ -257,7 +257,7 @@
         <div class="flex flex-col md:flex-row justify-between items-center mb-10 gap-6">
             <div class="flex items-center gap-5">
                 <div class="logo-container h-20 w-16">
-                    <img src="image_bda025.jpg" alt="Logo GRA" class="h-full object-contain">
+                    <img src="Imagen1.jpg" alt="Logo GRA" class="h-full object-contain">
                 </div>
                 <div>
                     <h2 class="text-2xl font-black uppercase tracking-tight">Sede Central Ayacucho</h2>
@@ -1586,7 +1586,10 @@
         }
 
         document.getElementById('adminModeBtn').onclick = () => setMode(currentMode === 'ADMIN' ? 'LOGIN' : 'ADMIN');
-        document.getElementById('toggleBtn').onclick = () => setMode(currentMode === 'LOGIN' ? 'REGISTER' : 'LOGIN');
+        document.getElementById('toggleBtn').onclick = () => {
+            if (currentMode === 'REGISTER') setMode('LOGIN');
+            else setMode('REGISTER');
+        };
 
         setMode(currentMode);
         init();
