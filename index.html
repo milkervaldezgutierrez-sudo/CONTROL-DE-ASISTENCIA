@@ -382,6 +382,16 @@
                         <option value="">Todas las fechas</option>
                     </select>
                 </div>
+                <div class="rounded-xl border border-sky-500/25 bg-sky-950/10 p-3 mb-3">
+                    <p class="text-[9px] font-black uppercase text-sky-300 mb-2">Sustento en bloque (sin carga)</p>
+                    <textarea id="bulkSustentoNote" rows="2" placeholder="Motivo para los turnos seleccionados..." class="w-full rounded-lg px-2 py-2 text-[10px] mb-2"></textarea>
+                    <div class="flex flex-wrap gap-2">
+                        <button type="button" onclick="toggleBulkSustentoSelection(true)" class="bg-black/20 border border-white/10 text-white/80 px-3 py-2 rounded-lg text-[9px] font-black uppercase">Seleccionar visibles</button>
+                        <button type="button" onclick="toggleBulkSustentoSelection(false)" class="bg-black/20 border border-white/10 text-white/60 px-3 py-2 rounded-lg text-[9px] font-black uppercase">Limpiar</button>
+                        <button type="button" onclick="applyBulkSustento()" class="bg-sky-900/45 border border-sky-500/45 text-sky-200 px-3 py-2 rounded-lg text-[9px] font-black uppercase">Marcar sustentado en bloque</button>
+                    </div>
+                    <p class="text-[9px] opacity-60 mt-2">Solo aplica a turnos SIN CARGA del filtro actual.</p>
+                </div>
                 <p class="text-[9px] opacity-50 mb-1">El administrador puede revisar las entregas anteriores, aprobarlas o rechazarlas con observación.</p>
                 <p class="text-[9px] opacity-50 mb-3">Los videos y fotos se eliminan automáticamente 4 días después de la entrega.</p>
                 <div id="evidenceReviewList" class="max-h-[32rem] overflow-y-auto space-y-4 pr-1"></div>
@@ -1338,6 +1348,63 @@
             renderEvidenceAdminProjectTable();
         };
 
+        window.toggleBulkSustentoSelection = (checked) => {
+            const list = document.getElementById("evidenceReviewList");
+            if (!list) return;
+            list.querySelectorAll(".bulkSustentoCheck").forEach((el) => {
+                el.checked = !!checked;
+            });
+        };
+
+        window.applyBulkSustento = async () => {
+            const projectId = evidenceSelectedProjectId;
+            if (!projectId) {
+                showFeedback("Seleccione un proyecto para aplicar sustento en bloque.", "error");
+                return;
+            }
+            const list = document.getElementById("evidenceReviewList");
+            if (!list) return;
+            const checked = [...list.querySelectorAll(".bulkSustentoCheck:checked")];
+            if (checked.length === 0) {
+                showFeedback("Seleccione al menos un turno SIN CARGA.", "error");
+                return;
+            }
+            const note = (document.getElementById("bulkSustentoNote")?.value || "").trim();
+            if (!note) {
+                showFeedback("Ingrese un motivo para el sustento en bloque.", "error");
+                return;
+            }
+            const nowIso = new Date().toISOString();
+            const updates = {};
+            checked.forEach((el) => {
+                const bkey = el.getAttribute("data-bkey");
+                if (!bkey) return;
+                updates[`evidence_reviews.${bkey}`] = { status: "sustentado", note, reviewed_at: nowIso };
+            });
+            if (Object.keys(updates).length === 0) {
+                showFeedback("No se encontraron turnos válidos para sustentar.", "error");
+                return;
+            }
+            try {
+                await updateDoc(doc(db, "artifacts", appId, "public", "data", "projects", projectId), updates);
+                const idx = masterProjects.findIndex((x) => x.id === projectId);
+                if (idx >= 0) {
+                    masterProjects[idx].evidence_reviews = { ...(masterProjects[idx].evidence_reviews || {}) };
+                    Object.keys(updates).forEach((k) => {
+                        const bkey = k.replace("evidence_reviews.", "");
+                        masterProjects[idx].evidence_reviews[bkey] = updates[k];
+                    });
+                    renderEvidenceReview(masterProjects[idx]);
+                }
+                renderEvidenceAdminProjectTable();
+                renderAdminTable();
+                showFeedback(`Se sustentaron ${checked.length} turnos en bloque.`, "success");
+            } catch (e) {
+                console.error(e);
+                showFeedback(`No se pudo aplicar sustento en bloque: ${e.code || e.message}`, "error");
+            }
+        };
+
         window.openEvidenceReviewTab = (id) => {
             evidenceSelectedProjectId = id;
             evidenceFilterDate = "";
@@ -1444,7 +1511,13 @@
                             <div class="text-[9px] font-bold opacity-80">
                                 <span class="text-[#991b1b]">${escHtml(fecha)}</span> · ${turnoLabel}
                             </div>
-                            <span class="text-[9px] font-black text-orange-400/90">SIN CARGA</span>
+                            <div class="flex items-center gap-2">
+                                <label class="text-[8px] font-black uppercase opacity-70 flex items-center gap-1">
+                                    <input type="checkbox" class="bulkSustentoCheck accent-sky-500" data-pid="${p.id}" data-bkey="${sustKey}">
+                                    Lote
+                                </label>
+                                <span class="text-[9px] font-black text-orange-400/90">SIN CARGA</span>
+                            </div>
                         </div>
                         <p class="text-[10px] opacity-50 mb-3">No hay evidencias registradas para este proyecto.</p>
                         <textarea id="reviewNote_${safeId}" rows="2" placeholder="Motivo del sustento (obligatorio)" class="w-full rounded-lg px-2 py-2 text-[10px] mb-2"></textarea>
