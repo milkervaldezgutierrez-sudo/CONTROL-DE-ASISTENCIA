@@ -739,22 +739,30 @@
         }
 
         function hasEvidenceOnDate(p, ymd) {
-            if (Array.isArray(p.evidence_log) && p.evidence_log.some((b) => String(b.fecha || "") === ymd)) return true;
-            const reviews = p?.evidence_reviews || {};
-            if (
-                Object.keys(reviews).some((k) => {
-                    const rev = reviews[k] || {};
-                    return (
-                        rev.status === "sustentado" &&
-                        k.startsWith(`sustento_${ymd}_`)
-                    );
-                })
-            ) {
-                return true;
+            const coveredSlots = new Set();
+            if (Array.isArray(p.evidence_log)) {
+                p.evidence_log.forEach((b) => {
+                    if (String(b.fecha || "") !== ymd) return;
+                    const turno = String(b.turno || "");
+                    if (turno === "mañana" || turno === "tarde") coveredSlots.add(turno);
+                    // Compatibilidad con cargas antiguas sin turno: cubre el día completo.
+                    if (!turno) {
+                        coveredSlots.add("mañana");
+                        coveredSlots.add("tarde");
+                    }
+                });
             }
+            const reviews = p?.evidence_reviews || {};
+            Object.keys(reviews).forEach((k) => {
+                const rev = reviews[k] || {};
+                if (rev.status !== "sustentado") return;
+                if (k === `sustento_${ymd}_mañana`) coveredSlots.add("mañana");
+                if (k === `sustento_${ymd}_tarde`) coveredSlots.add("tarde");
+            });
+            if (coveredSlots.has("mañana") && coveredSlots.has("tarde")) return true;
             if (p.last_report) {
                 const lrYmd = dateToLimaYMD(new Date(p.last_report));
-                return lrYmd === ymd;
+                if (lrYmd === ymd) return true;
             }
             return false;
         }
