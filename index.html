@@ -1115,7 +1115,15 @@
 
         function collectEvidenceDates(p) {
             const s = new Set();
-            s.add(fechaCarpetaLima());
+            const todayYmd = fechaCarpetaLima();
+            const currentMonthISO = todayYmd.slice(0, 7);
+            const dim = daysInMonthYm(currentMonthISO);
+            for (let d = 1; d <= dim; d++) {
+                const ymd = `${currentMonthISO}-${String(d).padStart(2, "0")}`;
+                if (ymd > todayYmd) continue;
+                if (!isReportingDayYmd(ymd)) continue;
+                s.add(ymd);
+            }
             if (Array.isArray(p.evidence_log)) {
                 p.evidence_log.forEach((b) => {
                     if (b.fecha) s.add(String(b.fecha));
@@ -1126,7 +1134,7 @@
                 const m = k.match(/^sustento_(\d{4}-\d{2}-\d{2})_(mañana|tarde)$/);
                 if (m) s.add(m[1]);
             });
-            return [...s].sort((a, b) => (a < b ? 1 : a > b ? -1 : 0)).slice(0, 21);
+            return [...s].sort((a, b) => (a < b ? 1 : a > b ? -1 : 0));
         }
 
         function hasPendingEvidenceReview(p) {
