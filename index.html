@@ -287,7 +287,8 @@
                     <img src="Imagen1.jpg" alt="Logo GRA">
                 </div>
                 <div>
-                    <h2 class="text-2xl font-black uppercase tracking-tight">Sede Central Ayacucho</h2>
+                    <h2 class="text-lg sm:text-xl md:text-2xl font-black uppercase tracking-tight leading-snug max-w-xl">Sub Gerencia de Ejecución de Inversiones</h2>
+                    <p class="text-[9px] font-bold uppercase tracking-widest text-white/45 mt-1.5">Gobierno Regional de Ayacucho</p>
                     <div class="flex flex-wrap gap-4 md:gap-6 mt-2">
                         <button onclick="switchAdminTab('list')" id="tabList" class="text-[10px] font-black active-tab pb-1">GESTIÓN</button>
                         <button onclick="switchAdminTab('evidence')" id="tabEvidence" class="text-[10px] font-black opacity-40 hover:opacity-100 transition-colors uppercase">Evidencias</button>
@@ -416,14 +417,50 @@
                             </div>
                         </div>
                     </div>
-                    <div class="flex flex-wrap gap-3 md:gap-4 items-center bg-black/5 p-4 md:p-5 rounded-2xl border border-gray-400/10 max-w-xl">
-                        <div class="flex items-center gap-2 text-[9px] font-bold leading-tight"><div class="status-dot tier-0"></div> Cumplido</div>
-                        <div class="flex items-center gap-2 text-[9px] font-bold leading-tight"><div class="status-dot tier-1"></div> 1 falta</div>
-                        <div class="flex items-center gap-2 text-[9px] font-bold leading-tight"><div class="status-dot tier-2"></div> 2 faltas</div>
-                        <div class="flex items-center gap-2 text-[9px] font-bold leading-tight"><div class="status-dot tier-3"></div> 3+ faltas (funcionario a sancionar)</div>
-                        <div class="flex items-center gap-2 text-[9px] font-bold leading-tight opacity-80"><div class="status-dot pending"></div> Pend. / fuera de mes</div>
+                    <div class="w-full md:w-auto md:min-w-[320px] lg:min-w-[360px] rounded-2xl border border-[#991b1b]/25 bg-gradient-to-br from-black/35 via-[#991b1b]/[0.07] to-black/25 p-4 md:p-5 shadow-lg">
+                        <p class="text-[10px] font-black uppercase tracking-[0.2em] text-[#991b1b] mb-3 pb-2 border-b border-white/10">Leyenda del indicador</p>
+                        <p class="text-[8px] font-bold text-white/45 uppercase mb-3 leading-relaxed">Cada punto resume las faltas de evidencia acumuladas en el mes hasta el día indicado (mañana y tarde).</p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                            <div class="flex gap-2.5 rounded-xl border border-emerald-500/15 bg-emerald-950/20 px-2.5 py-2">
+                                <div class="status-dot tier-0 shrink-0 mt-0.5"></div>
+                                <div class="min-w-0">
+                                    <p class="text-[9px] font-black uppercase text-emerald-300">Cumplido</p>
+                                    <p class="text-[8px] text-white/50 leading-snug mt-0.5">0 faltas en el acumulado.</p>
+                                </div>
+                            </div>
+                            <div class="flex gap-2.5 rounded-xl border border-amber-500/15 bg-amber-950/15 px-2.5 py-2">
+                                <div class="status-dot tier-1 shrink-0 mt-0.5"></div>
+                                <div class="min-w-0">
+                                    <p class="text-[9px] font-black uppercase text-amber-300">Alerta</p>
+                                    <p class="text-[8px] text-white/50 leading-snug mt-0.5">1 falta acumulada.</p>
+                                </div>
+                            </div>
+                            <div class="flex gap-2.5 rounded-xl border border-orange-500/15 bg-orange-950/15 px-2.5 py-2">
+                                <div class="status-dot tier-2 shrink-0 mt-0.5"></div>
+                                <div class="min-w-0">
+                                    <p class="text-[9px] font-black uppercase text-orange-300">Riesgo</p>
+                                    <p class="text-[8px] text-white/50 leading-snug mt-0.5">2 faltas acumuladas.</p>
+                                </div>
+                            </div>
+                            <div class="flex gap-2.5 rounded-xl border border-red-500/20 bg-red-950/20 px-2.5 py-2">
+                                <div class="status-dot tier-3 shrink-0 mt-0.5"></div>
+                                <div class="min-w-0">
+                                    <p class="text-[9px] font-black uppercase text-red-300">Crítico</p>
+                                    <p class="text-[8px] text-white/50 leading-snug mt-0.5">3 o más faltas. Funcionario a sancionar.</p>
+                                </div>
+                            </div>
+                            <div class="flex gap-2.5 rounded-xl border border-white/10 bg-black/30 px-2.5 py-2 sm:col-span-2">
+                                <div class="status-dot pending shrink-0 mt-0.5"></div>
+                                <div class="min-w-0">
+                                    <p class="text-[9px] font-black uppercase text-white/55">Pendiente / N/A</p>
+                                    <p class="text-[8px] text-white/45 leading-snug mt-0.5">Día futuro, domingo sin control, o fecha fuera del mes en curso.</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
+
+                <p id="jpgExportPageBadge" class="hidden text-center text-[10px] font-mono text-amber-400/90 font-black tracking-widest mb-4 uppercase" aria-hidden="true"></p>
 
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-separate border-spacing-y-4">
@@ -431,7 +468,7 @@
                         <tbody id="elegantFaultTable"></tbody>
                     </table>
                 </div>
-                <div class="mt-10 pt-6 border-t border-gray-400/10 text-center opacity-30">
+                <div id="captureAreaFooter" class="mt-10 pt-6 border-t border-gray-400/10 text-center opacity-30">
                     <p class="text-[10px] font-black uppercase">Gobierno Regional de Ayacucho - Sede Central</p>
                     <p class="text-[10px] font-black uppercase mt-1">Sub Gerencia de Ejecución de Inversiones</p>
                     <p class="text-[10px] font-black uppercase mt-1">Versión 1.0</p>
@@ -728,56 +765,170 @@
             renderElegantFaultReport();
         };
 
-        window.exportToJPG = () => {
-            const area = document.getElementById('captureArea');
-            const btn = document.getElementById('exportJpgBtn');
-            const originalText = btn.textContent;
-            btn.textContent = "Procesando...";
-            html2canvas(area, { backgroundColor: isDarkMode ? '#0f172a' : '#f8fafc', scale: 2 }).then(canvas => {
-                const link = document.createElement('a');
-                link.download = `Reporte_General_GRA_${new Date().toISOString().slice(0,10)}.jpg`;
-                link.href = canvas.toDataURL('image/jpeg', 0.9);
-                link.click();
-                btn.textContent = originalText;
+        function getFaultReportDataRows() {
+            const tableBody = document.getElementById("elegantFaultTable");
+            if (!tableBody) return [];
+            return Array.from(tableBody.querySelectorAll("tr")).filter((tr) => {
+                const td = tr.querySelector("td");
+                if (!td) return false;
+                return !td.hasAttribute("colspan");
             });
+        }
+
+        /** Parte el tbody en páginas según altura acumulada (px) para que cada JPG no salga minúscula. */
+        function chunkTableRowsByHeight(rows, maxBodyPx) {
+            if (rows.length === 0) return [];
+            const pages = [];
+            let batch = [];
+            let acc = 0;
+            for (const tr of rows) {
+                const h = tr.getBoundingClientRect().height || 48;
+                if (batch.length > 0 && acc + h > maxBodyPx) {
+                    pages.push(batch);
+                    batch = [tr];
+                    acc = h;
+                } else {
+                    batch.push(tr);
+                    acc += h;
+                }
+            }
+            if (batch.length) pages.push(batch);
+            return pages;
+        }
+
+        function downloadJpgDataUrl(dataUrl, fileName) {
+            const link = document.createElement("a");
+            link.download = fileName;
+            link.href = dataUrl;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        /**
+         * Exporta el reporte en una o varias imágenes JPG (alto legible).
+         * @param {string} fileBase nombre base sin extensión
+         */
+        async function exportCaptureAreaMultiJpg(fileBase) {
+            const area = document.getElementById("captureArea");
+            const badge = document.getElementById("jpgExportPageBadge");
+            const footer = document.getElementById("captureAreaFooter");
+            if (!area) return;
+
+            const bg = isDarkMode ? "#0f172a" : "#f8fafc";
+            const scale = 2;
+            const maxTableBodyH = 950;
+
+            const rows = getFaultReportDataRows();
+            if (rows.length === 0) {
+                if (badge) {
+                    badge.textContent = "";
+                    badge.classList.add("hidden");
+                }
+                if (footer) footer.style.display = "";
+                const canvas = await html2canvas(area, { backgroundColor: bg, scale, useCORS: true });
+                downloadJpgDataUrl(
+                    canvas.toDataURL("image/jpeg", 0.92),
+                    `${fileBase}.jpg`
+                );
+                return;
+            }
+
+            const pages = chunkTableRowsByHeight(rows, maxTableBodyH);
+            const totalParts = pages.length;
+            for (let i = 0; i < totalParts; i++) {
+                if (badge) {
+                    if (totalParts > 1) {
+                        badge.textContent = `Parte ${i + 1} de ${totalParts}`;
+                        badge.classList.remove("hidden");
+                    } else {
+                        badge.textContent = "";
+                        badge.classList.add("hidden");
+                    }
+                }
+                if (footer) {
+                    footer.style.display = i === totalParts - 1 ? "" : "none";
+                }
+                const visible = new Set(pages[i]);
+                rows.forEach((tr) => {
+                    tr.style.display = visible.has(tr) ? "" : "none";
+                });
+                await new Promise((r) => requestAnimationFrame(() => r()));
+                await new Promise((r) => setTimeout(r, 80));
+                const canvas = await html2canvas(area, { backgroundColor: bg, scale, useCORS: true });
+                const padI = String(i + 1).padStart(2, "0");
+                const padT = String(totalParts).padStart(2, "0");
+                const name =
+                    totalParts > 1
+                        ? `${fileBase}_parte${padI}de${padT}.jpg`
+                        : `${fileBase}.jpg`;
+                downloadJpgDataUrl(canvas.toDataURL("image/jpeg", 0.92), name);
+                if (i < totalParts - 1) {
+                    await new Promise((r) => setTimeout(r, 400));
+                }
+            }
+
+            rows.forEach((tr) => {
+                tr.style.display = "";
+            });
+            if (footer) footer.style.display = "";
+            if (badge) {
+                badge.textContent = "";
+                badge.classList.add("hidden");
+            }
+        }
+
+        window.exportToJPG = async () => {
+            const btn = document.getElementById("exportJpgBtn");
+            if (!btn) return;
+            const originalText = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = "Generando imágenes...";
+            const stamp = new Date().toISOString().slice(0, 10);
+            try {
+                await exportCaptureAreaMultiJpg(`Reporte_General_GRA_${stamp}`);
+                showFeedback(
+                    "Reporte exportado. Si hay muchos proyectos, se descargan varias imágenes (parte 1, 2, …).",
+                    "success"
+                );
+            } catch (e) {
+                console.error(e);
+                showFeedback(`Error al exportar: ${e.message || e}`, "error");
+            } finally {
+                btn.disabled = false;
+                btn.textContent = originalText;
+            }
         };
 
         window.exportCriticosJPG = async () => {
-            const btn = document.getElementById('exportCriticosBtn');
+            const btn = document.getElementById("exportCriticosBtn");
+            if (!btn) return;
             const originalText = btn.textContent;
-            btn.textContent = "Filtrando...";
-
+            btn.disabled = true;
             const criticos = masterProjects.filter((p) => complianceTotalForProject(p) >= 3);
 
-            // Feedback visual pero NO retornamos si está vacío
             if (criticos.length === 0) {
-                showFeedback("Nota: Generando reporte sin infractores críticos detectados.");
+                showFeedback("Nota: generando reporte sin infractores críticos detectados.");
             }
 
-            // Cambiar vista temporalmente (incluso si está vacío)
-            activeProjects = criticos;
-            renderElegantFaultReport();
-            
-            setTimeout(() => {
-                const area = document.getElementById('captureArea');
-                html2canvas(area, { 
-                    backgroundColor: isDarkMode ? '#0f172a' : '#f8fafc', 
-                    scale: 2,
-                    useCORS: true 
-                }).then(canvas => {
-                    const link = document.createElement('a');
-                    link.download = `REPORTE_CRITICO_GRA_${new Date().toISOString().slice(0,10)}.jpg`;
-                    link.href = canvas.toDataURL('image/jpeg', 0.9);
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    
-                    // Restaurar vista completa
-                    activeProjects = [...masterProjects];
-                    renderElegantFaultReport();
-                    btn.textContent = originalText;
-                });
-            }, 600);
+            try {
+                btn.textContent = "Filtrando...";
+                activeProjects = criticos;
+                renderElegantFaultReport();
+                await new Promise((r) => setTimeout(r, 500));
+                btn.textContent = "Generando imágenes...";
+                const stamp = new Date().toISOString().slice(0, 10);
+                await exportCaptureAreaMultiJpg(`REPORTE_CRITICO_GRA_${stamp}`);
+                showFeedback("Reporte crítico exportado (varias imágenes si aplica).", "success");
+            } catch (e) {
+                console.error(e);
+                showFeedback(`Error al exportar: ${e.message || e}`, "error");
+            } finally {
+                activeProjects = [...masterProjects];
+                renderElegantFaultReport();
+                btn.disabled = false;
+                btn.textContent = originalText;
+            }
         };
 
         function getWeekDates(offset) {
