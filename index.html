@@ -400,13 +400,13 @@
         </div>
 
         <div id="adminReportView" class="hidden">
-            <div id="captureArea" class="bg-inherit rounded-3xl border border-gray-400/10 overflow-hidden shadow-2xl p-10">
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
-                    <div>
-                        <h3 class="text-2xl font-black uppercase tracking-tight text-[#991b1b]">Reporte de Cumplimiento</h3>
-                        <p class="text-[11px] font-bold text-gray-500 uppercase">Sub Gerencia de Ejecución de Inversiones</p>
-                        <p id="currentControlMonthLabel" class="text-[10px] font-black text-gray-400 uppercase mt-1">Periodo de Control: CARGANDO...</p>
-                        <div class="flex gap-4 mt-3 items-center">
+            <div id="captureArea" class="bg-inherit rounded-3xl border border-gray-400/10 overflow-hidden shadow-2xl p-5 md:p-6">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 md:mb-5 gap-3 md:gap-4">
+                    <div class="min-w-0">
+                        <h3 class="text-xl md:text-2xl font-black uppercase tracking-tight text-[#991b1b] leading-tight">Reporte de Incumplimiento</h3>
+                        <p class="text-[10px] md:text-[11px] font-bold text-gray-500 uppercase mt-0.5">Sub Gerencia de Ejecución de Inversiones</p>
+                        <p id="currentControlMonthLabel" class="text-[9px] md:text-[10px] font-black text-gray-400 uppercase mt-0.5">Periodo de Control: CARGANDO...</p>
+                        <div class="flex flex-wrap gap-2 md:gap-3 mt-2 items-center">
                             <button onclick="setReportPeriod('semanal')" id="btnPeriodSemanal" class="text-[10px] font-black uppercase transition-all pb-1 active-tab">Semanal</button>
                             <button onclick="setReportPeriod('mensual')" id="btnPeriodMensual" class="text-[10px] font-black opacity-30 uppercase transition-all pb-1">Mensual</button>
                             <div class="h-4 w-px bg-gray-400/30 mx-2"></div>
@@ -417,9 +417,9 @@
                             </div>
                         </div>
                     </div>
-                    <div class="w-full md:w-auto md:min-w-[320px] lg:min-w-[360px] rounded-2xl border border-[#991b1b]/25 bg-gradient-to-br from-black/35 via-[#991b1b]/[0.07] to-black/25 p-4 md:p-5 shadow-lg">
-                        <p class="text-[10px] font-black uppercase tracking-[0.2em] text-[#991b1b] mb-3 pb-2 border-b border-white/10">Leyenda del indicador</p>
-                        <p class="text-[8px] font-bold text-white/45 uppercase mb-3 leading-relaxed">Cada punto resume las faltas de evidencia acumuladas en el mes hasta el día indicado (mañana y tarde).</p>
+                    <div class="w-full md:w-auto md:min-w-[300px] lg:min-w-[340px] rounded-xl border border-[#991b1b]/25 bg-gradient-to-br from-black/35 via-[#991b1b]/[0.07] to-black/25 p-3 md:p-4 shadow-lg">
+                        <p class="text-[9px] font-black uppercase tracking-[0.15em] text-[#991b1b] mb-2 pb-1.5 border-b border-white/10">Leyenda del indicador</p>
+                        <p class="text-[8px] font-bold text-white/45 uppercase mb-2 leading-snug">Faltas de evidencia acumuladas en el mes hasta el día (mañana y tarde).</p>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                             <div class="flex gap-2.5 rounded-xl border border-emerald-500/15 bg-emerald-950/20 px-2.5 py-2">
                                 <div class="status-dot tier-0 shrink-0 mt-0.5"></div>
@@ -460,7 +460,7 @@
                     </div>
                 </div>
 
-                <p id="jpgExportPageBadge" class="hidden text-center text-[10px] font-mono text-amber-400/90 font-black tracking-widest mb-4 uppercase" aria-hidden="true"></p>
+                <p id="jpgExportPageBadge" class="hidden text-center text-[10px] font-mono text-amber-400/90 font-black tracking-widest mb-3 uppercase" aria-hidden="true"></p>
 
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-separate border-spacing-y-4">
@@ -468,7 +468,7 @@
                         <tbody id="elegantFaultTable"></tbody>
                     </table>
                 </div>
-                <div id="captureAreaFooter" class="mt-10 pt-6 border-t border-gray-400/10 text-center opacity-30">
+                <div id="captureAreaFooter" class="mt-6 pt-4 border-t border-gray-400/10 text-center opacity-30">
                     <p class="text-[10px] font-black uppercase">Gobierno Regional de Ayacucho - Sede Central</p>
                     <p class="text-[10px] font-black uppercase mt-1">Sub Gerencia de Ejecución de Inversiones</p>
                     <p class="text-[10px] font-black uppercase mt-1">Versión 1.0</p>
@@ -886,7 +886,7 @@
             btn.textContent = "Generando imágenes...";
             const stamp = new Date().toISOString().slice(0, 10);
             try {
-                await exportCaptureAreaMultiJpg(`Reporte_General_GRA_${stamp}`);
+                await exportCaptureAreaMultiJpg(`Reporte_Incumplimiento_GRA_${stamp}`);
                 showFeedback(
                     "Reporte exportado. Si hay muchos proyectos, se descargan varias imágenes (parte 1, 2, …).",
                     "success"
@@ -1047,7 +1047,7 @@
             if (reportPeriod === 'semanal') {
                 const dayNames = ['Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab'];
                 const ths = dayNames.map((name, i) => `<th class="p-4 text-center font-black"><div>${name}</div><div class="text-[8px] opacity-40 font-mono">${weekDates[i].getDate()}</div></th>`).join('');
-                tableHead.innerHTML = `<tr class="text-[#991b1b] text-[10px] font-black uppercase border-b border-gray-400/10"><th class="p-4 w-2/5 text-xs font-black">Información del Proyecto</th><th class="p-4 text-center bg-[#991b1b]/5 w-24">Previas</th>${ths}<th class="p-4 text-center bg-[#991b1b]/5 w-24">Totales</th></tr>`;
+                tableHead.innerHTML = `<tr class="text-[#991b1b] text-[10px] font-black uppercase border-b border-gray-400/10"><th class="p-4 w-2/5 text-xs font-black">Información del Proyecto</th><th class="p-4 text-center bg-[#991b1b]/5 w-24">Previas</th>${ths}<th class="p-3 text-center bg-[#991b1b]/5 w-28 text-[9px] leading-tight">Faltas totales</th></tr>`;
             } else {
                 const dim = daysInMonthYm(currentMonthISO);
                 const w1e = Math.min(7, dim);
@@ -1060,7 +1060,7 @@
                     `Sem 3<br><span class="text-[8px] opacity-50 font-mono">${Math.min(15, dim)}–${w3e}</span>`,
                     `Sem 4<br><span class="text-[8px] opacity-50 font-mono">${Math.min(22, dim)}–${w4e}</span>`
                 ].map((h) => `<th class="p-3 text-center font-black leading-tight">${h}</th>`).join('');
-                tableHead.innerHTML = `<tr class="text-[#991b1b] text-[10px] font-black uppercase border-b border-gray-400/10"><th class="p-4 w-2/5 text-xs font-black">Información del Proyecto</th><th class="p-4 text-center bg-[#991b1b]/5 w-24">Previas</th>${thM}<th class="p-4 text-center bg-[#991b1b]/5 w-24">Totales</th></tr>`;
+                tableHead.innerHTML = `<tr class="text-[#991b1b] text-[10px] font-black uppercase border-b border-gray-400/10"><th class="p-4 w-2/5 text-xs font-black">Información del Proyecto</th><th class="p-4 text-center bg-[#991b1b]/5 w-24">Previas</th>${thM}<th class="p-3 text-center bg-[#991b1b]/5 w-28 text-[9px] leading-tight">Faltas totales</th></tr>`;
             }
 
             if (activeProjects.length === 0) {
