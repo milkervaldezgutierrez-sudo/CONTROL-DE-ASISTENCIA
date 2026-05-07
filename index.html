@@ -513,6 +513,9 @@
         const MAX_UPLOAD_BYTES = 80 * 1024 * 1024;
         const EVIDENCE_RETENTION_MS = 4 * 24 * 60 * 60 * 1000;
         const evidenceCleanupInFlight = new Set();
+        const HOLIDAY_YMD = new Set([
+            "2026-06-01"
+        ]);
 
         let masterProjects = [];
         let activeProjects = [];
@@ -963,10 +966,11 @@
         function isReportingDayYmd(ymd) {
             const [y, mo, da] = ymd.split("-").map(Number);
             const dt = new Date(y, mo - 1, da);
-            return dt.getDay() !== 0;
+            return dt.getDay() !== 0 && !HOLIDAY_YMD.has(ymd);
         }
 
         function hasEvidenceOnDate(p, ymd) {
+            if (HOLIDAY_YMD.has(ymd)) return true;
             const coveredSlots = new Set();
             if (Array.isArray(p.evidence_log)) {
                 p.evidence_log.forEach((b) => {
