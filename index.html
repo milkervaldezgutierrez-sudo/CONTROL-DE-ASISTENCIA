@@ -962,6 +962,13 @@
             return new Date(y, m, 0).getDate();
         }
 
+        function previousDayYmd(ymd) {
+            const [y, mo, da] = ymd.split("-").map(Number);
+            const dt = new Date(y, mo - 1, da);
+            dt.setDate(dt.getDate() - 1);
+            return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}-${String(dt.getDate()).padStart(2, "0")}`;
+        }
+
         /** Lunes a sábado (domingo no hay entrega de evidencia). */
         function isReportingDayYmd(ymd) {
             const [y, mo, da] = ymd.split("-").map(Number);
@@ -1075,6 +1082,17 @@
             tableBody.innerHTML = activeProjects.map(p => {
                 let faultsAccumulated = Number(p.faults_accumulated) || 0;
                 if (p.last_reset_month && p.last_reset_month < currentMonthISO) faultsAccumulated = 0;
+                let previasDisplay = faultsAccumulated;
+
+                if (reportPeriod === "semanal") {
+                    const weekStartYmd = dateToLimaYMD(weekDates[0]);
+                    const periodStartYmd = weekStartYmd < monthStartYmd ? monthStartYmd : weekStartYmd;
+                    let prevEndYmd = previousDayYmd(periodStartYmd);
+                    if (prevEndYmd > todayYmd) prevEndYmd = todayYmd;
+                    if (prevEndYmd >= monthStartYmd) {
+                        previasDisplay += countMissedReportingDaysBetween(p, monthStartYmd, prevEndYmd);
+                    }
+                }
 
                 let cellsArr = [];
 
@@ -1133,7 +1151,7 @@
                             </div>
                         </td>
                         <td class="p-4 text-center border-y-2" style="border-color: ${borderColor}">
-                            <span class="text-base font-black ${contrastText}/60">${faultsAccumulated}</span>
+                            <span class="text-base font-black ${contrastText}/60">${previasDisplay}</span>
                         </td>
                         ${cellsArr.map(html => `<td class="p-4 border-y-2" style="border-color: ${borderColor}">${html}</td>`).join('')}
                         <td class="p-4 text-center rounded-r-2xl border-y-2 border-r-2" style="border-color: ${borderColor}; background: ${totalCellBg}">
