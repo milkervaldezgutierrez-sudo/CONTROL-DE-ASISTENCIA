@@ -1083,9 +1083,9 @@
                         if (cellYmd.slice(0, 7) !== currentMonthISO) {
                             return `<div class="flex justify-center"><span class="text-[10px] opacity-30">—</span></div>`;
                         }
-                        const rangeEnd = cellYmd <= todayYmd ? cellYmd : todayYmd;
-                        const cum = countMissedReportingDaysBetween(p, monthStartYmd, rangeEnd);
-                        const tier = tierClassFromMonthlyFaultCount(cum);
+                        // En vista semanal el color representa el estado del día puntual.
+                        // Si el día está cubierto (evidencia o sustento de mañana y tarde), se muestra en verde.
+                        const tier = hasEvidenceOnDate(p, cellYmd) ? "tier-0" : "tier-3";
                         return `<div class="flex justify-center"><div class="status-dot ${tier} mx-auto"></div></div>`;
                     });
                 } else {
