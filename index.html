@@ -405,15 +405,21 @@
                     <div class="min-w-0">
                         <h3 class="text-xl md:text-2xl font-black uppercase tracking-tight text-[#991b1b] leading-tight">Reporte de Incumplimiento</h3>
                         <p class="text-[10px] md:text-[11px] font-bold text-gray-500 uppercase mt-0.5">Sub Gerencia de Ejecución de Inversiones</p>
-                        <p id="currentControlMonthLabel" class="text-[9px] md:text-[10px] font-black text-gray-400 uppercase mt-0.5">Periodo de Control: CARGANDO...</p>
                         <div class="flex flex-wrap gap-2 md:gap-3 mt-2 items-center">
                             <button onclick="setReportPeriod('semanal')" id="btnPeriodSemanal" class="text-[10px] font-black uppercase transition-all pb-1 active-tab">Semanal</button>
                             <button onclick="setReportPeriod('mensual')" id="btnPeriodMensual" class="text-[10px] font-black opacity-30 uppercase transition-all pb-1">Mensual</button>
                             <div class="h-4 w-px bg-gray-400/30 mx-2"></div>
+                            <div id="monthNavigator" class="flex items-center gap-2">
+                                <span class="text-[9px] font-black text-gray-400 uppercase hidden sm:inline">Periodo:</span>
+                                <button onclick="changeReportMonth(-1)" id="btnPrevReportMonth" class="p-1 hover:text-[#991b1b]" title="Mes anterior"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7" stroke-width="3"/></svg></button>
+                                <span id="currentControlMonthLabel" class="text-[10px] font-black uppercase font-mono opacity-70 min-w-[110px] text-center">CARGANDO...</span>
+                                <button onclick="changeReportMonth(1)" id="btnNextReportMonth" class="p-1 hover:text-[#991b1b]" title="Mes siguiente"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" stroke-width="3"/></svg></button>
+                            </div>
+                            <div class="h-4 w-px bg-gray-400/30 mx-2 hidden sm:block"></div>
                             <div id="weekNavigator" class="flex items-center gap-3">
-                                <button onclick="changeWeek(-1)" class="p-1 hover:text-[#991b1b]"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7" stroke-width="3"/></svg></button>
+                                <button onclick="changeWeek(-1)" id="btnPrevWeek" class="p-1 hover:text-[#991b1b]" title="Semana anterior"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7" stroke-width="3"/></svg></button>
                                 <span id="currentWeekRange" class="text-[10px] font-black uppercase font-mono opacity-50"></span>
-                                <button onclick="changeWeek(1)" class="p-1 hover:text-[#991b1b]"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" stroke-width="3"/></svg></button>
+                                <button onclick="changeWeek(1)" id="btnNextWeek" class="p-1 hover:text-[#991b1b]" title="Semana siguiente"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" stroke-width="3"/></svg></button>
                             </div>
                         </div>
                     </div>
@@ -524,7 +530,8 @@
         let selectedFiles = [];
         let residentGateIntervalId = null;
         let reportPeriod = 'semanal';
-        let weekOffset = 0;
+        let reportMonthOffset = 0;
+        let weekIndexInMonth = null;
         let isDarkMode = true;
         let projectsLoaded = false;
         let evidenceSelectedProjectId = null;
@@ -763,8 +770,83 @@
             renderElegantFaultReport();
         };
 
+        function getSelectedMonthISO() {
+            const now = new Date();
+            const d = new Date(now.getFullYear(), now.getMonth() + reportMonthOffset, 1);
+            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+        }
+
+        function getReportEndYmd(monthISO) {
+            const todayYmd = fechaCarpetaLima();
+            if (monthISO === todayYmd.slice(0, 7)) return todayYmd;
+            const dim = daysInMonthYm(monthISO);
+            return `${monthISO}-${String(dim).padStart(2, "0")}`;
+        }
+
+        function formatMonthLabel(monthISO) {
+            const [y, m] = monthISO.split("-").map(Number);
+            const d = new Date(y, m - 1, 1);
+            return d.toLocaleString("es-PE", { month: "long", year: "numeric" }).toUpperCase();
+        }
+
+        function enumerateWeeksInMonth(monthISO) {
+            const [y, m] = monthISO.split("-").map(Number);
+            const dim = daysInMonthYm(monthISO);
+            let cursor = new Date(y, m - 1, 1);
+            const dow = cursor.getDay();
+            const toMonday = dow === 0 ? -6 : 1 - dow;
+            cursor.setDate(cursor.getDate() + toMonday);
+
+            const weeks = [];
+            for (let guard = 0; guard < 6; guard++) {
+                const dates = [];
+                for (let i = 0; i < 6; i++) {
+                    dates.push(new Date(cursor.getFullYear(), cursor.getMonth(), cursor.getDate() + i));
+                }
+                const overlaps = dates.some((dt) => dateToLimaYMD(dt).slice(0, 7) === monthISO);
+                if (overlaps) weeks.push(dates);
+                cursor.setDate(cursor.getDate() + 7);
+                if (dateToLimaYMD(cursor).slice(0, 7) > monthISO) break;
+            }
+            return weeks;
+        }
+
+        function getDefaultWeekIndex(weeks, monthISO) {
+            const todayYmd = fechaCarpetaLima();
+            if (monthISO !== todayYmd.slice(0, 7)) return Math.max(0, weeks.length - 1);
+            const idx = weeks.findIndex((w) => w.some((d) => dateToLimaYMD(d) === todayYmd));
+            return idx >= 0 ? idx : Math.max(0, weeks.length - 1);
+        }
+
+        function getActiveWeekDates() {
+            const monthISO = getSelectedMonthISO();
+            const weeks = enumerateWeeksInMonth(monthISO);
+            if (weeks.length === 0) {
+                return { dates: getWeekDates(0), weekIndex: 0, totalWeeks: 1 };
+            }
+            if (weekIndexInMonth === null) {
+                weekIndexInMonth = getDefaultWeekIndex(weeks, monthISO);
+            }
+            weekIndexInMonth = Math.max(0, Math.min(weeks.length - 1, weekIndexInMonth));
+            return { dates: weeks[weekIndexInMonth], weekIndex: weekIndexInMonth, totalWeeks: weeks.length };
+        }
+
+        window.changeReportMonth = (offset) => {
+            const next = reportMonthOffset + offset;
+            if (next > 0) return;
+            reportMonthOffset = next;
+            weekIndexInMonth = null;
+            renderElegantFaultReport();
+        };
+
         window.changeWeek = (offset) => {
-            weekOffset += offset;
+            const monthISO = getSelectedMonthISO();
+            const weeks = enumerateWeeksInMonth(monthISO);
+            if (weeks.length === 0) return;
+            if (weekIndexInMonth === null) {
+                weekIndexInMonth = getDefaultWeekIndex(weeks, monthISO);
+            }
+            weekIndexInMonth = Math.max(0, Math.min(weeks.length - 1, weekIndexInMonth + offset));
             renderElegantFaultReport();
         };
 
@@ -1028,14 +1110,19 @@
             return "tier-3";
         }
 
-        /** Previas (faltas históricas del doc) + faltas acumuladas en el mes corriente (Lima) hasta hoy. */
-        function complianceTotalForProject(p) {
+        /** Previas (faltas históricas del doc) + faltas acumuladas en el mes seleccionado (Lima) hasta el cierre del periodo. */
+        function complianceTotalForProject(p, monthISO) {
+            monthISO = monthISO || getSelectedMonthISO();
             const todayYmd = fechaCarpetaLima();
             const currentMonthISO = todayYmd.slice(0, 7);
-            let prev = Number(p.faults_accumulated) || 0;
-            if (p.last_reset_month && p.last_reset_month < currentMonthISO) prev = 0;
-            const monthStartYmd = `${currentMonthISO}-01`;
-            const missesMes = countMissedReportingDaysBetween(p, monthStartYmd, todayYmd);
+            const reportEndYmd = getReportEndYmd(monthISO);
+            const monthStartYmd = `${monthISO}-01`;
+            let prev = 0;
+            if (monthISO === currentMonthISO) {
+                prev = Number(p.faults_accumulated) || 0;
+                if (p.last_reset_month && p.last_reset_month < currentMonthISO) prev = 0;
+            }
+            const missesMes = countMissedReportingDaysBetween(p, monthStartYmd, reportEndYmd);
             return prev + missesMes;
         }
 
@@ -1044,23 +1131,45 @@
             const tableHead = document.getElementById('faultTableHead');
             const weekRangeLabel = document.getElementById('currentWeekRange');
             const controlMonthLabel = document.getElementById('currentControlMonthLabel');
+            const btnNextMonth = document.getElementById('btnNextReportMonth');
+            const btnPrevWeek = document.getElementById('btnPrevWeek');
+            const btnNextWeek = document.getElementById('btnNextWeek');
             if(!tableBody || !tableHead) return;
 
-            const weekDates = getWeekDates(weekOffset);
+            const selectedMonthISO = getSelectedMonthISO();
+            const { dates: weekDates, weekIndex, totalWeeks } = getActiveWeekDates();
             const todayYmd = fechaCarpetaLima();
             const currentMonthISO = todayYmd.slice(0, 7);
-            const monthStartYmd = `${currentMonthISO}-01`;
-            const nowMonth = new Date().toLocaleString('es-PE', {month: 'long', year: 'numeric'}).toUpperCase();
+            const monthStartYmd = `${selectedMonthISO}-01`;
+            const reportEndYmd = getReportEndYmd(selectedMonthISO);
 
             if(weekRangeLabel) weekRangeLabel.textContent = `${weekDates[0].getDate()} ${weekDates[0].toLocaleString('es-PE', {month:'short'})} - ${weekDates[5].getDate()} ${weekDates[5].toLocaleString('es-PE', {month:'short'})}`;
-            if(controlMonthLabel) controlMonthLabel.textContent = `Periodo de Control: ${nowMonth}`;
+            if(controlMonthLabel) controlMonthLabel.textContent = formatMonthLabel(selectedMonthISO);
+            if (btnNextMonth) {
+                const atCurrent = reportMonthOffset >= 0;
+                btnNextMonth.disabled = atCurrent;
+                btnNextMonth.classList.toggle('opacity-30', atCurrent);
+                btnNextMonth.classList.toggle('pointer-events-none', atCurrent);
+            }
+            if (btnPrevWeek) {
+                const atFirst = weekIndex <= 0;
+                btnPrevWeek.disabled = atFirst;
+                btnPrevWeek.classList.toggle('opacity-30', atFirst);
+                btnPrevWeek.classList.toggle('pointer-events-none', atFirst);
+            }
+            if (btnNextWeek) {
+                const atLast = weekIndex >= totalWeeks - 1;
+                btnNextWeek.disabled = atLast;
+                btnNextWeek.classList.toggle('opacity-30', atLast);
+                btnNextWeek.classList.toggle('pointer-events-none', atLast);
+            }
 
             if (reportPeriod === 'semanal') {
                 const dayNames = ['Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab'];
                 const ths = dayNames.map((name, i) => `<th class="p-4 text-center font-black"><div>${name}</div><div class="text-[8px] opacity-40 font-mono">${weekDates[i].getDate()}</div></th>`).join('');
                 tableHead.innerHTML = `<tr class="text-[#991b1b] text-[10px] font-black uppercase border-b border-gray-400/10"><th class="p-4 w-2/5 text-xs font-black">Información del Proyecto</th><th class="p-4 text-center bg-[#991b1b]/5 w-24">Previas</th>${ths}<th class="p-3 text-center bg-[#991b1b]/5 w-28 text-[9px] leading-tight">Faltas totales</th></tr>`;
             } else {
-                const dim = daysInMonthYm(currentMonthISO);
+                const dim = daysInMonthYm(selectedMonthISO);
                 const w1e = Math.min(7, dim);
                 const w2e = Math.min(14, dim);
                 const w3e = Math.min(21, dim);
@@ -1080,15 +1189,18 @@
             }
 
             tableBody.innerHTML = activeProjects.map(p => {
-                let faultsAccumulated = Number(p.faults_accumulated) || 0;
-                if (p.last_reset_month && p.last_reset_month < currentMonthISO) faultsAccumulated = 0;
+                let faultsAccumulated = 0;
+                if (selectedMonthISO === currentMonthISO) {
+                    faultsAccumulated = Number(p.faults_accumulated) || 0;
+                    if (p.last_reset_month && p.last_reset_month < currentMonthISO) faultsAccumulated = 0;
+                }
                 let previasDisplay = faultsAccumulated;
 
                 if (reportPeriod === "semanal") {
                     const weekStartYmd = dateToLimaYMD(weekDates[0]);
                     const periodStartYmd = weekStartYmd < monthStartYmd ? monthStartYmd : weekStartYmd;
                     let prevEndYmd = previousDayYmd(periodStartYmd);
-                    if (prevEndYmd > todayYmd) prevEndYmd = todayYmd;
+                    if (prevEndYmd > reportEndYmd) prevEndYmd = reportEndYmd;
                     if (prevEndYmd >= monthStartYmd) {
                         previasDisplay += countMissedReportingDaysBetween(p, monthStartYmd, prevEndYmd);
                     }
@@ -1099,11 +1211,11 @@
                 if (reportPeriod === 'semanal') {
                     cellsArr = weekDates.map((date) => {
                         const cellYmd = dateToLimaYMD(date);
-                        if (cellYmd > todayYmd) {
-                            return `<div class="flex justify-center"><div class="status-dot pending mx-auto"></div></div>`;
-                        }
-                        if (cellYmd.slice(0, 7) !== currentMonthISO) {
+                        if (cellYmd.slice(0, 7) !== selectedMonthISO) {
                             return `<div class="flex justify-center"><span class="text-[10px] opacity-30">—</span></div>`;
+                        }
+                        if (cellYmd > reportEndYmd) {
+                            return `<div class="flex justify-center"><div class="status-dot pending mx-auto"></div></div>`;
                         }
                         // En vista semanal el color representa el estado del día puntual.
                         // Si el día está cubierto (evidencia o sustento de mañana y tarde), se muestra en verde.
@@ -1111,11 +1223,11 @@
                         return `<div class="flex justify-center"><div class="status-dot ${tier} mx-auto"></div></div>`;
                     });
                 } else {
-                    const dim = daysInMonthYm(currentMonthISO);
+                    const dim = daysInMonthYm(selectedMonthISO);
                     const weekEnds = [Math.min(7, dim), Math.min(14, dim), Math.min(21, dim), dim];
                     cellsArr = weekEnds.map((endD) => {
-                        const weekEndYmd = `${currentMonthISO}-${String(endD).padStart(2, "0")}`;
-                        const rangeEnd = Math.min(weekEndYmd, todayYmd);
+                        const weekEndYmd = `${selectedMonthISO}-${String(endD).padStart(2, "0")}`;
+                        const rangeEnd = Math.min(weekEndYmd, reportEndYmd);
                         if (rangeEnd < monthStartYmd) {
                             return `<div class="flex justify-center"><div class="status-dot pending mx-auto"></div></div>`;
                         }
@@ -1125,7 +1237,7 @@
                     });
                 }
 
-                const total = complianceTotalForProject(p);
+                const total = complianceTotalForProject(p, selectedMonthISO);
                 let borderColor = isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(153, 27, 27, 0.1)';
                 let totalCellBg = 'rgba(34, 197, 94, 0.1)';
                 let totalTextColor = '#22c55e';
