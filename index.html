@@ -608,9 +608,35 @@
                 <div class="min-w-0">
                     <span class="label-gold">Residencia Autorizada</span>
                     <h2 id="residentProjectName" class="text-sm md:text-base font-black leading-tight line-clamp-2">Cargando...</h2>
+                    <p id="residentResidentName" class="text-[10px] font-semibold text-white/55 mt-0.5 line-clamp-1">—</p>
                 </div>
             </div>
-            <button onclick="goBackToHome()" class="bg-red-500/10 text-red-600 p-1.5 rounded-lg hover:bg-red-500/20 transition-all font-bold text-[10px] uppercase px-2.5 shrink-0">Salir</button>
+            <div class="flex flex-col items-end gap-1.5 shrink-0">
+                <button type="button" onclick="toggleResidentProfileEdit()" id="btnEditResidentProfile" class="bg-[#991b1b]/10 text-[#991b1b] px-2 py-1 rounded-lg hover:bg-[#991b1b]/20 transition-all font-bold text-[9px] uppercase">Mis datos</button>
+                <button type="button" onclick="goBackToHome(event)" class="bg-red-500/10 text-red-600 p-1.5 rounded-lg hover:bg-red-500/20 transition-all font-bold text-[10px] uppercase px-2.5">Salir</button>
+            </div>
+        </div>
+
+        <div id="residentProfileEditPanel" class="hidden app-section rounded-2xl border border-[#991b1b]/30 bg-black/20 mb-0">
+            <p class="text-[9px] font-black uppercase tracking-widest text-[#991b1b] mb-2">Actualizar datos del residente</p>
+            <div class="space-y-2">
+                <div>
+                    <label class="label-gold text-[8px]">Nombre del residente</label>
+                    <input type="text" id="residentEditName" placeholder="Nombre completo del residente" class="auth-input w-full rounded-xl text-xs font-bold shadow-sm">
+                </div>
+                <div>
+                    <label class="label-gold text-[8px]">Nueva clave (opcional)</label>
+                    <input type="password" id="residentEditNewPass" placeholder="Dejar vacío para no cambiar" class="auth-input w-full rounded-xl text-xs font-bold shadow-sm" autocomplete="new-password">
+                </div>
+                <div>
+                    <label class="label-gold text-[8px]">Clave actual</label>
+                    <input type="password" id="residentEditCurrentPass" placeholder="Confirme su clave para guardar" class="auth-input w-full rounded-xl text-xs font-bold shadow-sm" autocomplete="current-password">
+                </div>
+                <div class="flex gap-2 pt-1">
+                    <button type="button" onclick="toggleResidentProfileEdit(false)" class="flex-1 py-2 rounded-xl text-[10px] font-black uppercase border border-white/15 hover:bg-white/5 transition-colors">Cancelar</button>
+                    <button type="button" id="residentProfileSaveBtn" onclick="saveResidentProfile()" class="flex-1 btn-primary py-2 rounded-xl text-[10px] font-black uppercase">Guardar</button>
+                </div>
+            </div>
         </div>
 
         <section id="residentConsultSection" class="app-section rounded-2xl border border-white/10 bg-gradient-to-b from-black/25 to-black/10">
@@ -692,7 +718,7 @@
                 <button id="resetMonthBtn" onclick="confirmResetMonth()" class="hidden bg-red-600/20 px-3 py-2 rounded-xl text-[10px] font-black text-red-500 hover:bg-red-600/40 uppercase transition-all border border-red-600/20">Cierre de Mes</button>
                 <button id="exportCriticosBtn" onclick="exportCriticosJPG()" class="hidden bg-red-600/10 px-3 py-2 rounded-xl text-[10px] font-black text-red-500 hover:bg-red-600/20 uppercase transition-all border border-red-600/20">Reporte Crítico</button>
                 <button id="exportJpgBtn" onclick="exportToJPG()" class="hidden bg-black/5 px-4 py-2 rounded-xl text-[10px] font-black uppercase border border-current/10">Descargar JPG</button>
-                <button onclick="goBackToHome()" class="bg-red-600/10 px-4 py-2 rounded-xl text-[10px] font-black text-red-600 uppercase border border-red-600/10">Cerrar Sesión</button>
+                <button type="button" onclick="goBackToHome(event)" class="bg-red-600/10 px-4 py-2 rounded-xl text-[10px] font-black text-red-600 uppercase border border-red-600/10">Cerrar Sesión</button>
             </div>
         </div>
 
@@ -989,8 +1015,15 @@
         function projectMatchesQuery(p, query) {
             const q = normalizeText(query);
             if (!q) return true;
-            const haystack = `${p.cui || ""} ${p.nombre || ""}`;
-            return normalizeText(haystack).includes(q);
+            const haystack = normalizeText(`${p.cui || ""} ${p.nombre || ""}`);
+            if (haystack.includes(q)) return true;
+            const tokens = q.split(/[\s\-–—]+/).map((t) => t.trim()).filter(Boolean);
+            if (!tokens.length) return true;
+            return tokens.every((token) => haystack.includes(token));
+        }
+
+        function shouldRefreshLoginForm() {
+            return currentMode === "LOGIN" && authView && !authView.classList.contains("hidden");
         }
 
         function renderLoginProjectOptions(query = loginProjectQuery) {
@@ -1067,7 +1100,7 @@
                 masterProjects = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                 queueEvidenceRetentionCleanup(masterProjects);
                 if (masterProjects.length === 0) {
-                    if (currentMode === 'LOGIN') {
+                    if (shouldRefreshLoginForm()) {
                         setMode(currentMode);
                     }
                     seed();
@@ -1076,7 +1109,7 @@
                     projectsLoaded = true;
                     activeProjects = [...masterProjects];
                     localStorage.setItem(PROJECTS_CACHE_KEY, JSON.stringify(masterProjects));
-                    if (currentMode === 'LOGIN') {
+                    if (shouldRefreshLoginForm()) {
                         setMode(currentMode);
                     }
                     renderAdminTable();
@@ -1816,11 +1849,15 @@
                 } else showFeedback("Credenciales incorrectas");
             } else if (currentMode === 'LOGIN') {
                 const pId = document.getElementById('projectSelector').value;
+                if (!pId) {
+                    showFeedback("Seleccione un proyecto de la lista.", "error");
+                    return;
+                }
                 const p = masterProjects.find(x => x.id === pId);
                 if (p && p.pass === pass) {
                     activeProjectId = pId;
                     revealAppView(residentModuleView);
-                    document.getElementById('residentProjectName').textContent = p.nombre;
+                    refreshResidentProfileUI();
                     selectedFiles = [];
                     const fi = document.getElementById('fileInput');
                     if (fi) fi.value = '';
@@ -1884,12 +1921,23 @@
             residentGateIntervalId = setInterval(() => refreshResidentEvidenceGate(), 45000);
         }
 
-        window.goBackToHome = () => {
+        window.goBackToHome = (event) => {
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
             stopResidentGateTimer();
             selectedFiles = [];
             const fi = document.getElementById('fileInput');
             if (fi) fi.value = '';
             activeProjectId = null;
+            loginProjectQuery = "";
+            const passInput = document.getElementById("password");
+            if (passInput) passInput.value = "";
+            toggleResidentProfileEdit(false);
+            if (document.activeElement && typeof document.activeElement.blur === "function") {
+                document.activeElement.blur();
+            }
             revealAppView(authView);
             setMode('LOGIN');
         };
@@ -2823,9 +2871,90 @@
             if (uploadBtn) uploadBtn.disabled = gate.blocked || !hasVideo;
         }
 
+        function refreshResidentProfileUI() {
+            const p = masterProjects.find((x) => x.id === activeProjectId);
+            const projectEl = document.getElementById("residentProjectName");
+            const nameEl = document.getElementById("residentResidentName");
+            if (!p) {
+                if (projectEl) projectEl.textContent = "Cargando...";
+                if (nameEl) nameEl.textContent = "—";
+                return;
+            }
+            if (projectEl) projectEl.textContent = p.nombre;
+            if (nameEl) nameEl.textContent = p.residente ? `Residente: ${p.residente}` : "Residente: Sin asignar";
+        }
+
+        window.toggleResidentProfileEdit = (forceOpen) => {
+            const panel = document.getElementById("residentProfileEditPanel");
+            if (!panel) return;
+            const shouldOpen = typeof forceOpen === "boolean" ? forceOpen : panel.classList.contains("hidden");
+            if (shouldOpen) {
+                const p = masterProjects.find((x) => x.id === activeProjectId);
+                const nameInput = document.getElementById("residentEditName");
+                const newPassInput = document.getElementById("residentEditNewPass");
+                const currentPassInput = document.getElementById("residentEditCurrentPass");
+                if (nameInput) nameInput.value = p?.residente || "";
+                if (newPassInput) newPassInput.value = "";
+                if (currentPassInput) currentPassInput.value = "";
+                panel.classList.remove("hidden");
+            } else {
+                panel.classList.add("hidden");
+            }
+        };
+
+        window.saveResidentProfile = async () => {
+            const p = masterProjects.find((x) => x.id === activeProjectId);
+            if (!p) {
+                showFeedback("No hay proyecto activo.", "error");
+                return;
+            }
+            const newName = document.getElementById("residentEditName")?.value.trim() || "";
+            const newPass = document.getElementById("residentEditNewPass")?.value || "";
+            const currentPass = document.getElementById("residentEditCurrentPass")?.value || "";
+            if (!newName) {
+                showFeedback("Ingrese el nombre del residente.", "error");
+                return;
+            }
+            if (!currentPass) {
+                showFeedback("Confirme su clave actual para guardar cambios.", "error");
+                return;
+            }
+            if (currentPass !== p.pass) {
+                showFeedback("Clave actual incorrecta.", "error");
+                return;
+            }
+            if (newPass && newPass.length < 6) {
+                showFeedback("La nueva clave debe tener al menos 6 caracteres.", "error");
+                return;
+            }
+            const btn = document.getElementById("residentProfileSaveBtn");
+            const originalText = btn?.textContent || "Guardar";
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = "Guardando...";
+            }
+            try {
+                const updates = { residente: newName };
+                if (newPass) updates.pass = newPass;
+                await updateDoc(doc(db, "artifacts", appId, "public", "data", "projects", p.id), updates);
+                showFeedback("Datos del residente actualizados.", "success");
+                toggleResidentProfileEdit(false);
+                refreshResidentProfileUI();
+            } catch (e) {
+                console.error(e);
+                showFeedback(`No se pudo guardar: ${e.code || e.message}`, "error");
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.textContent = originalText;
+                }
+            }
+        };
+
         function refreshResidentEvidenceGate() {
             const residentEl = document.getElementById("residentModuleView");
             if (!residentEl || residentEl.classList.contains("hidden")) return;
+            refreshResidentProfileUI();
             refreshResidentReportConsultation();
             refreshResidentUploadSection();
         }
