@@ -54,7 +54,7 @@
             align-items: center;
             justify-content: center;
             margin: 0;
-            padding: 0.75rem;
+            padding: 0.5rem;
             color: var(--text-main);
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             overflow-y: auto;
@@ -135,7 +135,7 @@
         /* Estados de cumplimiento — contraste alto */
         .slot-row {
             border-radius: 0.75rem;
-            padding: 0.75rem;
+            padding: 0.5rem 0.65rem;
             text-align: center;
         }
         .slot-status { font-size: 0.6875rem; font-weight: 800; text-transform: uppercase; }
@@ -295,6 +295,65 @@
             margin-bottom: 0.35rem;
         }
 
+        /* Paneles internos (residente / admin) — compactos para caber en viewport */
+        .app-panel {
+            padding: 1rem 1.15rem;
+            border-radius: 22px;
+        }
+
+        .app-panel-header {
+            margin-bottom: 0.65rem;
+            padding-bottom: 0.55rem;
+        }
+
+        .app-section {
+            padding: 0.7rem 0.85rem;
+            margin-bottom: 0.65rem;
+            border-radius: 1rem;
+        }
+
+        .admin-panel-header {
+            margin-bottom: 0.75rem;
+            gap: 0.65rem;
+        }
+
+        .admin-grid {
+            gap: 0.85rem;
+        }
+
+        .admin-cell {
+            padding: 0.65rem 0.75rem !important;
+        }
+
+        .admin-form-panel {
+            padding: 1rem !important;
+        }
+
+        .admin-form-panel .space-y-4 > * + * {
+            margin-top: 0.65rem;
+        }
+
+        .compact-drop {
+            padding: 1.1rem 0.85rem !important;
+            margin-top: 0.65rem !important;
+            margin-bottom: 0.5rem !important;
+        }
+
+        .compact-drop-icon {
+            width: 2.5rem;
+            height: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .compact-drop-icon svg {
+            width: 1.35rem;
+            height: 1.35rem;
+        }
+
+        @media (min-width: 768px) {
+            .app-panel { padding: 1.15rem 1.35rem; }
+        }
+
         @media (max-height: 780px) {
             body { padding: 0.5rem; }
             body > .glass-card { max-height: calc(100dvh - 1rem); }
@@ -422,23 +481,23 @@
         </div>
     </div>
 
-    <div id="residentModuleView" class="glass-card p-6 md:p-8 w-full max-w-2xl hidden border-t-4 border-t-green-600">
-        <div class="flex justify-between items-start gap-4 mb-6 border-b border-gray-400/10 pb-5">
-            <div class="flex items-center gap-3 min-w-0">
-                <div class="logo-container h-14 w-12 rounded-lg !p-1 shrink-0">
+    <div id="residentModuleView" class="glass-card app-panel w-full max-w-2xl hidden border-t-4 border-t-green-600">
+        <div class="app-panel-header flex justify-between items-start gap-3 border-b border-gray-400/10">
+            <div class="flex items-center gap-2.5 min-w-0">
+                <div class="logo-container h-12 w-10 rounded-lg !p-1 shrink-0">
                     <img src="Imagen1.jpg" alt="Logo GRA">
                 </div>
                 <div class="min-w-0">
                     <span class="label-gold">Residencia Autorizada</span>
-                    <h2 id="residentProjectName" class="text-base md:text-lg font-black leading-tight line-clamp-2">Cargando...</h2>
+                    <h2 id="residentProjectName" class="text-sm md:text-base font-black leading-tight line-clamp-2">Cargando...</h2>
                 </div>
             </div>
-            <button onclick="goBackToHome()" class="bg-red-500/10 text-red-600 p-2 rounded-lg hover:bg-red-500/20 transition-all font-bold text-[10px] uppercase px-3 shrink-0">Salir</button>
+            <button onclick="goBackToHome()" class="bg-red-500/10 text-red-600 p-1.5 rounded-lg hover:bg-red-500/20 transition-all font-bold text-[10px] uppercase px-2.5 shrink-0">Salir</button>
         </div>
 
-        <section id="residentConsultSection" class="rounded-2xl border border-white/10 bg-gradient-to-b from-black/25 to-black/10 p-4 md:p-5 mb-5">
-            <p class="text-[9px] font-black uppercase tracking-widest text-white/40 text-center mb-3">Consulta de reportes</p>
-            <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-2 mb-3">
+        <section id="residentConsultSection" class="app-section rounded-2xl border border-white/10 bg-gradient-to-b from-black/25 to-black/10">
+            <p class="text-[9px] font-black uppercase tracking-widest text-white/40 text-center mb-2">Consulta de reportes</p>
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-1.5 mb-2">
                 <div class="flex items-center justify-center gap-2">
                     <button type="button" onclick="changeResidentReportDate(-1)" id="btnPrevResidentDate" class="p-1.5 rounded-lg border border-white/10 hover:border-[#991b1b]/40 hover:text-[#991b1b] transition-colors" title="Día anterior">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7" stroke-width="3"/></svg>
@@ -450,13 +509,13 @@
                 <input
                     type="date"
                     id="residentReportDatePicker"
-                    class="w-full sm:w-auto flex-1 sm:flex-none rounded-xl px-3 py-2 text-xs font-bold bg-black/30 border border-white/15 text-current shadow-sm"
+                    class="w-full sm:w-auto flex-1 sm:flex-none rounded-xl px-2.5 py-1.5 text-xs font-bold bg-black/30 border border-white/15 text-current shadow-sm"
                     onchange="onResidentReportDatePicked(event)"
                 >
                 <button type="button" id="btnResidentGoToday" onclick="goResidentConsultToday()" class="hidden shrink-0 rounded-xl px-3 py-2 text-[9px] font-black uppercase border border-[#991b1b]/40 text-[#991b1b] hover:bg-[#991b1b]/10 transition-colors">Ir a hoy</button>
             </div>
-            <p id="residentReportDateLabel" class="text-[10px] font-black uppercase font-mono text-white/70 text-center leading-tight mb-3">HOY</p>
-            <div id="residentConsultStatus" class="grid grid-cols-2 gap-3 transition-opacity duration-200">
+            <p id="residentReportDateLabel" class="text-[9px] font-black uppercase font-mono text-white/70 text-center leading-tight mb-2">HOY</p>
+            <div id="residentConsultStatus" class="grid grid-cols-2 gap-2 transition-opacity duration-200">
                 <div id="slotMananaRow" class="slot-row slot-row--pendiente">
                     <p class="text-[9px] font-black uppercase theme-label mb-1">Mañana</p>
                     <span id="slotMananaStatus" class="slot-status slot-status--pendiente">Pendiente</span>
@@ -466,103 +525,103 @@
                     <span id="slotTardeStatus" class="slot-status slot-status--pendiente">Pendiente</span>
                 </div>
             </div>
-            <p id="residentConsultHint" class="hidden text-[8px] font-bold text-center text-white/35 uppercase mt-3 leading-relaxed">Consulta histórica · el envío de evidencia siempre es para el día de hoy</p>
+            <p id="residentConsultHint" class="hidden text-[8px] font-bold text-center text-white/35 uppercase mt-2 leading-relaxed">Consulta histórica · el envío de evidencia siempre es para el día de hoy</p>
         </section>
 
         <section id="residentUploadSection" class="rounded-2xl border border-[#991b1b]/25 bg-black/15 overflow-hidden">
-            <div id="residentUploadHeader" class="px-4 py-3 border-b border-white/5 bg-[#991b1b]/5">
-                <p class="text-[9px] font-black uppercase tracking-widest text-[#991b1b] mb-2">Enviar evidencia de hoy</p>
+            <div id="residentUploadHeader" class="px-3 py-2 border-b border-white/5 bg-[#991b1b]/5">
+                <p class="text-[9px] font-black uppercase tracking-widest text-[#991b1b] mb-1">Enviar evidencia de hoy</p>
                 <div class="flex items-start gap-2.5">
                     <div id="statusDot" class="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse shrink-0 mt-0.5"></div>
                     <span id="videoStatus" class="text-[10px] font-bold uppercase leading-snug text-red-500">Fuera de horario</span>
                 </div>
             </div>
             <div id="residentUploadBody">
-                <div id="evidenceDropZone" class="mx-4 mt-4 mb-3 rounded-2xl p-8 border-2 border-dashed border-gray-400/25 text-center cursor-pointer hover:border-[#991b1b]/50 group transition-colors" onclick="residentClickPickFiles()">
+                <div id="evidenceDropZone" class="compact-drop mx-3 rounded-xl border-2 border-dashed border-gray-400/25 text-center cursor-pointer hover:border-[#991b1b]/50 group transition-colors" onclick="residentClickPickFiles()">
                     <input type="file" id="fileInput" multiple accept="image/*,video/*" class="hidden" onchange="handleFileSelect(event)">
-                    <div class="w-14 h-14 bg-[#991b1b]/10 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-105 transition-transform">
-                        <svg class="w-7 h-7 text-[#991b1b]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" stroke-width="1.5"/></svg>
+                    <div class="compact-drop-icon bg-[#991b1b]/10 rounded-full flex items-center justify-center mx-auto group-hover:scale-105 transition-transform">
+                        <svg class="text-[#991b1b]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" stroke-width="1.5"/></svg>
                     </div>
-                    <p class="font-bold text-sm">Adjuntar evidencia</p>
-                    <p class="text-[9px] opacity-50 uppercase mt-1">Imágenes y video del avance físico</p>
+                    <p class="font-bold text-xs">Adjuntar evidencia</p>
+                    <p class="text-[8px] opacity-50 uppercase mt-0.5">Imágenes y video del avance físico</p>
                 </div>
-                <div id="filePreviewContainer" class="px-4 grid grid-cols-2 sm:grid-cols-4 gap-3"></div>
-                <div class="px-4 pb-4 pt-2">
-                    <button id="uploadBtn" disabled onclick="simulateUpload()" class="w-full btn-primary py-4 rounded-xl text-sm shadow-lg">Sincronizar datos</button>
-                    <p class="text-[8px] text-center opacity-40 mt-3 uppercase leading-relaxed">Horario Lima · L-V 07:00–09:00 y 17:00–18:00 · Sáb 07:00–09:00 y 12:00–13:00</p>
+                <div id="filePreviewContainer" class="px-3 grid grid-cols-2 sm:grid-cols-4 gap-2"></div>
+                <div class="px-3 pb-3 pt-1">
+                    <button id="uploadBtn" disabled onclick="simulateUpload()" class="w-full btn-primary py-2.5 rounded-xl text-xs shadow-lg">Sincronizar datos</button>
+                    <p class="text-[7px] text-center opacity-40 mt-1.5 uppercase leading-relaxed">Horario Lima · L-V 07:00–09:00 y 17:00–18:00 · Sáb 07:00–09:00 y 12:00–13:00</p>
                 </div>
             </div>
         </section>
     </div>
 
-    <div id="adminPanelView" class="glass-card p-10 w-full max-w-6xl hidden border-t-4 border-t-[#991b1b]">
-        <div class="flex flex-col md:flex-row justify-between items-center mb-10 gap-6">
-            <div class="flex items-center gap-5">
-                <div class="logo-container h-20 w-16 !p-1">
+    <div id="adminPanelView" class="glass-card app-panel w-full max-w-6xl hidden border-t-4 border-t-[#991b1b]">
+        <div class="admin-panel-header flex flex-col md:flex-row justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="logo-container h-14 w-12 !p-1">
                     <img src="Imagen1.jpg" alt="Logo GRA">
                 </div>
                 <div>
-                    <h2 class="text-lg sm:text-xl md:text-2xl font-black uppercase tracking-tight leading-snug max-w-xl">Sub Gerencia de Ejecución de Inversiones</h2>
-                    <p class="text-[9px] font-bold uppercase tracking-widest text-white/45 mt-1.5">Gobierno Regional de Ayacucho</p>
-                    <div class="flex flex-wrap gap-4 md:gap-6 mt-2">
+                    <h2 class="text-base sm:text-lg md:text-xl font-black uppercase tracking-tight leading-snug max-w-xl">Sub Gerencia de Ejecución de Inversiones</h2>
+                    <p class="text-[9px] font-bold uppercase tracking-widest text-white/45 mt-1">Gobierno Regional de Ayacucho</p>
+                    <div class="flex flex-wrap gap-3 md:gap-4 mt-1.5">
                         <button onclick="switchAdminTab('list')" id="tabList" class="text-[10px] font-black active-tab pb-1">GESTIÓN</button>
                         <button onclick="switchAdminTab('evidence')" id="tabEvidence" class="text-[10px] font-black opacity-40 hover:opacity-100 transition-colors uppercase">Evidencias</button>
                         <button onclick="switchAdminTab('report')" id="tabReport" class="text-[10px] font-black opacity-40 hover:opacity-100 transition-colors uppercase">Cumplimiento Regional</button>
                     </div>
                 </div>
             </div>
-            <div class="flex gap-3">
-                <button id="resetMonthBtn" onclick="confirmResetMonth()" class="hidden bg-red-600/20 px-4 py-3 rounded-xl text-[10px] font-black text-red-500 hover:bg-red-600/40 uppercase transition-all border border-red-600/20">Cierre de Mes</button>
-                <button id="exportCriticosBtn" onclick="exportCriticosJPG()" class="hidden bg-red-600/10 px-4 py-3 rounded-xl text-[10px] font-black text-red-500 hover:bg-red-600/20 uppercase transition-all border border-red-600/20">Reporte Crítico</button>
-                <button id="exportJpgBtn" onclick="exportToJPG()" class="hidden bg-black/5 px-6 py-3 rounded-xl text-[10px] font-black uppercase border border-current/10">Descargar JPG</button>
-                <button onclick="goBackToHome()" class="bg-red-600/10 px-6 py-3 rounded-xl text-xs font-black text-red-600 uppercase border border-red-600/10">Cerrar Sesión</button>
+            <div class="flex gap-2 flex-wrap justify-center">
+                <button id="resetMonthBtn" onclick="confirmResetMonth()" class="hidden bg-red-600/20 px-3 py-2 rounded-xl text-[10px] font-black text-red-500 hover:bg-red-600/40 uppercase transition-all border border-red-600/20">Cierre de Mes</button>
+                <button id="exportCriticosBtn" onclick="exportCriticosJPG()" class="hidden bg-red-600/10 px-3 py-2 rounded-xl text-[10px] font-black text-red-500 hover:bg-red-600/20 uppercase transition-all border border-red-600/20">Reporte Crítico</button>
+                <button id="exportJpgBtn" onclick="exportToJPG()" class="hidden bg-black/5 px-4 py-2 rounded-xl text-[10px] font-black uppercase border border-current/10">Descargar JPG</button>
+                <button onclick="goBackToHome()" class="bg-red-600/10 px-4 py-2 rounded-xl text-[10px] font-black text-red-600 uppercase border border-red-600/10">Cerrar Sesión</button>
             </div>
         </div>
 
-        <div id="adminListView" class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            <div class="lg:col-span-8 bg-black/5 rounded-3xl border border-gray-400/10 overflow-hidden">
-                <div class="p-4 border-b border-gray-400/10 bg-black/5">
+        <div id="adminListView" class="admin-grid grid grid-cols-1 lg:grid-cols-12">
+            <div class="lg:col-span-8 bg-black/5 rounded-2xl border border-gray-400/10 overflow-hidden">
+                <div class="p-3 border-b border-gray-400/10 bg-black/5">
                     <input
                         type="text"
                         id="adminListSearch"
                         placeholder="Buscar proyecto (CUI o nombre)..."
-                        class="w-full rounded-xl px-4 py-2 text-xs font-bold bg-black/10 border border-gray-400/20"
+                        class="w-full rounded-xl px-3 py-1.5 text-xs font-bold bg-black/10 border border-gray-400/20"
                         oninput="setAdminListSearch(this.value)"
                     >
                 </div>
                 <table class="w-full text-left">
                     <thead>
                         <tr class="bg-black/5 border-b border-gray-400/10">
-                            <th class="p-5 text-[#991b1b] text-[10px] font-black uppercase">CUI</th>
-                            <th class="p-5 text-[#991b1b] text-[10px] font-black uppercase">Proyecto</th>
-                            <th class="p-5 text-[#991b1b] text-[10px] font-black uppercase text-center">Evid.</th>
-                            <th class="p-5 text-[#991b1b] text-[10px] font-black uppercase text-center">Gestión</th>
+                            <th class="admin-cell text-[#991b1b] text-[10px] font-black uppercase">CUI</th>
+                            <th class="admin-cell text-[#991b1b] text-[10px] font-black uppercase">Proyecto</th>
+                            <th class="admin-cell text-[#991b1b] text-[10px] font-black uppercase text-center">Evid.</th>
+                            <th class="admin-cell text-[#991b1b] text-[10px] font-black uppercase text-center">Gestión</th>
                         </tr>
                     </thead>
                     <tbody id="adminTableBody" class="divide-y divide-gray-400/10"></tbody>
                 </table>
             </div>
-            <div class="lg:col-span-4 bg-black/5 rounded-3xl p-8 border border-gray-400/10 opacity-30 pointer-events-none transition-all" id="editSection">
-                <h4 class="text-[#991b1b] text-[10px] font-black uppercase mb-6">Detalles del Expediente</h4>
-                <div class="space-y-4">
+            <div class="lg:col-span-4 bg-black/5 rounded-2xl admin-form-panel border border-gray-400/10 opacity-30 pointer-events-none transition-all" id="editSection">
+                <h4 class="text-[#991b1b] text-[10px] font-black uppercase mb-3">Detalles del Expediente</h4>
+                <div class="space-y-3">
                     <input type="hidden" id="editDocId">
-                    <input type="text" id="editCui" placeholder="Código CUI" class="w-full rounded-xl px-4 py-3 text-sm">
-                    <textarea id="editName" rows="3" placeholder="Nombre de la Obra" class="w-full rounded-xl px-4 py-3 text-sm resize-none"></textarea>
+                    <input type="text" id="editCui" placeholder="Código CUI" class="w-full rounded-xl px-3 py-2 text-sm">
+                    <textarea id="editName" rows="2" placeholder="Nombre de la Obra" class="w-full rounded-xl px-3 py-2 text-sm resize-none"></textarea>
                     <div class="grid grid-cols-2 gap-2">
-                        <input type="text" id="editResidente" placeholder="Residente" class="w-full rounded-xl px-4 py-2 text-xs">
-                        <input type="text" id="editSupervisor" placeholder="Supervisor" class="w-full rounded-xl px-4 py-2 text-xs">
+                        <input type="text" id="editResidente" placeholder="Residente" class="w-full rounded-xl px-3 py-1.5 text-xs">
+                        <input type="text" id="editSupervisor" placeholder="Supervisor" class="w-full rounded-xl px-3 py-1.5 text-xs">
                     </div>
-                    <div class="bg-[#991b1b]/5 p-4 rounded-xl border border-[#991b1b]/10">
+                    <div class="bg-[#991b1b]/5 p-3 rounded-xl border border-[#991b1b]/10">
                         <label class="label-gold">CLAVE DE ACCESO</label>
-                        <input type="text" id="editPass" class="w-full bg-transparent border-none text-lg font-black text-[#991b1b] p-0 focus:ring-0">
+                        <input type="text" id="editPass" class="w-full bg-transparent border-none text-base font-black text-[#991b1b] p-0 focus:ring-0">
                     </div>
-                    <input type="number" id="editFaults" placeholder="Faltas Históricas" class="w-full rounded-xl px-4 py-3 text-sm text-red-600 font-bold">
-                    <button onclick="saveEdit()" id="saveBtn" class="w-full btn-primary py-4 rounded-xl text-xs mt-2">Sincronizar Ficha</button>
+                    <input type="number" id="editFaults" placeholder="Faltas Históricas" class="w-full rounded-xl px-3 py-2 text-sm text-red-600 font-bold">
+                    <button onclick="saveEdit()" id="saveBtn" class="w-full btn-primary py-2.5 rounded-xl text-xs">Sincronizar Ficha</button>
                 </div>
             </div>
         </div>
 
-        <div id="adminEvidenceView" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div id="adminEvidenceView" class="hidden admin-grid grid grid-cols-1 lg:grid-cols-12">
             <div class="lg:col-span-5 bg-black/5 rounded-3xl border border-gray-400/10 overflow-hidden">
                 <div class="p-4 border-b border-gray-400/10 bg-black/5">
                     <h4 class="text-[#991b1b] text-[10px] font-black uppercase">Proyectos con evidencias</h4>
@@ -1806,10 +1865,10 @@
             }
             body.innerHTML = filteredProjects.map(p => `
                 <tr class="hover:bg-black/5">
-                    <td class="p-5 font-mono text-[#991b1b] font-bold text-xs">${p.cui}</td>
-                    <td class="p-5 text-xs font-semibold">${p.nombre}</td>
-                    <td class="p-5 text-center">${evidenceReviewTableCell(p)}</td>
-                    <td class="p-5 text-center">
+                    <td class="admin-cell font-mono text-[#991b1b] font-bold text-xs">${p.cui}</td>
+                    <td class="admin-cell text-xs font-semibold">${p.nombre}</td>
+                    <td class="admin-cell text-center">${evidenceReviewTableCell(p)}</td>
+                    <td class="admin-cell text-center">
                         <div class="flex flex-wrap gap-2 justify-center items-center">
                             <button type="button" onclick="editProject('${p.id}')" class="bg-[#991b1b]/5 text-[#991b1b] px-3 py-1 rounded text-[10px] font-black border border-[#991b1b]/10 hover:bg-[#991b1b] hover:text-white transition-all uppercase font-bold">Detalles</button>
                             <button type="button" onclick="deleteProject('${p.id}')" class="bg-red-500/10 text-red-600 px-3 py-1 rounded text-[10px] font-black border border-red-500/20 hover:bg-red-600 hover:text-white transition-all uppercase font-bold">Eliminar</button>
