@@ -619,10 +619,11 @@
                 <div class="logo-container h-12 w-10 rounded-lg !p-1 shrink-0">
                     <img src="Imagen1.jpg" alt="Logo GRA">
                 </div>
-                <div class="min-w-0">
+                <div class="min-w-0 flex-1">
                     <span class="label-gold">Residencia Autorizada</span>
-                    <h2 id="residentProjectName" class="text-sm md:text-base font-black leading-tight line-clamp-2">Cargando...</h2>
-                    <p id="residentResidentName" class="text-[10px] font-semibold text-white/55 mt-0.5 line-clamp-1">—</p>
+                    <p id="residentProjectCui" class="text-[10px] font-mono font-black text-[#991b1b] mt-0.5 tracking-wide">CUI: —</p>
+                    <h2 id="residentProjectName" class="text-xs md:text-sm font-black leading-snug mt-1 break-words whitespace-normal">Cargando...</h2>
+                    <p id="residentResidentName" class="text-[10px] font-semibold text-white/55 mt-1 break-words">—</p>
                 </div>
             </div>
             <div class="flex flex-col items-end gap-1.5 shrink-0">
@@ -3008,13 +3009,6 @@
                 if (k === `sustento_${ymd}_mañana`) slots.manana = true;
                 if (k === `sustento_${ymd}_tarde`) slots.tarde = true;
             });
-            if (p.last_report) {
-                const lrYmd = dateToLimaYMD(new Date(p.last_report));
-                if (lrYmd === ymd && !(slots.manana && slots.tarde)) {
-                    slots.manana = true;
-                    slots.tarde = true;
-                }
-            }
             return slots;
         }
 
@@ -3084,9 +3078,23 @@
         }
 
         function getTurnoWindowMinutes(wd, slot) {
-            if (slot === "mañana") return { start: 7 * 60, end: 9 * 60 };
-            if (wd === "Sat") return { start: 12 * 60, end: 13 * 60 };
-            return { start: 17 * 60, end: 18 * 60 };
+            const s = uploadSchedule;
+            if (slot === "mañana") {
+                return {
+                    start: parseHmToMinutes(s.morning_start),
+                    end: parseHmToMinutes(s.morning_end)
+                };
+            }
+            if (wd === "Sat") {
+                return {
+                    start: parseHmToMinutes(s.afternoon_sat_start),
+                    end: parseHmToMinutes(s.afternoon_sat_end)
+                };
+            }
+            return {
+                start: parseHmToMinutes(s.afternoon_lv_start),
+                end: parseHmToMinutes(s.afternoon_lv_end)
+            };
         }
 
         function isTurnoApplicableOnWeekday(wd, slot) {
@@ -3267,13 +3275,16 @@
         function refreshResidentProfileUI() {
             const p = masterProjects.find((x) => x.id === activeProjectId);
             const projectEl = document.getElementById("residentProjectName");
+            const cuiEl = document.getElementById("residentProjectCui");
             const nameEl = document.getElementById("residentResidentName");
             if (!p) {
                 if (projectEl) projectEl.textContent = "Cargando...";
+                if (cuiEl) cuiEl.textContent = "CUI: —";
                 if (nameEl) nameEl.textContent = "—";
                 return;
             }
-            if (projectEl) projectEl.textContent = p.nombre;
+            if (cuiEl) cuiEl.textContent = p.cui ? `CUI: ${p.cui}` : "CUI: Sin código";
+            if (projectEl) projectEl.textContent = p.nombre || "Sin denominación";
             if (nameEl) nameEl.textContent = p.residente ? `Residente: ${p.residente}` : "Residente: Sin asignar";
         }
 
