@@ -253,14 +253,22 @@
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div id="dailyComplianceCard" class="rounded-2xl p-5 border-2 border-red-500/30 bg-red-500/5">
+                <h4 class="text-[10px] font-bold opacity-50 uppercase mb-3 text-current">Reporte del día</h4>
+                <div class="flex items-center gap-3 mb-2">
+                    <div id="dailyComplianceDot" class="w-3 h-3 rounded-full bg-red-500 shrink-0"></div>
+                    <span id="dailyComplianceLabel" class="text-base font-black uppercase tracking-wide text-red-500">NO CUMPLIDO</span>
+                </div>
+                <p id="dailyComplianceDetail" class="text-[9px] font-bold opacity-60 uppercase leading-relaxed">Mañana: pendiente · Tarde: pendiente</p>
+            </div>
             <div class="bg-black/5 rounded-2xl p-5 border border-white/5">
-                <h4 class="text-[10px] font-bold opacity-50 uppercase mb-3 text-current">Estado del Reporte</h4>
+                <h4 class="text-[10px] font-bold opacity-50 uppercase mb-3 text-current">Estado del envío</h4>
                 <div class="flex items-center gap-3">
-                    <div id="statusDot" class="w-3 h-3 rounded-full bg-red-500 animate-pulse"></div>
+                    <div id="statusDot" class="w-3 h-3 rounded-full bg-red-500 animate-pulse shrink-0"></div>
                     <span id="videoStatus" class="text-xs font-bold uppercase text-red-600">Video Obligatorio Pendiente</span>
                 </div>
             </div>
-            <div class="bg-black/5 rounded-2xl p-5 border border-white/5 text-[9px]">
+            <div class="bg-black/5 rounded-2xl p-5 border border-white/5 text-[9px] md:col-span-2">
                 <h4 class="text-[10px] font-bold opacity-50 uppercase mb-2 text-current">Horarios de Entrega</h4>
                 <p class="font-bold">L-V: 07:00 - 09:00 / 17:00 - 18:00</p>
                 <p class="font-bold">Sáb: 07:00 - 09:00 / 12:00 - 13:00</p>
@@ -277,7 +285,7 @@
         </div>
 
         <div id="filePreviewContainer" class="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-4"></div>
-        <button id="uploadBtn" disabled onclick="simulateUpload()" class="w-full mt-10 btn-primary py-5 rounded-2xl text-sm shadow-lg">Enviar Evidencia</button>
+        <button id="uploadBtn" disabled onclick="simulateUpload()" class="w-full mt-10 btn-primary py-5 rounded-2xl text-sm shadow-lg">Sincronizar Datos</button>
     </div>
 
     <div id="adminPanelView" class="glass-card p-10 w-full max-w-6xl hidden border-t-4 border-t-[#991b1b]">
@@ -2016,17 +2024,68 @@
             return { ok: false, slot: null, code: "fuera_horario" };
         }
 
-        function todayEvidenceSlotsUsed(p, fechaLima) {
-            let manana = false;
-            let tarde = false;
-            if (!p || !Array.isArray(p.evidence_log)) return { manana, tarde };
-            for (const b of p.evidence_log) {
-                if (String(b.fecha || "") !== fechaLima) continue;
-                const t = String(b.turno || "");
-                if (t === "mañana") manana = true;
-                if (t === "tarde") tarde = true;
+        function getEvidenceSlotsForDate(p, ymd) {
+            const slots = { manana: false, tarde: false };
+            if (!p) return slots;
+            if (HOLIDAY_YMD.has(ymd)) {
+                slots.manana = true;
+                slots.tarde = true;
+                return slots;
             }
-            return { manana, tarde };
+            if (Array.isArray(p.evidence_log)) {
+                p.evidence_log.forEach((b) => {
+                    if (String(b.fecha || "") !== ymd) return;
+                    const turno = String(b.turno || "");
+                    if (turno === "mañana") slots.manana = true;
+                    if (turno === "tarde") slots.tarde = true;
+                    if (!turno) {
+                        slots.manana = true;
+                        slots.tarde = true;
+                    }
+                });
+            }
+            const reviews = p.evidence_reviews || {};
+            Object.keys(reviews).forEach((k) => {
+                const rev = reviews[k] || {};
+                if (rev.status !== "sustentado") return;
+                if (k === `sustento_${ymd}_mañana`) slots.manana = true;
+                if (k === `sustento_${ymd}_tarde`) slots.tarde = true;
+            });
+            if (p.last_report) {
+                const lrYmd = dateToLimaYMD(new Date(p.last_report));
+                if (lrYmd === ymd && !(slots.manana && slots.tarde)) {
+                    slots.manana = true;
+                    slots.tarde = true;
+                }
+            }
+            return slots;
+        }
+
+        function todayEvidenceSlotsUsed(p, fechaLima) {
+            return getEvidenceSlotsForDate(p, fechaLima);
+        }
+
+        function getResidentDailyCompliance(project) {
+            const fecha = fechaCarpetaLima();
+            if (!project) {
+                return { label: "NO CUMPLIDO", tone: "red", detail: "Sin sesión activa." };
+            }
+            const [y, mo, da] = fecha.split("-").map(Number);
+            if (new Date(y, mo - 1, da).getDay() === 0) {
+                return { label: "NO APLICA", tone: "neutral", detail: "Domingo sin entrega de evidencia." };
+            }
+            if (HOLIDAY_YMD.has(fecha)) {
+                return { label: "CUMPLIDO", tone: "green", detail: "Feriado — sin reporte requerido." };
+            }
+            const slots = getEvidenceSlotsForDate(project, fecha);
+            const cumplido = hasEvidenceOnDate(project, fecha);
+            const mananaTxt = slots.manana ? "Mañana: enviado" : "Mañana: pendiente";
+            const tardeTxt = slots.tarde ? "Tarde: enviado" : "Tarde: pendiente";
+            return {
+                label: cumplido ? "CUMPLIDO" : "NO CUMPLIDO",
+                tone: cumplido ? "green" : "red",
+                detail: `${mananaTxt} · ${tardeTxt}`
+            };
         }
 
         function getResidentUploadGate(project) {
@@ -2062,8 +2121,41 @@
             const uploadBtn = document.getElementById("uploadBtn");
             const videoStatus = document.getElementById("videoStatus");
             const statusDot = document.getElementById("statusDot");
+            const complianceCard = document.getElementById("dailyComplianceCard");
+            const complianceDot = document.getElementById("dailyComplianceDot");
+            const complianceLabel = document.getElementById("dailyComplianceLabel");
+            const complianceDetail = document.getElementById("dailyComplianceDetail");
             const p = masterProjects.find((x) => x.id === activeProjectId);
             const gate = getResidentUploadGate(p);
+            const compliance = getResidentDailyCompliance(p);
+
+            if (complianceLabel) complianceLabel.textContent = compliance.label;
+            if (complianceDetail) complianceDetail.textContent = compliance.detail;
+            if (complianceDot) {
+                const dotClass =
+                    compliance.tone === "green"
+                        ? "w-3 h-3 rounded-full bg-green-500 shrink-0"
+                        : compliance.tone === "neutral"
+                          ? "w-3 h-3 rounded-full bg-gray-400 shrink-0"
+                          : "w-3 h-3 rounded-full bg-red-500 shrink-0";
+                complianceDot.className = dotClass;
+            }
+            if (complianceLabel) {
+                complianceLabel.className =
+                    compliance.tone === "green"
+                        ? "text-base font-black uppercase tracking-wide text-green-500"
+                        : compliance.tone === "neutral"
+                          ? "text-base font-black uppercase tracking-wide text-gray-400"
+                          : "text-base font-black uppercase tracking-wide text-red-500";
+            }
+            if (complianceCard) {
+                complianceCard.className =
+                    compliance.tone === "green"
+                        ? "rounded-2xl p-5 border-2 border-green-500/30 bg-green-500/5"
+                        : compliance.tone === "neutral"
+                          ? "rounded-2xl p-5 border-2 border-gray-400/20 bg-black/5"
+                          : "rounded-2xl p-5 border-2 border-red-500/30 bg-red-500/5";
+            }
 
             if (gate.blocked) {
                 selectedFiles = [];
