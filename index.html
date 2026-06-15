@@ -178,6 +178,16 @@
             transform: scale(1.005);
         }
 
+        #evidenceDropZone.drag-over:not(.pointer-events-none) {
+            border-color: rgba(153, 27, 27, 0.75) !important;
+            background: rgba(153, 27, 27, 0.1);
+            transform: scale(1.01);
+        }
+
+        #residentUploadSection.upload-section--locked {
+            opacity: 0.72;
+        }
+
         .slot-status,
         .upload-status-msg--ok,
         .upload-status-msg--warn,
@@ -702,7 +712,7 @@
                         <svg class="text-[#991b1b]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" stroke-width="1.5"/></svg>
                     </div>
                     <p class="font-bold text-xs">Adjuntar evidencia</p>
-                    <p class="text-[8px] opacity-50 uppercase mt-0.5">Imágenes y video del avance físico</p>
+                    <p class="text-[8px] opacity-50 uppercase mt-0.5">Arrastre aquí o toque · imágenes y video</p>
                 </div>
                 <div id="filePreviewContainer" class="px-3 grid grid-cols-2 sm:grid-cols-4 gap-2"></div>
                 <div class="px-3 pb-3 pt-1">
@@ -1527,8 +1537,39 @@
         function getBatchStoragePaths(batch) {
             if (!batch || !Array.isArray(batch.files)) return [];
             return batch.files
+                .filter((f) => !f?.purged)
                 .map((f) => String(f?.storagePath || "").trim())
                 .filter((path) => path.length > 0);
+        }
+
+        function stripBatchFilesMetadata(batch, purgedAtIso) {
+            return {
+                ...batch,
+                files_purged_at: purgedAtIso,
+                files: (Array.isArray(batch.files) ? batch.files : []).map((f) => ({
+                    name: f.name || "",
+                    contentType: f.contentType || "",
+                    size: f.size || 0,
+                    purged: true
+                }))
+            };
+        }
+
+        function findLatestActiveEvidenceFiles(log) {
+            const sorted = [...log].sort((a, b) => String(b.uploaded_at || "").localeCompare(String(a.uploaded_at || "")));
+            for (const b of sorted) {
+                if (b.files_purged_at) continue;
+                const files = (Array.isArray(b.files) ? b.files : []).filter((f) => f.url && !f.purged);
+                if (files.length) return files;
+            }
+            return [];
+        }
+
+        function batchNeedsFilePurge(batch, nowMs) {
+            if (batch?.files_purged_at) return false;
+            if (!isEvidenceBatchExpired(batch, nowMs)) return false;
+            if (getBatchStoragePaths(batch).length > 0) return true;
+            return Array.isArray(batch.files) && batch.files.some((f) => f?.url && !f?.purged);
         }
 
         async function purgeExpiredEvidenceForProject(project) {
@@ -1538,30 +1579,27 @@
             if (log.length === 0) return;
 
             const nowMs = Date.now();
-            const kept = [];
-            const expired = [];
-            for (const batch of log) {
-                if (isEvidenceBatchExpired(batch, nowMs)) expired.push(batch);
-                else kept.push(batch);
-            }
-            if (expired.length === 0) return;
+            const toPurge = log.filter((batch) => batchNeedsFilePurge(batch, nowMs));
+            if (toPurge.length === 0) return;
 
             evidenceCleanupInFlight.add(project.id);
             try {
-                const storagePaths = expired.flatMap((batch) => getBatchStoragePaths(batch));
+                const storagePaths = toPurge.flatMap((batch) => getBatchStoragePaths(batch));
                 await Promise.all(
                     storagePaths.map((path) =>
                         deleteObject(ref(storage, path)).catch(() => null)
                     )
                 );
-                const sortedKept = [...kept].sort((a, b) => String(b.uploaded_at || "").localeCompare(String(a.uploaded_at || "")));
-                const latestBatch = sortedKept[0] || null;
-                const payload = {
-                    evidence_log: kept,
-                    last_evidence_files: latestBatch?.files || []
-                };
-                if (!latestBatch) payload.last_report = null;
-                await updateDoc(doc(db, "artifacts", appId, "public", "data", "projects", project.id), payload);
+                const purgedAt = new Date().toISOString();
+                const purgedKeys = new Set(toPurge.map((batch) => batchReviewKey(batch)));
+                const updatedLog = log.map((batch) => {
+                    if (!purgedKeys.has(batchReviewKey(batch))) return batch;
+                    return stripBatchFilesMetadata(batch, purgedAt);
+                });
+                await updateDoc(doc(db, "artifacts", appId, "public", "data", "projects", project.id), {
+                    evidence_log: updatedLog,
+                    last_evidence_files: findLatestActiveEvidenceFiles(updatedLog)
+                });
             } catch (e) {
                 console.warn("No se pudo aplicar la retencion automatica de evidencias", e);
             } finally {
@@ -2705,16 +2743,25 @@
                         ? "SUSTENTADO"
                         : "PENDIENTE";
             const files = Array.isArray(batch.files) ? batch.files : [];
-            const mediaHtml = files
-                .map((f) => {
-                    const isVid =
-                        (f.contentType || "").startsWith("video") || (f.name || "").toLowerCase().endsWith(".mp4");
-                    if (isVid) {
-                        return `<div class="relative rounded-lg overflow-hidden border border-white/10 bg-black/40"><video src="${f.url}" class="w-full h-24 object-cover" controls preload="metadata"></video><span class="absolute bottom-0 left-0 right-0 text-[7px] p-1 bg-black/70 truncate">${(f.name || "video").replace(/</g, "")}</span></div>`;
-                    }
-                    return `<div class="relative rounded-lg overflow-hidden border border-white/10"><img src="${f.url}" alt="" class="w-full h-24 object-cover" loading="lazy"/><span class="absolute bottom-0 left-0 right-0 text-[7px] p-1 bg-black/70 truncate">${(f.name || "imagen").replace(/</g, "")}</span></div>`;
-                })
-                .join("");
+            const activeFiles = files.filter((f) => f.url && !f.purged);
+            let mediaHtml;
+            if (activeFiles.length > 0) {
+                mediaHtml = activeFiles
+                    .map((f) => {
+                        const isVid =
+                            (f.contentType || "").startsWith("video") || (f.name || "").toLowerCase().endsWith(".mp4");
+                        if (isVid) {
+                            return `<div class="relative rounded-lg overflow-hidden border border-white/10 bg-black/40"><video src="${f.url}" class="w-full h-24 object-cover" controls preload="metadata"></video><span class="absolute bottom-0 left-0 right-0 text-[7px] p-1 bg-black/70 truncate">${(f.name || "video").replace(/</g, "")}</span></div>`;
+                        }
+                        return `<div class="relative rounded-lg overflow-hidden border border-white/10"><img src="${f.url}" alt="" class="w-full h-24 object-cover" loading="lazy"/><span class="absolute bottom-0 left-0 right-0 text-[7px] p-1 bg-black/70 truncate">${(f.name || "imagen").replace(/</g, "")}</span></div>`;
+                    })
+                    .join("");
+            } else if (batch.files_purged_at || files.some((f) => f.purged)) {
+                const names = files.map((f) => (f.name || "archivo").replace(/</g, "")).join(", ");
+                mediaHtml = `<p class="text-[9px] opacity-50 col-span-full leading-relaxed">Archivos eliminados por retención (4 días). Registro de cumplimiento conservado.${names ? ` (${names})` : ""}</p>`;
+            } else {
+                mediaHtml = "";
+            }
             const originHtml = formatUploadOriginHtml(batch.upload_origin);
             return `
                     <div class="rounded-xl border border-gray-400/20 p-3 bg-black/5">
@@ -3036,11 +3083,13 @@
             const next = clampResidentConsultDate(ymd);
             residentConsultDateYmd = next === fechaCarpetaLima() ? null : next;
             refreshResidentReportConsultation();
+            refreshResidentUploadSection();
         }
 
         window.goResidentConsultToday = () => {
             residentConsultDateYmd = null;
             refreshResidentReportConsultation();
+            refreshResidentUploadSection();
         };
 
         window.onResidentReportDatePicked = (e) => {
@@ -3152,7 +3201,18 @@
             return getEvidenceSlotsForDate(p, fechaLima);
         }
 
+        function isResidentViewingToday() {
+            return getResidentViewDateYmd() === fechaCarpetaLima();
+        }
+
         function getResidentUploadGate(project) {
+            if (!isResidentViewingToday()) {
+                return {
+                    blocked: true,
+                    message: "Solo puede enviar evidencia el día de hoy. Pulse «Ir a hoy» para cargar archivos.",
+                    shortMessage: "Envío bloqueado · consulta histórica"
+                };
+            }
             const fecha = fechaCarpetaLima();
             const slotInfo = getLimaUploadSlot();
             if (!project) {
@@ -3226,10 +3286,12 @@
             const fileInput = document.getElementById("fileInput");
             const dropZone = document.getElementById("evidenceDropZone");
             const uploadBtn = document.getElementById("uploadBtn");
+            const uploadSection = document.getElementById("residentUploadSection");
             const videoStatus = document.getElementById("videoStatus");
             const statusDot = document.getElementById("statusDot");
             const p = masterProjects.find((x) => x.id === activeProjectId);
             const gate = getResidentUploadGate(p);
+            const viewingToday = isResidentViewingToday();
 
             if (gate.blocked) {
                 selectedFiles = [];
@@ -3242,6 +3304,10 @@
                 dropZone.classList.toggle("pointer-events-none", gate.blocked);
                 dropZone.classList.toggle("cursor-not-allowed", gate.blocked);
                 dropZone.classList.toggle("hover:border-[#991b1b]/50", !gate.blocked);
+                if (gate.blocked) dropZone.classList.remove("drag-over");
+            }
+            if (uploadSection) {
+                uploadSection.classList.toggle("upload-section--locked", gate.blocked && !viewingToday);
             }
             if (fileInput) fileInput.disabled = !!gate.blocked;
 
@@ -3363,6 +3429,49 @@
             refreshResidentUploadSection();
         }
 
+        function addEvidenceFiles(fileList) {
+            const p = masterProjects.find((x) => x.id === activeProjectId);
+            const gate = getResidentUploadGate(p);
+            if (gate.blocked) {
+                showFeedback(gate.message, "error");
+                return;
+            }
+            const accepted = Array.from(fileList || []).filter(
+                (f) => f.type.startsWith("image/") || f.type.startsWith("video/")
+            );
+            if (accepted.length === 0) {
+                showFeedback("Solo se permiten imágenes y videos.", "error");
+                return;
+            }
+            selectedFiles = [...selectedFiles, ...accepted];
+            renderPreviews();
+        }
+
+        function wireEvidenceDropZone() {
+            const zone = document.getElementById("evidenceDropZone");
+            if (!zone || zone.dataset.dndWired === "1") return;
+            zone.dataset.dndWired = "1";
+            zone.addEventListener("dragenter", (e) => {
+                e.preventDefault();
+                if (!zone.classList.contains("pointer-events-none")) zone.classList.add("drag-over");
+            });
+            zone.addEventListener("dragover", (e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = "copy";
+            });
+            zone.addEventListener("dragleave", (e) => {
+                e.preventDefault();
+                if (!zone.contains(e.relatedTarget)) zone.classList.remove("drag-over");
+            });
+            zone.addEventListener("drop", (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                zone.classList.remove("drag-over");
+                if (zone.classList.contains("pointer-events-none")) return;
+                addEvidenceFiles(e.dataTransfer?.files);
+            });
+        }
+
         window.residentClickPickFiles = () => {
             const p = masterProjects.find((x) => x.id === activeProjectId);
             const gate = getResidentUploadGate(p);
@@ -3374,16 +3483,8 @@
         };
 
         window.handleFileSelect = (e) => {
-            const p = masterProjects.find((x) => x.id === activeProjectId);
-            const gate = getResidentUploadGate(p);
-            if (gate.blocked) {
-                e.target.value = "";
-                showFeedback(gate.message, "error");
-                return;
-            }
-            selectedFiles = [...selectedFiles, ...Array.from(e.target.files)];
+            addEvidenceFiles(e.target.files);
             e.target.value = "";
-            renderPreviews();
         };
 
         function renderPreviews() {
@@ -3515,11 +3616,35 @@
                         last_evidence_files: uploaded
                     });
                 }
+                const batchEntry = {
+                    batchId: String(batchId),
+                    uploaded_at: now,
+                    fecha: fechaDir,
+                    turno: turnoDir,
+                    cui: cuiRaw,
+                    storage_folder: carpetaSesion,
+                    upload_origin,
+                    files: uploaded
+                };
+                const projIdx = masterProjects.findIndex((p) => p.id === activeProjectId);
+                if (projIdx >= 0) {
+                    const prevLog = Array.isArray(masterProjects[projIdx].evidence_log)
+                        ? masterProjects[projIdx].evidence_log
+                        : [];
+                    masterProjects[projIdx] = {
+                        ...masterProjects[projIdx],
+                        last_report: now,
+                        last_evidence_files: uploaded,
+                        evidence_log: [...prevLog, batchEntry]
+                    };
+                }
                 selectedFiles = [];
+                const fi = document.getElementById("fileInput");
+                if (fi) fi.value = "";
                 renderPreviews();
                 showFeedback("Evidencia subida correctamente.", "success");
                 btn.textContent = originalLabel;
-                setTimeout(() => goBackToHome(), 1200);
+                refreshResidentEvidenceGate();
             } catch (e) {
                 console.error(e);
                 showFeedback(
@@ -3553,6 +3678,7 @@
 
         setMode(currentMode);
         updateUploadScheduleFooter();
+        wireEvidenceDropZone();
         init();
     </script>
 </body>
