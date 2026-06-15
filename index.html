@@ -397,6 +397,20 @@
             min-height: 2.75rem;
         }
 
+        #projectSelector {
+            appearance: auto;
+            -webkit-appearance: menulist;
+            cursor: pointer;
+            position: relative;
+            z-index: 2;
+            touch-action: manipulation;
+        }
+
+        #projectSelector:disabled {
+            cursor: not-allowed;
+            opacity: 0.65;
+        }
+
         .auth-input--lg {
             padding: 0.85rem 1rem !important;
             font-size: 0.9375rem !important;
@@ -1028,19 +1042,48 @@
 
         function renderLoginProjectOptions(query = loginProjectQuery) {
             const projectSelector = document.getElementById("projectSelector");
-            if (!projectSelector) return;
+            if (!projectSelector || projectSelector.disabled) return;
             loginProjectQuery = query || "";
             const filtered = masterProjects.filter((p) => projectMatchesQuery(p, loginProjectQuery));
             const selectedValue = projectSelector.value || "";
             const optionsHtml = filtered
-                .map((p) => `<option value="${p.id}">CUI: ${p.cui} - ${p.nombre.substring(0, 30)}...</option>`)
+                .map((p) => {
+                    const label = `${p.cui || ""} - ${String(p.nombre || "").substring(0, 40)}`;
+                    return `<option value="${p.id}">CUI: ${label}${String(p.nombre || "").length > 40 ? "..." : ""}</option>`;
+                })
                 .join("");
-            projectSelector.innerHTML = `<option value="" disabled selected>${filtered.length ? "Seleccione una obra..." : "Sin coincidencias..."}</option>${optionsHtml}`;
+            const placeholder = filtered.length ? "Seleccione una obra..." : "Sin coincidencias...";
+            projectSelector.innerHTML = `<option value="" disabled hidden>${placeholder}</option>${optionsHtml}`;
             if (selectedValue && filtered.some((p) => p.id === selectedValue)) {
                 projectSelector.value = selectedValue;
             } else if (filtered.length === 1) {
                 projectSelector.value = filtered[0].id;
+            } else {
+                projectSelector.selectedIndex = 0;
             }
+        }
+
+        function wireLoginProjectControls() {
+            const projectSearchInput = document.getElementById("projectSearchInput");
+            const projectSelector = document.getElementById("projectSelector");
+            if (projectSearchInput) {
+                projectSearchInput.oninput = (e) => filterLoginProjects(e.target.value);
+            }
+            if (projectSelector) {
+                projectSelector.onchange = () => syncLoginSelectorToSearch();
+            }
+        }
+
+        function refreshLoginFormProjects() {
+            if (currentMode !== "LOGIN" || !shouldRefreshLoginForm()) return;
+            const projectSelector = document.getElementById("projectSelector");
+            if (!projectSelector || projectSelector.disabled) {
+                if (projectsLoaded && masterProjects.length > 0) setMode("LOGIN");
+                return;
+            }
+            renderLoginProjectOptions(loginProjectQuery);
+            const submitBtn = document.getElementById("submitBtn");
+            if (submitBtn) submitBtn.disabled = false;
         }
 
         window.filterLoginProjects = (query) => {
@@ -1052,6 +1095,7 @@
             const projectSearchInput = document.getElementById("projectSearchInput");
             if (!projectSelector || !projectSearchInput) return;
             const selectedId = projectSelector.value;
+            if (!selectedId) return;
             const selectedProject = masterProjects.find((p) => p.id === selectedId);
             if (!selectedProject) return;
             const syncText = `${selectedProject.cui} - ${selectedProject.nombre}`;
@@ -1063,6 +1107,13 @@
             initialLoader.classList.add('loader-exit');
             setTimeout(() => initialLoader.classList.add('hidden'), 380);
             revealAppView(authView);
+
+            if (window.location.protocol === "file:") {
+                showFeedback(
+                    "Abra la página con http/https (servidor o hosting), no como archivo local (file://).",
+                    "error"
+                );
+            }
 
             try {
                 const cachedProjectsRaw = localStorage.getItem(PROJECTS_CACHE_KEY);
@@ -1101,7 +1152,7 @@
                 queueEvidenceRetentionCleanup(masterProjects);
                 if (masterProjects.length === 0) {
                     if (shouldRefreshLoginForm()) {
-                        setMode(currentMode);
+                        refreshLoginFormProjects();
                     }
                     seed();
                 }
@@ -1110,7 +1161,7 @@
                     activeProjects = [...masterProjects];
                     localStorage.setItem(PROJECTS_CACHE_KEY, JSON.stringify(masterProjects));
                     if (shouldRefreshLoginForm()) {
-                        setMode(currentMode);
+                        refreshLoginFormProjects();
                     }
                     renderAdminTable();
                     renderEvidenceAdminProjectTable();
@@ -1809,9 +1860,10 @@
                         if (container) container.classList.remove('form-fade');
                         return;
                     }
-                    container.innerHTML = `<label class="label-gold">PROYECTO DE INVERSIÓN</label><input type="text" id="projectSearchInput" placeholder="Buscar por CUI o nombre..." class="auth-input w-full rounded-xl mb-2 font-bold shadow-sm" oninput="filterLoginProjects(this.value)"><select id="projectSelector" class="auth-input w-full rounded-xl font-bold shadow-sm" onchange="syncLoginSelectorToSearch()"></select>`;
+                    container.innerHTML = `<label class="label-gold">PROYECTO DE INVERSIÓN</label><input type="text" id="projectSearchInput" placeholder="Buscar por CUI o nombre..." class="auth-input w-full rounded-xl mb-2 font-bold shadow-sm" oninput="filterLoginProjects(this.value)"><select id="projectSelector" class="auth-input w-full rounded-xl font-bold shadow-sm"></select>`;
                     const projectSearchInput = document.getElementById("projectSearchInput");
                     if (projectSearchInput) projectSearchInput.value = loginProjectQuery;
+                    wireLoginProjectControls();
                     renderLoginProjectOptions(loginProjectQuery);
                     submitBtn.disabled = false;
                 } else if (mode === 'ADMIN') {
