@@ -238,70 +238,70 @@
         </div>
     </div>
 
-    <div id="residentModuleView" class="glass-card p-10 w-full max-w-2xl hidden border-t-4 border-t-green-600">
-        <div class="flex justify-between items-start mb-8 border-b border-gray-400/10 pb-6">
-            <div class="flex items-center gap-4">
-                <div class="logo-container h-16 w-14 rounded-lg !p-1">
+    <div id="residentModuleView" class="glass-card p-6 md:p-8 w-full max-w-2xl hidden border-t-4 border-t-green-600">
+        <div class="flex justify-between items-start gap-4 mb-6 border-b border-gray-400/10 pb-5">
+            <div class="flex items-center gap-3 min-w-0">
+                <div class="logo-container h-14 w-12 rounded-lg !p-1 shrink-0">
                     <img src="Imagen1.jpg" alt="Logo GRA">
                 </div>
-                <div>
+                <div class="min-w-0">
                     <span class="label-gold">Residencia Autorizada</span>
-                    <h2 id="residentProjectName" class="text-xl font-black leading-tight max-w-sm">Cargando...</h2>
+                    <h2 id="residentProjectName" class="text-base md:text-lg font-black leading-tight line-clamp-2">Cargando...</h2>
                 </div>
             </div>
-            <button onclick="goBackToHome()" class="bg-red-500/10 text-red-600 p-2 rounded-lg hover:bg-red-500/20 transition-all font-bold text-[10px] uppercase px-4">Salir</button>
+            <button onclick="goBackToHome()" class="bg-red-500/10 text-red-600 p-2 rounded-lg hover:bg-red-500/20 transition-all font-bold text-[10px] uppercase px-3 shrink-0">Salir</button>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            <div id="dailyComplianceCard" class="rounded-2xl p-5 border border-white/10 bg-black/5">
-                <div class="flex items-center justify-between gap-2 mb-4">
-                    <h4 class="text-[10px] font-bold opacity-50 uppercase text-current shrink-0">Reporte del día</h4>
-                    <div class="flex items-center gap-2">
-                        <button type="button" onclick="changeResidentReportDate(-1)" id="btnPrevResidentDate" class="p-1 hover:text-[#991b1b] transition-colors" title="Día anterior">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7" stroke-width="3"/></svg>
-                        </button>
-                        <span id="residentReportDateLabel" class="text-[9px] font-black uppercase font-mono opacity-70 min-w-[108px] text-center leading-tight">HOY</span>
-                        <button type="button" onclick="changeResidentReportDate(1)" id="btnNextResidentDate" class="p-1 hover:text-[#991b1b] transition-colors" title="Día siguiente">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" stroke-width="3"/></svg>
-                        </button>
-                    </div>
+        <section class="rounded-2xl border border-white/10 bg-gradient-to-b from-black/25 to-black/10 p-4 md:p-5 mb-5">
+            <p class="text-[9px] font-black uppercase tracking-widest text-white/40 text-center mb-3">Consulta de reportes</p>
+            <div class="flex items-center justify-center gap-3 mb-4">
+                <button type="button" onclick="changeResidentReportDate(-1)" id="btnPrevResidentDate" class="p-1.5 rounded-lg border border-white/10 hover:border-[#991b1b]/40 hover:text-[#991b1b] transition-colors" title="Día anterior">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7" stroke-width="3"/></svg>
+                </button>
+                <span id="residentReportDateLabel" class="text-[10px] font-black uppercase font-mono text-white/80 min-w-[140px] text-center leading-tight">HOY</span>
+                <button type="button" onclick="changeResidentReportDate(1)" id="btnNextResidentDate" class="p-1.5 rounded-lg border border-white/10 hover:border-[#991b1b]/40 hover:text-[#991b1b] transition-colors" title="Día siguiente">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" stroke-width="3"/></svg>
+                </button>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div id="slotMananaRow" class="rounded-xl border border-white/10 bg-black/20 px-3 py-3 text-center">
+                    <p class="text-[9px] font-black uppercase text-white/45 mb-1">Mañana</p>
+                    <span id="slotMananaStatus" class="text-[11px] font-black uppercase text-amber-400">Pendiente</span>
                 </div>
-                <div class="space-y-2">
-                    <div class="flex items-center justify-between gap-3 rounded-xl border border-white/5 bg-black/10 px-3 py-2.5">
-                        <span class="text-[10px] font-black uppercase">Mañana</span>
-                        <span id="slotMananaStatus" class="text-[10px] font-black uppercase text-amber-400">Pendiente</span>
-                    </div>
-                    <div class="flex items-center justify-between gap-3 rounded-xl border border-white/5 bg-black/10 px-3 py-2.5">
-                        <span class="text-[10px] font-black uppercase">Tarde</span>
-                        <span id="slotTardeStatus" class="text-[10px] font-black uppercase text-amber-400">Pendiente</span>
-                    </div>
+                <div id="slotTardeRow" class="rounded-xl border border-white/10 bg-black/20 px-3 py-3 text-center">
+                    <p class="text-[9px] font-black uppercase text-white/45 mb-1">Tarde</p>
+                    <span id="slotTardeStatus" class="text-[11px] font-black uppercase text-amber-400">Pendiente</span>
                 </div>
             </div>
-            <div class="bg-black/5 rounded-2xl p-5 border border-white/5">
-                <h4 class="text-[10px] font-bold opacity-50 uppercase mb-3 text-current">Estado del envío</h4>
-                <div class="flex items-center gap-3">
-                    <div id="statusDot" class="w-3 h-3 rounded-full bg-red-500 animate-pulse shrink-0"></div>
-                    <span id="videoStatus" class="text-xs font-bold uppercase text-red-600">Video Obligatorio Pendiente</span>
-                </div>
-            </div>
-            <div class="bg-black/5 rounded-2xl p-5 border border-white/5 text-[9px] md:col-span-2">
-                <h4 class="text-[10px] font-bold opacity-50 uppercase mb-2 text-current">Horarios de Entrega</h4>
-                <p class="font-bold">L-V: 07:00 - 09:00 / 17:00 - 18:00</p>
-                <p class="font-bold">Sáb: 07:00 - 09:00 / 12:00 - 13:00</p>
-            </div>
-        </div>
+        </section>
 
-        <div id="evidenceDropZone" class="bg-black/5 rounded-3xl p-10 border-2 border-dashed border-gray-400/20 text-center cursor-pointer hover:border-[#991b1b]/50 group" onclick="residentClickPickFiles()">
-            <input type="file" id="fileInput" multiple accept="image/*,video/*" class="hidden" onchange="handleFileSelect(event)">
-            <div class="w-16 h-16 bg-[#991b1b]/5 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
-                <svg class="w-8 h-8 text-[#991b1b]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" stroke-width="1.5"/></svg>
+        <section id="residentUploadSection" class="rounded-2xl border border-[#991b1b]/25 bg-black/15 overflow-hidden">
+            <div id="residentUploadHeader" class="px-4 py-3 border-b border-white/5 bg-[#991b1b]/5">
+                <p class="text-[9px] font-black uppercase tracking-widest text-[#991b1b] mb-2">Enviar evidencia de hoy</p>
+                <div class="flex items-start gap-2.5">
+                    <div id="statusDot" class="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse shrink-0 mt-0.5"></div>
+                    <span id="videoStatus" class="text-[10px] font-bold uppercase leading-snug text-red-500">Fuera de horario</span>
+                </div>
             </div>
-            <p class="font-bold text-sm">Adjuntar Evidencia Diaria</p>
-            <p class="text-[10px] opacity-50 uppercase mt-1">Imágenes y Video del Avance Físico</p>
-        </div>
-
-        <div id="filePreviewContainer" class="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-4"></div>
-        <button id="uploadBtn" disabled onclick="simulateUpload()" class="w-full mt-10 btn-primary py-5 rounded-2xl text-sm shadow-lg">Sincronizar Datos</button>
+            <p id="residentHistoryNotice" class="hidden px-4 py-3 text-[10px] font-bold uppercase text-center text-white/50 border-b border-white/5 bg-black/20">
+                Consulta histórica. Use las flechas para ver otros días o regrese a hoy para enviar evidencia.
+            </p>
+            <div id="residentUploadBody">
+                <div id="evidenceDropZone" class="mx-4 mt-4 mb-3 rounded-2xl p-8 border-2 border-dashed border-gray-400/25 text-center cursor-pointer hover:border-[#991b1b]/50 group transition-colors" onclick="residentClickPickFiles()">
+                    <input type="file" id="fileInput" multiple accept="image/*,video/*" class="hidden" onchange="handleFileSelect(event)">
+                    <div class="w-14 h-14 bg-[#991b1b]/10 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-105 transition-transform">
+                        <svg class="w-7 h-7 text-[#991b1b]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" stroke-width="1.5"/></svg>
+                    </div>
+                    <p class="font-bold text-sm">Adjuntar evidencia</p>
+                    <p class="text-[9px] opacity-50 uppercase mt-1">Imágenes y video del avance físico</p>
+                </div>
+                <div id="filePreviewContainer" class="px-4 grid grid-cols-2 sm:grid-cols-4 gap-3"></div>
+                <div class="px-4 pb-4 pt-2">
+                    <button id="uploadBtn" disabled onclick="simulateUpload()" class="w-full btn-primary py-4 rounded-xl text-sm shadow-lg">Sincronizar datos</button>
+                    <p class="text-[8px] text-center opacity-40 mt-3 uppercase leading-relaxed">Horario Lima · L-V 07:00–09:00 y 17:00–18:00 · Sáb 07:00–09:00 y 12:00–13:00</p>
+                </div>
+            </div>
+        </section>
     </div>
 
     <div id="adminPanelView" class="glass-card p-10 w-full max-w-6xl hidden border-t-4 border-t-[#991b1b]">
@@ -2152,7 +2152,7 @@
             return "no_cumplido";
         }
 
-        function applySlotStatusEl(el, status) {
+        function applySlotStatusEl(el, status, rowEl) {
             const labels = {
                 cumplido: "Cumplido",
                 no_cumplido: "No cumplido",
@@ -2165,9 +2165,16 @@
                 pendiente: "text-amber-400",
                 no_aplica: "text-gray-400"
             };
+            const rowStyles = {
+                cumplido: "rounded-xl border border-green-500/30 bg-green-500/10 px-3 py-3 text-center",
+                no_cumplido: "rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-3 text-center",
+                pendiente: "rounded-xl border border-amber-500/25 bg-amber-500/10 px-3 py-3 text-center",
+                no_aplica: "rounded-xl border border-white/10 bg-black/20 px-3 py-3 text-center opacity-70"
+            };
             if (!el) return;
             el.textContent = labels[status] || status;
-            el.className = `text-[10px] font-black uppercase ${colors[status] || "text-gray-400"}`;
+            el.className = `text-[11px] font-black uppercase ${colors[status] || "text-gray-400"}`;
+            if (rowEl) rowEl.className = rowStyles[status] || rowStyles.pendiente;
         }
 
         window.changeResidentReportDate = (offset) => {
@@ -2194,7 +2201,8 @@
                 }
                 return {
                     blocked: true,
-                    message: "Fuera de horario. L-V: 07:00–09:00 y 17:00–18:00. Sábados: 07:00–09:00 y 12:00–13:00 (hora Lima)."
+                    message: "Fuera de horario. L-V: 07:00–09:00 y 17:00–18:00. Sábados: 07:00–09:00 y 12:00–13:00 (hora Lima).",
+                    shortMessage: "Fuera de horario de entrega"
                 };
             }
             const used = todayEvidenceSlotsUsed(project, fecha);
@@ -2220,9 +2228,15 @@
             const btnNextDate = document.getElementById("btnNextResidentDate");
             const slotMananaEl = document.getElementById("slotMananaStatus");
             const slotTardeEl = document.getElementById("slotTardeStatus");
+            const slotMananaRow = document.getElementById("slotMananaRow");
+            const slotTardeRow = document.getElementById("slotTardeRow");
+            const uploadHeader = document.getElementById("residentUploadHeader");
+            const uploadBody = document.getElementById("residentUploadBody");
+            const historyNotice = document.getElementById("residentHistoryNotice");
             const p = masterProjects.find((x) => x.id === activeProjectId);
-            const gate = getResidentUploadGate(p);
             const viewYmd = getResidentViewDateYmd();
+            const isViewingToday = viewYmd === fechaCarpetaLima();
+            const gate = isViewingToday ? getResidentUploadGate(p) : { blocked: true, message: "", shortMessage: "" };
 
             if (dateLabel) dateLabel.textContent = formatResidentReportDateLabel(viewYmd);
             if (btnNextDate) {
@@ -2237,8 +2251,21 @@
                 btnPrevDate.classList.toggle("opacity-30", atLimit);
                 btnPrevDate.classList.toggle("pointer-events-none", atLimit);
             }
-            applySlotStatusEl(slotMananaEl, p ? getSlotComplianceStatus(p, viewYmd, "mañana") : "pendiente");
-            applySlotStatusEl(slotTardeEl, p ? getSlotComplianceStatus(p, viewYmd, "tarde") : "pendiente");
+            const mananaStatus = p ? getSlotComplianceStatus(p, viewYmd, "mañana") : "pendiente";
+            const tardeStatus = p ? getSlotComplianceStatus(p, viewYmd, "tarde") : "pendiente";
+            applySlotStatusEl(slotMananaEl, mananaStatus, slotMananaRow);
+            applySlotStatusEl(slotTardeEl, tardeStatus, slotTardeRow);
+
+            if (historyNotice) historyNotice.classList.toggle("hidden", isViewingToday);
+            if (uploadHeader) uploadHeader.classList.toggle("hidden", !isViewingToday);
+            if (uploadBody) uploadBody.classList.toggle("hidden", !isViewingToday);
+
+            if (!isViewingToday) {
+                selectedFiles = [];
+                if (fileInput) fileInput.value = "";
+                renderPreviews();
+                return;
+            }
 
             if (gate.blocked) {
                 selectedFiles = [];
@@ -2257,25 +2284,25 @@
             let msg;
             let tone;
             if (gate.blocked) {
-                msg = gate.message;
+                msg = gate.shortMessage || gate.message;
                 tone = "red";
             } else if (!hasVideo) {
-                msg = "VIDEO OBLIGATORIO PENDIENTE";
+                msg = "Adjunte video para continuar";
                 tone = "red";
             } else {
-                msg = "LISTO PARA SINCRONIZAR";
+                msg = "Listo para sincronizar";
                 tone = "green";
             }
             if (videoStatus) {
                 videoStatus.textContent = msg;
                 videoStatus.className =
                     tone === "green"
-                        ? "text-xs font-bold uppercase text-green-600"
-                        : "text-xs font-bold uppercase text-red-600";
+                        ? "text-[10px] font-bold uppercase leading-snug text-green-500"
+                        : "text-[10px] font-bold uppercase leading-snug text-red-500";
             }
             if (statusDot) {
                 statusDot.className =
-                    "w-3 h-3 rounded-full " + (tone === "green" ? "bg-green-500" : "bg-red-500 animate-pulse");
+                    "w-2.5 h-2.5 rounded-full shrink-0 mt-0.5 " + (tone === "green" ? "bg-green-500" : "bg-red-500 animate-pulse");
             }
             if (uploadBtn) uploadBtn.disabled = gate.blocked || !hasVideo;
         }
