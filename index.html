@@ -668,7 +668,8 @@
                     <p class="text-[9px] opacity-60 mt-2">Solo aplica a turnos SIN CARGA del filtro actual.</p>
                 </div>
                 <p class="text-[9px] opacity-50 mb-1">El administrador puede revisar las entregas anteriores, aprobarlas o rechazarlas con observación.</p>
-                <p class="text-[9px] opacity-50 mb-3">Los videos y fotos se eliminan automáticamente 4 días después de la entrega.</p>
+                <p class="text-[9px] opacity-50 mb-2">Los videos y fotos se eliminan automáticamente 4 días después de la entrega.</p>
+                <p class="text-[9px] opacity-55 mb-3 leading-relaxed">Cada envío registra IP, ubicación aproximada por red y GPS del dispositivo (si el residente lo autoriza) para auditoría.</p>
                 <div id="evidenceReviewList" class="max-h-[32rem] overflow-y-auto space-y-4 pr-1"></div>
             </div>
         </div>
@@ -1996,6 +1997,105 @@
             sel.value = currentValue;
         }
 
+        function formatUploadOriginHtml(origin) {
+            if (!origin || typeof origin !== "object") {
+                return `<div class="rounded-lg border border-white/10 bg-black/20 px-2.5 py-2 mb-2 text-[8px] leading-relaxed opacity-60">Sin registro de origen (envío anterior a auditoría).</div>`;
+            }
+            const lines = [];
+            if (origin.ip) lines.push(`<strong>IP:</strong> ${escHtml(String(origin.ip))}`);
+            const loc = [origin.city, origin.region, origin.country].filter(Boolean).join(", ");
+            if (loc) lines.push(`<strong>Ubicación por IP:</strong> ${escHtml(loc)}`);
+            if (origin.isp) lines.push(`<strong>Proveedor:</strong> ${escHtml(String(origin.isp))}`);
+            if (Number.isFinite(origin.ip_latitude) && Number.isFinite(origin.ip_longitude)) {
+                const maps = `https://www.google.com/maps?q=${origin.ip_latitude},${origin.ip_longitude}`;
+                lines.push(`<a href="${maps}" target="_blank" rel="noopener noreferrer" class="text-sky-400 hover:underline">Abrir mapa (ubicación IP)</a>`);
+            }
+            if (Number.isFinite(origin.device_latitude) && Number.isFinite(origin.device_longitude)) {
+                const acc = origin.device_accuracy_m ? ` ±${origin.device_accuracy_m} m` : "";
+                lines.push(
+                    `<strong>GPS del dispositivo:</strong> ${origin.device_latitude.toFixed(5)}, ${origin.device_longitude.toFixed(5)}${acc}`
+                );
+                const gmaps = `https://www.google.com/maps?q=${origin.device_latitude},${origin.device_longitude}`;
+                lines.push(`<a href="${gmaps}" target="_blank" rel="noopener noreferrer" class="text-sky-400 hover:underline">Abrir mapa (GPS)</a>`);
+            } else if (origin.device_geo_denied) {
+                lines.push(`<span class="opacity-70">GPS del dispositivo no autorizado por el residente</span>`);
+            }
+            if (origin.timezone) lines.push(`<strong>Zona horaria:</strong> ${escHtml(String(origin.timezone))}`);
+            if (origin.captured_at) {
+                lines.push(`<strong>Registrado:</strong> ${escHtml(String(origin.captured_at).slice(0, 19).replace("T", " "))} UTC`);
+            }
+            if (lines.length === 0) {
+                return `<div class="rounded-lg border border-white/10 bg-black/20 px-2.5 py-2 mb-2 text-[8px] opacity-60">Origen no disponible en este envío.</div>`;
+            }
+            return `<div class="rounded-lg border border-amber-500/25 bg-amber-950/15 px-2.5 py-2 mb-2">
+                <p class="text-[8px] font-black uppercase text-amber-400/90 mb-1">Origen del envío</p>
+                <div class="text-[8px] leading-relaxed space-y-0.5 opacity-85">${lines.map((l) => `<div>${l}</div>`).join("")}</div>
+            </div>`;
+        }
+
+        async function collectUploadOriginMeta() {
+            const meta = {
+                captured_at: new Date().toISOString(),
+                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                locale: navigator.language || "",
+                user_agent: navigator.userAgent || "",
+                platform: navigator.platform || "",
+                screen: `${window.screen?.width || 0}x${window.screen?.height || 0}`
+            };
+            try {
+                const ctrl = new AbortController();
+                const timer = setTimeout(() => ctrl.abort(), 6000);
+                const res = await fetch("https://ipwho.is/", { signal: ctrl.signal });
+                clearTimeout(timer);
+                if (res.ok) {
+                    const d = await res.json();
+                    if (d && d.success !== false) {
+                        meta.ip = d.ip || "";
+                        meta.isp = d.connection?.isp || "";
+                        meta.org = d.connection?.org || "";
+                        meta.city = d.city || "";
+                        meta.region = d.region || "";
+                        meta.country = d.country || "";
+                        meta.country_code = d.country_code || "";
+                        meta.ip_latitude = d.latitude;
+                        meta.ip_longitude = d.longitude;
+                        meta.ip_geo_source = "ipwho.is";
+                    }
+                }
+            } catch {
+                meta.ip_lookup_error = "no_disponible";
+                try {
+                    const r = await fetch("https://api.ipify.org?format=json");
+                    if (r.ok) {
+                        const j = await r.json();
+                        if (j?.ip) {
+                            meta.ip = j.ip;
+                            meta.ip_geo_source = "ipify";
+                        }
+                    }
+                } catch {
+                    /* sin IP */
+                }
+            }
+            try {
+                const pos = await new Promise((resolve, reject) => {
+                    if (!navigator.geolocation) return reject(new Error("no_geo"));
+                    navigator.geolocation.getCurrentPosition(resolve, reject, {
+                        enableHighAccuracy: false,
+                        timeout: 7000,
+                        maximumAge: 120000
+                    });
+                });
+                meta.device_latitude = pos.coords.latitude;
+                meta.device_longitude = pos.coords.longitude;
+                meta.device_accuracy_m = Math.round(pos.coords.accuracy || 0);
+                meta.device_geo_source = "gps";
+            } catch (e) {
+                if (e && e.code === 1) meta.device_geo_denied = true;
+            }
+            return meta;
+        }
+
         function renderBatchReviewCardHtml(p, batch, reviews) {
             const bkey = batchReviewKey(batch);
             const safeId = safeReviewDomId(bkey);
@@ -2028,6 +2128,7 @@
                     return `<div class="relative rounded-lg overflow-hidden border border-white/10"><img src="${f.url}" alt="" class="w-full h-24 object-cover" loading="lazy"/><span class="absolute bottom-0 left-0 right-0 text-[7px] p-1 bg-black/70 truncate">${(f.name || "imagen").replace(/</g, "")}</span></div>`;
                 })
                 .join("");
+            const originHtml = formatUploadOriginHtml(batch.upload_origin);
             return `
                     <div class="rounded-xl border border-gray-400/20 p-3 bg-black/5">
                         <div class="flex flex-wrap justify-between gap-2 mb-2">
@@ -2038,6 +2139,7 @@
                             </div>
                             <span class="text-[9px] font-black ${stColor}">${stLabel}</span>
                         </div>
+                        ${originHtml}
                         <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-2">${mediaHtml || '<p class="text-[9px] opacity-40">Sin archivos</p>'}</div>
                         <textarea id="reviewNote_${safeId}" rows="2" placeholder="Observación (obligatoria si rechaza)" class="w-full rounded-lg px-2 py-2 text-[10px] mb-2"></textarea>
                         <div class="flex flex-wrap gap-2">
@@ -2675,6 +2777,7 @@
             }
             btn.disabled = true;
             const originalLabel = btn.textContent;
+            const uploadOriginPromise = collectUploadOriginMeta();
             try {
                 const uploaded = [];
                 const batchId = Date.now();
@@ -2708,6 +2811,8 @@
                         );
                     });
                 }
+                btn.textContent = "Registrando origen...";
+                const upload_origin = await uploadOriginPromise;
                 const now = new Date().toISOString();
                 const projectRef = doc(db, "artifacts", appId, "public", "data", "projects", activeProjectId);
                 try {
@@ -2721,6 +2826,7 @@
                             turno: turnoDir,
                             cui: cuiRaw,
                             storage_folder: carpetaSesion,
+                            upload_origin,
                             files: uploaded
                         })
                     });
