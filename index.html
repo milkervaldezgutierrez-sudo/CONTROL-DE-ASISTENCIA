@@ -19,6 +19,11 @@
             --text-main: #ffffff;
             --border-color: rgba(250, 204, 21, 0.3);
             --accent-gold: #facc15;
+            --ease-smooth: cubic-bezier(0.22, 1, 0.36, 1);
+            --ease-out: cubic-bezier(0.4, 0, 0.2, 1);
+            --duration-fast: 0.22s;
+            --duration-normal: 0.38s;
+            --duration-slow: 0.52s;
         }
 
         body.light-mode {
@@ -78,6 +83,124 @@
             border-radius: 28px;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
             color: var(--text-main);
+            transition:
+                background var(--duration-normal) var(--ease-out),
+                border-color var(--duration-normal) var(--ease-out),
+                box-shadow var(--duration-normal) var(--ease-out),
+                color var(--duration-fast) var(--ease-out);
+        }
+
+        /* Entrada suave de pantallas principales */
+        .app-view.view-animate-in {
+            animation: appViewIn var(--duration-slow) var(--ease-smooth) both;
+        }
+
+        @keyframes appViewIn {
+            from {
+                opacity: 0;
+                transform: translateY(12px) scale(0.988);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* Pestañas y secciones del admin */
+        .admin-tab-panel:not(.hidden) {
+            animation: panelFadeIn var(--duration-normal) var(--ease-smooth) both;
+        }
+
+        @keyframes panelFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(6px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Loader inicial */
+        #initialLoader {
+            transition: opacity var(--duration-normal) var(--ease-out);
+        }
+
+        #initialLoader.loader-exit {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* Toast / feedback */
+        .toast-banner {
+            transform: translate(-50%, -10px);
+            opacity: 0;
+            transition:
+                opacity var(--duration-normal) var(--ease-smooth),
+                transform var(--duration-normal) var(--ease-smooth);
+            pointer-events: none;
+        }
+
+        .toast-banner.toast-visible {
+            opacity: 1;
+            transform: translate(-50%, 0);
+        }
+
+        /* Interacciones suaves */
+        .btn-primary,
+        button,
+        .active-tab,
+        .slot-row,
+        #evidenceDropZone,
+        #residentConsultSection,
+        #residentUploadSection,
+        .theme-toggle {
+            transition:
+                background-color var(--duration-fast) var(--ease-out),
+                border-color var(--duration-fast) var(--ease-out),
+                color var(--duration-fast) var(--ease-out),
+                opacity var(--duration-fast) var(--ease-out),
+                transform var(--duration-fast) var(--ease-out),
+                box-shadow var(--duration-fast) var(--ease-out);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-1px);
+            filter: brightness(1.12);
+        }
+
+        .btn-primary:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        #evidenceDropZone:hover:not(.pointer-events-none) {
+            transform: scale(1.005);
+        }
+
+        .slot-status,
+        .upload-status-msg--ok,
+        .upload-status-msg--warn,
+        #statusDot {
+            transition: color var(--duration-normal) var(--ease-out), background-color var(--duration-normal) var(--ease-out);
+        }
+
+        #dynamicInputContainer {
+            transition: opacity var(--duration-fast) var(--ease-out);
+        }
+
+        #dynamicInputContainer.form-fade {
+            opacity: 0.55;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
         }
 
         body.light-mode .glass-card {
@@ -216,11 +339,6 @@
             letter-spacing: 0.05em;
         }
         
-        .btn-primary:hover:not(:disabled) {
-            transform: translateY(-2px);
-            filter: brightness(1.2);
-        }
-
         .label-gold {
             color: var(--accent-gold);
             font-size: 0.75rem;
@@ -432,14 +550,14 @@
         </span>
     </button>
 
-    <div id="feedback" class="hidden fixed top-5 left-1/2 -translate-x-1/2 z-[3000] text-center text-xs px-4 py-3 rounded-xl border max-w-sm pointer-events-none"></div>
+    <div id="feedback" class="toast-banner hidden fixed top-5 left-1/2 z-[3000] text-center text-xs px-4 py-3 rounded-xl border max-w-sm"></div>
 
     <div id="initialLoader" class="flex flex-col items-center gap-4">
         <div class="custom-loader w-12 h-12"></div>
         <p class="text-yellow-500 font-bold animate-pulse uppercase tracking-widest text-xs">Sincronizando con Sede Central Ayacucho...</p>
     </div>
 
-    <div id="authView" class="glass-card auth-card w-full max-w-md hidden border-t-4 border-t-[#991b1b]">
+    <div id="authView" class="glass-card auth-card app-view w-full max-w-md hidden border-t-4 border-t-[#991b1b]">
         <div class="auth-brand flex flex-col items-center text-center">
             <div class="logo-container logo-container--hero mb-2">
                 <img src="Imagen1.jpg" alt="Logo GRA">
@@ -481,7 +599,7 @@
         </div>
     </div>
 
-    <div id="residentModuleView" class="glass-card app-panel w-full max-w-2xl hidden border-t-4 border-t-green-600">
+    <div id="residentModuleView" class="glass-card app-panel app-view w-full max-w-2xl hidden border-t-4 border-t-green-600">
         <div class="app-panel-header flex justify-between items-start gap-3 border-b border-gray-400/10">
             <div class="flex items-center gap-2.5 min-w-0">
                 <div class="logo-container h-12 w-10 rounded-lg !p-1 shrink-0">
@@ -554,7 +672,7 @@
         </section>
     </div>
 
-    <div id="adminPanelView" class="glass-card app-panel w-full max-w-6xl hidden border-t-4 border-t-[#991b1b]">
+    <div id="adminPanelView" class="glass-card app-panel app-view w-full max-w-6xl hidden border-t-4 border-t-[#991b1b]">
         <div class="admin-panel-header flex flex-col md:flex-row justify-between items-center">
             <div class="flex items-center gap-3">
                 <div class="logo-container h-14 w-12 !p-1">
@@ -578,7 +696,7 @@
             </div>
         </div>
 
-        <div id="adminListView" class="admin-grid grid grid-cols-1 lg:grid-cols-12">
+        <div id="adminListView" class="admin-tab-panel admin-grid grid grid-cols-1 lg:grid-cols-12">
             <div class="lg:col-span-8 bg-black/5 rounded-2xl border border-gray-400/10 overflow-hidden">
                 <div class="p-3 border-b border-gray-400/10 bg-black/5">
                     <input
@@ -621,7 +739,7 @@
             </div>
         </div>
 
-        <div id="adminEvidenceView" class="hidden admin-grid grid grid-cols-1 lg:grid-cols-12">
+        <div id="adminEvidenceView" class="admin-tab-panel hidden admin-grid grid grid-cols-1 lg:grid-cols-12">
             <div class="lg:col-span-5 bg-black/5 rounded-3xl border border-gray-400/10 overflow-hidden">
                 <div class="p-4 border-b border-gray-400/10 bg-black/5">
                     <h4 class="text-[#991b1b] text-[10px] font-black uppercase">Proyectos con evidencias</h4>
@@ -674,7 +792,7 @@
             </div>
         </div>
 
-        <div id="adminReportView" class="hidden">
+        <div id="adminReportView" class="admin-tab-panel hidden">
             <div id="captureArea" class="bg-inherit rounded-3xl border border-gray-400/10 overflow-hidden shadow-2xl p-5 md:p-6">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 md:mb-5 gap-3 md:gap-4">
                     <div class="min-w-0">
@@ -823,6 +941,29 @@
         const residentModuleView = document.getElementById('residentModuleView');
         const initialLoader = document.getElementById('initialLoader');
 
+        const APP_VIEWS = [authView, adminPanelView, residentModuleView];
+
+        function revealAppView(el) {
+            if (!el) return;
+            APP_VIEWS.forEach((v) => {
+                if (v && v !== el) {
+                    v.classList.add('hidden');
+                    v.classList.remove('view-animate-in');
+                }
+            });
+            el.classList.remove('hidden');
+            el.classList.remove('view-animate-in');
+            void el.offsetWidth;
+            el.classList.add('view-animate-in');
+        }
+
+        function replayAdminTabAnimation(panel) {
+            if (!panel || panel.classList.contains('hidden')) return;
+            panel.classList.remove('admin-tab-panel');
+            void panel.offsetWidth;
+            panel.classList.add('admin-tab-panel');
+        }
+
         window.toggleTheme = () => {
             isDarkMode = !isDarkMode;
             document.body.className = isDarkMode ? 'dark-mode' : 'light-mode';
@@ -886,8 +1027,9 @@
         };
 
         async function init() {
-            authView.classList.remove('hidden');
-            initialLoader.classList.add('hidden');
+            initialLoader.classList.add('loader-exit');
+            setTimeout(() => initialLoader.classList.add('hidden'), 380);
+            revealAppView(authView);
 
             try {
                 const cachedProjectsRaw = localStorage.getItem(PROJECTS_CACHE_KEY);
@@ -1560,12 +1702,15 @@
             const btnList = document.getElementById('tabList');
             const btnReport = document.getElementById('tabReport');
             const btnEvidence = document.getElementById('tabEvidence');
-            const tabInactive = "text-[10px] font-black opacity-40 hover:opacity-100 transition-colors uppercase";
-            const tabActive = "text-[10px] font-black active-tab pb-1";
+            const tabInactive = "text-[10px] font-black opacity-40 hover:opacity-100 transition-all duration-300 uppercase";
+            const tabActive = "text-[10px] font-black active-tab pb-1 transition-all duration-300";
 
             list.classList.toggle('hidden', tab !== 'list');
             report.classList.toggle('hidden', tab !== 'report');
             if (evidence) evidence.classList.toggle('hidden', tab !== 'evidence');
+            if (tab === 'list') replayAdminTabAnimation(list);
+            if (tab === 'report') replayAdminTabAnimation(report);
+            if (tab === 'evidence') replayAdminTabAnimation(evidence);
             const showReportExports = tab === 'report';
             exportBtn.classList.toggle('hidden', !showReportExports);
             resetBtn.classList.toggle('hidden', !showReportExports);
@@ -1621,31 +1766,37 @@
             const prevRegCui = document.getElementById('regCui')?.value || '';
             const prevRegName = document.getElementById('regName')?.value || '';
             const prevRegResident = document.getElementById('regResident')?.value || '';
-            if (mode === 'LOGIN') {
-                if (!projectsLoaded || masterProjects.length === 0) {
-                    container.innerHTML = `<label class="label-gold">PROYECTO DE INVERSIÓN</label><input type="text" id="projectSearchInput" placeholder="Buscar por CUI o nombre..." class="auth-input w-full rounded-xl mb-2 font-bold shadow-sm" disabled><select id="projectSelector" disabled class="auth-input w-full rounded-xl font-bold shadow-sm"><option value="" selected>Cargando obras...</option></select>`;
-                    submitBtn.disabled = true;
-                    updateAuthNavLabels();
-                    return;
+            if (container) container.classList.add('form-fade');
+            const applyMode = () => {
+                if (mode === 'LOGIN') {
+                    if (!projectsLoaded || masterProjects.length === 0) {
+                        container.innerHTML = `<label class="label-gold">PROYECTO DE INVERSIÓN</label><input type="text" id="projectSearchInput" placeholder="Buscar por CUI o nombre..." class="auth-input w-full rounded-xl mb-2 font-bold shadow-sm" disabled><select id="projectSelector" disabled class="auth-input w-full rounded-xl font-bold shadow-sm"><option value="" selected>Cargando obras...</option></select>`;
+                        submitBtn.disabled = true;
+                        updateAuthNavLabels();
+                        if (container) container.classList.remove('form-fade');
+                        return;
+                    }
+                    container.innerHTML = `<label class="label-gold">PROYECTO DE INVERSIÓN</label><input type="text" id="projectSearchInput" placeholder="Buscar por CUI o nombre..." class="auth-input w-full rounded-xl mb-2 font-bold shadow-sm" oninput="filterLoginProjects(this.value)"><select id="projectSelector" class="auth-input w-full rounded-xl font-bold shadow-sm" onchange="syncLoginSelectorToSearch()"></select>`;
+                    const projectSearchInput = document.getElementById("projectSearchInput");
+                    if (projectSearchInput) projectSearchInput.value = loginProjectQuery;
+                    renderLoginProjectOptions(loginProjectQuery);
+                    submitBtn.disabled = false;
+                } else if (mode === 'ADMIN') {
+                    container.innerHTML = `<label class="label-gold">CORREO INSTITUCIONAL</label><input type="email" id="adminEmail" value="" autocomplete="username" placeholder="Ingrese su correo institucional" class="auth-input w-full rounded-xl font-bold shadow-sm">`;
+                    submitBtn.disabled = false;
+                } else {
+                    container.innerHTML = `<label class="label-gold">NUEVO PROYECTO</label><input type="text" id="regCui" placeholder="Código CUI" class="auth-input w-full rounded-xl mb-2 font-bold"><textarea id="regName" placeholder="Denominación" class="auth-input w-full rounded-xl h-24 font-bold shadow-sm mb-2 resize-none"></textarea><input type="text" id="regResident" placeholder="Nombre del residente" class="auth-input w-full rounded-xl font-bold shadow-sm">`;
+                    document.getElementById('regCui').value = prevRegCui;
+                    document.getElementById('regName').value = prevRegName;
+                    document.getElementById('regResident').value = prevRegResident;
+                    submitBtn.disabled = false;
                 }
-                container.innerHTML = `<label class="label-gold">PROYECTO DE INVERSIÓN</label><input type="text" id="projectSearchInput" placeholder="Buscar por CUI o nombre..." class="auth-input w-full rounded-xl mb-2 font-bold shadow-sm" oninput="filterLoginProjects(this.value)"><select id="projectSelector" class="auth-input w-full rounded-xl font-bold shadow-sm" onchange="syncLoginSelectorToSearch()"></select>`;
-                const projectSearchInput = document.getElementById("projectSearchInput");
-                if (projectSearchInput) projectSearchInput.value = loginProjectQuery;
-                renderLoginProjectOptions(loginProjectQuery);
-                submitBtn.disabled = false;
-            } else if (mode === 'ADMIN') {
-                container.innerHTML = `<label class="label-gold">CORREO INSTITUCIONAL</label><input type="email" id="adminEmail" value="" autocomplete="username" placeholder="Ingrese su correo institucional" class="auth-input w-full rounded-xl font-bold shadow-sm">`;
-                submitBtn.disabled = false;
-            } else {
-                container.innerHTML = `<label class="label-gold">NUEVO PROYECTO</label><input type="text" id="regCui" placeholder="Código CUI" class="auth-input w-full rounded-xl mb-2 font-bold"><textarea id="regName" placeholder="Denominación" class="auth-input w-full rounded-xl h-24 font-bold shadow-sm mb-2 resize-none"></textarea><input type="text" id="regResident" placeholder="Nombre del residente" class="auth-input w-full rounded-xl font-bold shadow-sm">`;
-                document.getElementById('regCui').value = prevRegCui;
-                document.getElementById('regName').value = prevRegName;
-                document.getElementById('regResident').value = prevRegResident;
-                submitBtn.disabled = false;
-            }
-            const passInput = document.getElementById("password");
-            if (passInput) passInput.value = "";
-            updateAuthNavLabels();
+                const passInput = document.getElementById("password");
+                if (passInput) passInput.value = "";
+                updateAuthNavLabels();
+                if (container) container.classList.remove('form-fade');
+            };
+            setTimeout(applyMode, 140);
         };
 
         document.getElementById('projectForm').addEventListener('submit', async (e) => {
@@ -1660,8 +1811,7 @@
             const pass = document.getElementById('password').value;
             if (currentMode === 'ADMIN') {
                 if (document.getElementById('adminEmail').value === "u202418465@upc.edu.pe" && pass === "Valdez250396@.") {
-                    authView.classList.add('hidden');
-                    adminPanelView.classList.remove('hidden');
+                    revealAppView(adminPanelView);
                     switchAdminTab('list');
                 } else showFeedback("Credenciales incorrectas");
             } else if (currentMode === 'LOGIN') {
@@ -1669,8 +1819,7 @@
                 const p = masterProjects.find(x => x.id === pId);
                 if (p && p.pass === pass) {
                     activeProjectId = pId;
-                    authView.classList.add('hidden');
-                    residentModuleView.classList.remove('hidden');
+                    revealAppView(residentModuleView);
                     document.getElementById('residentProjectName').textContent = p.nombre;
                     selectedFiles = [];
                     const fi = document.getElementById('fileInput');
@@ -1741,9 +1890,7 @@
             const fi = document.getElementById('fileInput');
             if (fi) fi.value = '';
             activeProjectId = null;
-            adminPanelView.classList.add('hidden');
-            residentModuleView.classList.add('hidden');
-            authView.classList.remove('hidden');
+            revealAppView(authView);
             setMode('LOGIN');
         };
 
@@ -1844,8 +1991,7 @@
                     if (fi) fi.value = '';
                     const resV = document.getElementById('residentModuleView');
                     if (resV && !resV.classList.contains('hidden')) {
-                        resV.classList.add('hidden');
-                        authView.classList.remove('hidden');
+                        revealAppView(authView);
                         setMode('LOGIN');
                     }
                 }
@@ -2855,9 +3001,15 @@
         function showFeedback(msg, type = "error") {
             const fb = document.getElementById('feedback');
             fb.textContent = msg;
-            fb.className = `fixed top-5 left-1/2 -translate-x-1/2 z-[2000] text-center text-xs px-4 py-3 rounded-xl border max-w-sm ${type === "success" ? "border-green-500/50 bg-green-950/60 text-green-200" : "border-red-500/50 bg-red-950/60 text-red-200"}`;
+            fb.className = `toast-banner fixed top-5 left-1/2 z-[3000] text-center text-xs px-4 py-3 rounded-xl border max-w-sm ${type === "success" ? "border-green-500/50 bg-green-950/60 text-green-200" : "border-red-500/50 bg-red-950/60 text-red-200"}`;
             fb.classList.remove('hidden');
-            setTimeout(() => fb.classList.add('hidden'), 4000);
+            requestAnimationFrame(() => fb.classList.add('toast-visible'));
+            clearTimeout(fb._hideTimer);
+            clearTimeout(fb._hideTimer2);
+            fb._hideTimer = setTimeout(() => {
+                fb.classList.remove('toast-visible');
+                fb._hideTimer2 = setTimeout(() => fb.classList.add('hidden'), 320);
+            }, 4000);
         }
 
         document.getElementById('adminModeBtn').onclick = () => setMode(currentMode === 'ADMIN' ? 'LOGIN' : 'ADMIN');
