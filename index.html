@@ -252,18 +252,27 @@
             <button onclick="goBackToHome()" class="bg-red-500/10 text-red-600 p-2 rounded-lg hover:bg-red-500/20 transition-all font-bold text-[10px] uppercase px-3 shrink-0">Salir</button>
         </div>
 
-        <section class="rounded-2xl border border-white/10 bg-gradient-to-b from-black/25 to-black/10 p-4 md:p-5 mb-5">
+        <section id="residentConsultSection" class="rounded-2xl border border-white/10 bg-gradient-to-b from-black/25 to-black/10 p-4 md:p-5 mb-5">
             <p class="text-[9px] font-black uppercase tracking-widest text-white/40 text-center mb-3">Consulta de reportes</p>
-            <div class="flex items-center justify-center gap-3 mb-4">
-                <button type="button" onclick="changeResidentReportDate(-1)" id="btnPrevResidentDate" class="p-1.5 rounded-lg border border-white/10 hover:border-[#991b1b]/40 hover:text-[#991b1b] transition-colors" title="Día anterior">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7" stroke-width="3"/></svg>
-                </button>
-                <span id="residentReportDateLabel" class="text-[10px] font-black uppercase font-mono text-white/80 min-w-[140px] text-center leading-tight">HOY</span>
-                <button type="button" onclick="changeResidentReportDate(1)" id="btnNextResidentDate" class="p-1.5 rounded-lg border border-white/10 hover:border-[#991b1b]/40 hover:text-[#991b1b] transition-colors" title="Día siguiente">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" stroke-width="3"/></svg>
-                </button>
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-2 mb-3">
+                <div class="flex items-center justify-center gap-2">
+                    <button type="button" onclick="changeResidentReportDate(-1)" id="btnPrevResidentDate" class="p-1.5 rounded-lg border border-white/10 hover:border-[#991b1b]/40 hover:text-[#991b1b] transition-colors" title="Día anterior">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7" stroke-width="3"/></svg>
+                    </button>
+                    <button type="button" onclick="changeResidentReportDate(1)" id="btnNextResidentDate" class="p-1.5 rounded-lg border border-white/10 hover:border-[#991b1b]/40 hover:text-[#991b1b] transition-colors" title="Día siguiente">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" stroke-width="3"/></svg>
+                    </button>
+                </div>
+                <input
+                    type="date"
+                    id="residentReportDatePicker"
+                    class="w-full sm:w-auto flex-1 sm:flex-none rounded-xl px-3 py-2 text-xs font-bold bg-black/30 border border-white/15 text-current shadow-sm"
+                    onchange="onResidentReportDatePicked(event)"
+                >
+                <button type="button" id="btnResidentGoToday" onclick="goResidentConsultToday()" class="hidden shrink-0 rounded-xl px-3 py-2 text-[9px] font-black uppercase border border-[#991b1b]/40 text-[#991b1b] hover:bg-[#991b1b]/10 transition-colors">Ir a hoy</button>
             </div>
-            <div class="grid grid-cols-2 gap-3">
+            <p id="residentReportDateLabel" class="text-[10px] font-black uppercase font-mono text-white/70 text-center leading-tight mb-3">HOY</p>
+            <div id="residentConsultStatus" class="grid grid-cols-2 gap-3 transition-opacity duration-200">
                 <div id="slotMananaRow" class="rounded-xl border border-white/10 bg-black/20 px-3 py-3 text-center">
                     <p class="text-[9px] font-black uppercase text-white/45 mb-1">Mañana</p>
                     <span id="slotMananaStatus" class="text-[11px] font-black uppercase text-amber-400">Pendiente</span>
@@ -273,6 +282,7 @@
                     <span id="slotTardeStatus" class="text-[11px] font-black uppercase text-amber-400">Pendiente</span>
                 </div>
             </div>
+            <p id="residentConsultHint" class="hidden text-[8px] font-bold text-center text-white/35 uppercase mt-3 leading-relaxed">Consulta histórica · el envío de evidencia siempre es para el día de hoy</p>
         </section>
 
         <section id="residentUploadSection" class="rounded-2xl border border-[#991b1b]/25 bg-black/15 overflow-hidden">
@@ -283,9 +293,6 @@
                     <span id="videoStatus" class="text-[10px] font-bold uppercase leading-snug text-red-500">Fuera de horario</span>
                 </div>
             </div>
-            <p id="residentHistoryNotice" class="hidden px-4 py-3 text-[10px] font-bold uppercase text-center text-white/50 border-b border-white/5 bg-black/20">
-                Consulta histórica. Use las flechas para ver otros días o regrese a hoy para enviar evidencia.
-            </p>
             <div id="residentUploadBody">
                 <div id="evidenceDropZone" class="mx-4 mt-4 mb-3 rounded-2xl p-8 border-2 border-dashed border-gray-400/25 text-center cursor-pointer hover:border-[#991b1b]/50 group transition-colors" onclick="residentClickPickFiles()">
                     <input type="file" id="fileInput" multiple accept="image/*,video/*" class="hidden" onchange="handleFileSelect(event)">
@@ -560,7 +567,7 @@
         let projectsLoaded = false;
         let evidenceSelectedProjectId = null;
         let evidenceFilterDate = "";
-        let residentReportDateOffset = 0;
+        let residentConsultDateYmd = null;
         const MIN_RESIDENT_REPORT_OFFSET = -90;
         let loginProjectQuery = "";
         let adminListQuery = "";
@@ -1424,7 +1431,7 @@
                     selectedFiles = [];
                     const fi = document.getElementById('fileInput');
                     if (fi) fi.value = '';
-                    residentReportDateOffset = 0;
+                    residentConsultDateYmd = null;
                     renderPreviews();
                     refreshResidentEvidenceGate();
                     startResidentGateTimer();
@@ -2080,14 +2087,42 @@
             return slots;
         }
 
-        function getResidentViewDateYmd() {
+        function getMinResidentConsultDateYmd() {
             const today = fechaCarpetaLima();
-            if (residentReportDateOffset === 0) return today;
             const [y, m, d] = today.split("-").map(Number);
             const dt = new Date(y, m - 1, d);
-            dt.setDate(dt.getDate() + residentReportDateOffset);
+            dt.setDate(dt.getDate() + MIN_RESIDENT_REPORT_OFFSET);
             return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}-${String(dt.getDate()).padStart(2, "0")}`;
         }
+
+        function getResidentViewDateYmd() {
+            return residentConsultDateYmd || fechaCarpetaLima();
+        }
+
+        function clampResidentConsultDate(ymd) {
+            const today = fechaCarpetaLima();
+            const min = getMinResidentConsultDateYmd();
+            if (!ymd || ymd > today) return today;
+            if (ymd < min) return min;
+            return ymd;
+        }
+
+        function setResidentConsultDate(ymd) {
+            const next = clampResidentConsultDate(ymd);
+            residentConsultDateYmd = next === fechaCarpetaLima() ? null : next;
+            refreshResidentReportConsultation();
+        }
+
+        window.goResidentConsultToday = () => {
+            residentConsultDateYmd = null;
+            refreshResidentReportConsultation();
+        };
+
+        window.onResidentReportDatePicked = (e) => {
+            const value = e?.target?.value;
+            if (!value) return;
+            setResidentConsultDate(value);
+        };
 
         function formatResidentReportDateLabel(ymd) {
             const today = fechaCarpetaLima();
@@ -2178,11 +2213,12 @@
         }
 
         window.changeResidentReportDate = (offset) => {
-            const next = residentReportDateOffset + offset;
-            if (next > 0) return;
-            if (next < MIN_RESIDENT_REPORT_OFFSET) return;
-            residentReportDateOffset = next;
-            refreshResidentEvidenceGate();
+            const current = getResidentViewDateYmd();
+            const [y, m, d] = current.split("-").map(Number);
+            const dt = new Date(y, m - 1, d);
+            dt.setDate(dt.getDate() + offset);
+            const next = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}-${String(dt.getDate()).padStart(2, "0")}`;
+            setResidentConsultDate(next);
         };
 
         function todayEvidenceSlotsUsed(p, fechaLima) {
@@ -2215,57 +2251,58 @@
             return { blocked: false, message: "", slot: slotInfo.slot };
         }
 
-        function refreshResidentEvidenceGate() {
-            const residentEl = document.getElementById("residentModuleView");
-            if (!residentEl || residentEl.classList.contains("hidden")) return;
-            const fileInput = document.getElementById("fileInput");
-            const dropZone = document.getElementById("evidenceDropZone");
-            const uploadBtn = document.getElementById("uploadBtn");
-            const videoStatus = document.getElementById("videoStatus");
-            const statusDot = document.getElementById("statusDot");
+        function refreshResidentReportConsultation() {
             const dateLabel = document.getElementById("residentReportDateLabel");
+            const datePicker = document.getElementById("residentReportDatePicker");
             const btnPrevDate = document.getElementById("btnPrevResidentDate");
             const btnNextDate = document.getElementById("btnNextResidentDate");
+            const btnGoToday = document.getElementById("btnResidentGoToday");
+            const consultHint = document.getElementById("residentConsultHint");
             const slotMananaEl = document.getElementById("slotMananaStatus");
             const slotTardeEl = document.getElementById("slotTardeStatus");
             const slotMananaRow = document.getElementById("slotMananaRow");
             const slotTardeRow = document.getElementById("slotTardeRow");
-            const uploadHeader = document.getElementById("residentUploadHeader");
-            const uploadBody = document.getElementById("residentUploadBody");
-            const historyNotice = document.getElementById("residentHistoryNotice");
             const p = masterProjects.find((x) => x.id === activeProjectId);
             const viewYmd = getResidentViewDateYmd();
-            const isViewingToday = viewYmd === fechaCarpetaLima();
-            const gate = isViewingToday ? getResidentUploadGate(p) : { blocked: true, message: "", shortMessage: "" };
+            const todayYmd = fechaCarpetaLima();
+            const minYmd = getMinResidentConsultDateYmd();
+            const isViewingToday = viewYmd === todayYmd;
 
             if (dateLabel) dateLabel.textContent = formatResidentReportDateLabel(viewYmd);
+            if (datePicker) {
+                datePicker.min = minYmd;
+                datePicker.max = todayYmd;
+                datePicker.value = viewYmd;
+            }
             if (btnNextDate) {
-                const atToday = residentReportDateOffset >= 0;
+                const atToday = viewYmd >= todayYmd;
                 btnNextDate.disabled = atToday;
                 btnNextDate.classList.toggle("opacity-30", atToday);
                 btnNextDate.classList.toggle("pointer-events-none", atToday);
             }
             if (btnPrevDate) {
-                const atLimit = residentReportDateOffset <= MIN_RESIDENT_REPORT_OFFSET;
+                const atLimit = viewYmd <= minYmd;
                 btnPrevDate.disabled = atLimit;
                 btnPrevDate.classList.toggle("opacity-30", atLimit);
                 btnPrevDate.classList.toggle("pointer-events-none", atLimit);
             }
+            if (btnGoToday) btnGoToday.classList.toggle("hidden", isViewingToday);
+            if (consultHint) consultHint.classList.toggle("hidden", isViewingToday);
+
             const mananaStatus = p ? getSlotComplianceStatus(p, viewYmd, "mañana") : "pendiente";
             const tardeStatus = p ? getSlotComplianceStatus(p, viewYmd, "tarde") : "pendiente";
             applySlotStatusEl(slotMananaEl, mananaStatus, slotMananaRow);
             applySlotStatusEl(slotTardeEl, tardeStatus, slotTardeRow);
+        }
 
-            if (historyNotice) historyNotice.classList.toggle("hidden", isViewingToday);
-            if (uploadHeader) uploadHeader.classList.toggle("hidden", !isViewingToday);
-            if (uploadBody) uploadBody.classList.toggle("hidden", !isViewingToday);
-
-            if (!isViewingToday) {
-                selectedFiles = [];
-                if (fileInput) fileInput.value = "";
-                renderPreviews();
-                return;
-            }
+        function refreshResidentUploadSection() {
+            const fileInput = document.getElementById("fileInput");
+            const dropZone = document.getElementById("evidenceDropZone");
+            const uploadBtn = document.getElementById("uploadBtn");
+            const videoStatus = document.getElementById("videoStatus");
+            const statusDot = document.getElementById("statusDot");
+            const p = masterProjects.find((x) => x.id === activeProjectId);
+            const gate = getResidentUploadGate(p);
 
             if (gate.blocked) {
                 selectedFiles = [];
@@ -2305,6 +2342,13 @@
                     "w-2.5 h-2.5 rounded-full shrink-0 mt-0.5 " + (tone === "green" ? "bg-green-500" : "bg-red-500 animate-pulse");
             }
             if (uploadBtn) uploadBtn.disabled = gate.blocked || !hasVideo;
+        }
+
+        function refreshResidentEvidenceGate() {
+            const residentEl = document.getElementById("residentModuleView");
+            if (!residentEl || residentEl.classList.contains("hidden")) return;
+            refreshResidentReportConsultation();
+            refreshResidentUploadSection();
         }
 
         window.residentClickPickFiles = () => {
