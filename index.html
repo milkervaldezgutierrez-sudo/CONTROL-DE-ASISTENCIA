@@ -22,12 +22,21 @@
         }
 
         body.light-mode {
-            --body-bg: linear-gradient(135deg, #fff7ed 0%, #f8fafc 100%);
-            --card-bg: rgba(255, 255, 255, 0.95);
+            --body-bg: linear-gradient(160deg, #dce4ec 0%, #e8eef4 50%, #f0f4f8 100%);
+            --card-bg: #f7f9fc;
             --text-main: #1e293b;
             --input-bg: #ffffff;
-            --border-color: rgba(153, 27, 27, 0.1);
-            --accent-gold: #b45309;
+            --border-color: rgba(30, 41, 59, 0.14);
+            --accent-gold: #92400e;
+            --surface-1: #eef2f6;
+            --surface-2: #e4eaf0;
+            --surface-inset: #f8fafc;
+            --text-muted: #64748b;
+            --text-subtle: #475569;
+            --status-ok: #166534;
+            --status-warn: #b45309;
+            --status-bad: #b91c1c;
+            --status-neutral: #64748b;
         }
 
         body {
@@ -55,9 +64,118 @@
         }
 
         body.light-mode .glass-card {
-            box-shadow: 0 20px 25px -5px rgba(153, 27, 27, 0.05);
-            border: 1px solid rgba(153, 27, 27, 0.1);
+            box-shadow: 0 12px 32px -8px rgba(30, 41, 59, 0.12);
+            border: 1px solid rgba(30, 41, 59, 0.1);
         }
+
+        body.light-mode input:focus,
+        body.light-mode select:focus,
+        body.light-mode textarea:focus {
+            border-color: #991b1b !important;
+            box-shadow: 0 0 0 3px rgba(153, 27, 27, 0.12) !important;
+        }
+
+        body.light-mode select,
+        body.light-mode input,
+        body.light-mode textarea {
+            border: 1.5px solid rgba(30, 41, 59, 0.18) !important;
+        }
+
+        /* Texto sobre fondos claros */
+        body.light-mode .text-white\/70 { color: #334155; }
+        body.light-mode .text-white\/60 { color: #475569; }
+        body.light-mode .text-white\/55 { color: #475569; }
+        body.light-mode .text-white\/50 { color: #64748b; }
+        body.light-mode .text-white\/45 { color: #64748b; }
+        body.light-mode .text-white\/40 { color: #64748b; }
+        body.light-mode .text-white\/35 { color: #94a3b8; }
+        body.light-mode .text-white\/80 { color: #1e293b; }
+        body.light-mode .text-white\/60 { color: #475569; }
+
+        /* Superficies (evitar grises lavados sobre blanco puro) */
+        body.light-mode .bg-black\/5 { background-color: #eef2f6; }
+        body.light-mode .bg-black\/10 { background-color: #e8edf2; }
+        body.light-mode .bg-black\/15 { background-color: #e4eaf0; }
+        body.light-mode .bg-black\/20 { background-color: #dfe6ee; }
+        body.light-mode .bg-black\/25 { background-color: #d8e0e8; }
+        body.light-mode .bg-black\/30 { background-color: #ffffff; }
+        body.light-mode .bg-black\/40 { background-color: #ffffff; }
+        body.light-mode .from-black\/25 { --tw-gradient-from: #e8edf2; }
+        body.light-mode .to-black\/10 { --tw-gradient-to: #f0f4f8; }
+        body.light-mode .border-white\/5 { border-color: rgba(30, 41, 59, 0.08); }
+        body.light-mode .border-white\/10 { border-color: rgba(30, 41, 59, 0.12); }
+        body.light-mode .border-white\/15 { border-color: rgba(30, 41, 59, 0.16); }
+        body.light-mode .border-gray-400\/10 { border-color: rgba(30, 41, 59, 0.1); }
+        body.light-mode .border-gray-400\/20 { border-color: rgba(30, 41, 59, 0.14); }
+        body.light-mode .border-gray-400\/25 { border-color: rgba(30, 41, 59, 0.16); }
+        body.light-mode tr.bg-white\/5 { background-color: #f1f5f9; }
+
+        /* Opacidades legibles en modo claro */
+        body.light-mode .opacity-50 { opacity: 0.78 !important; }
+        body.light-mode .opacity-40 { opacity: 0.7 !important; }
+        body.light-mode .opacity-30 { opacity: 0.55 !important; }
+
+        /* Estados de cumplimiento — contraste alto */
+        .slot-row {
+            border-radius: 0.75rem;
+            padding: 0.75rem;
+            text-align: center;
+        }
+        .slot-status { font-size: 0.6875rem; font-weight: 800; text-transform: uppercase; }
+        .slot-row--cumplido { border: 1px solid rgba(34, 197, 94, 0.35); background: rgba(34, 197, 94, 0.1); }
+        .slot-row--no_cumplido { border: 1px solid rgba(239, 68, 68, 0.35); background: rgba(239, 68, 68, 0.1); }
+        .slot-row--pendiente { border: 1px solid rgba(245, 158, 11, 0.35); background: rgba(245, 158, 11, 0.1); }
+        .slot-row--no_aplica { border: 1px solid rgba(148, 163, 184, 0.35); background: rgba(148, 163, 184, 0.12); opacity: 0.85; }
+        .slot-status--cumplido { color: #22c55e; }
+        .slot-status--no_cumplido { color: #ef4444; }
+        .slot-status--pendiente { color: #fbbf24; }
+        .slot-status--no_aplica { color: #94a3b8; }
+        body.light-mode .slot-row--cumplido { border-color: #86efac; background: #ecfdf5; }
+        body.light-mode .slot-row--no_cumplido { border-color: #fca5a5; background: #fef2f2; }
+        body.light-mode .slot-row--pendiente { border-color: #fcd34d; background: #fffbeb; }
+        body.light-mode .slot-row--no_aplica { border-color: #cbd5e1; background: #f1f5f9; opacity: 1; }
+        body.light-mode .slot-status--cumplido { color: #15803d; }
+        body.light-mode .slot-status--no_cumplido { color: #b91c1c; }
+        body.light-mode .slot-status--pendiente { color: #b45309; }
+        body.light-mode .slot-status--no_aplica { color: #64748b; }
+
+        .upload-status-msg--ok { color: #22c55e; }
+        .upload-status-msg--warn { color: #ef4444; }
+        body.light-mode .upload-status-msg--ok { color: #15803d; }
+        body.light-mode .upload-status-msg--warn { color: #b91c1c; }
+
+        body.light-mode #residentConsultSection {
+            background: linear-gradient(180deg, #eef2f6 0%, #e8edf2 100%) !important;
+            border-color: rgba(30, 41, 59, 0.12) !important;
+        }
+        body.light-mode #residentUploadSection {
+            background: #f1f5f9 !important;
+            border-color: rgba(153, 27, 27, 0.2) !important;
+        }
+        body.light-mode #residentUploadHeader {
+            background: rgba(153, 27, 27, 0.06) !important;
+            border-color: rgba(30, 41, 59, 0.08) !important;
+        }
+        body.light-mode #evidenceDropZone {
+            background: #ffffff !important;
+            border-color: rgba(30, 41, 59, 0.18) !important;
+        }
+        body.light-mode #residentReportDatePicker {
+            background: #ffffff !important;
+            border-color: rgba(30, 41, 59, 0.18) !important;
+            color: #1e293b !important;
+        }
+        body.light-mode .text-green-500 { color: #15803d !important; }
+        body.light-mode .text-green-600 { color: #15803d !important; }
+        body.light-mode .text-red-500 { color: #b91c1c !important; }
+        body.light-mode .text-red-600 { color: #b91c1c !important; }
+        body.light-mode .text-amber-400 { color: #b45309 !important; }
+        body.light-mode .text-amber-300 { color: #b45309 !important; }
+        body.light-mode .text-gray-400 { color: #64748b !important; }
+        body.light-mode .text-gray-500 { color: #475569 !important; }
+
+        .theme-label { color: rgba(255, 255, 255, 0.45); }
+        body.light-mode .theme-label { color: #64748b; }
 
         select, input, textarea {
             background-color: var(--input-bg) !important;
@@ -176,9 +294,7 @@
             transition: all 0.3s ease;
         }
 
-        body.light-mode .text-white\/50 { color: rgba(30, 41, 59, 0.6); }
-        body.light-mode .bg-black\/40 { background-color: rgba(255,255,255,1); }
-        body.light-mode tr.bg-white\/5 { background-color: rgba(153, 27, 27, 0.01); }
+        body.light-mode tr.bg-white\/5 { background-color: #f1f5f9; }
     </style>
 </head>
 <body class="dark-mode">
@@ -273,13 +389,13 @@
             </div>
             <p id="residentReportDateLabel" class="text-[10px] font-black uppercase font-mono text-white/70 text-center leading-tight mb-3">HOY</p>
             <div id="residentConsultStatus" class="grid grid-cols-2 gap-3 transition-opacity duration-200">
-                <div id="slotMananaRow" class="rounded-xl border border-white/10 bg-black/20 px-3 py-3 text-center">
-                    <p class="text-[9px] font-black uppercase text-white/45 mb-1">Mañana</p>
-                    <span id="slotMananaStatus" class="text-[11px] font-black uppercase text-amber-400">Pendiente</span>
+                <div id="slotMananaRow" class="slot-row slot-row--pendiente">
+                    <p class="text-[9px] font-black uppercase theme-label mb-1">Mañana</p>
+                    <span id="slotMananaStatus" class="slot-status slot-status--pendiente">Pendiente</span>
                 </div>
-                <div id="slotTardeRow" class="rounded-xl border border-white/10 bg-black/20 px-3 py-3 text-center">
-                    <p class="text-[9px] font-black uppercase text-white/45 mb-1">Tarde</p>
-                    <span id="slotTardeStatus" class="text-[11px] font-black uppercase text-amber-400">Pendiente</span>
+                <div id="slotTardeRow" class="slot-row slot-row--pendiente">
+                    <p class="text-[9px] font-black uppercase theme-label mb-1">Tarde</p>
+                    <span id="slotTardeStatus" class="slot-status slot-status--pendiente">Pendiente</span>
                 </div>
             </div>
             <p id="residentConsultHint" class="hidden text-[8px] font-bold text-center text-white/35 uppercase mt-3 leading-relaxed">Consulta histórica · el envío de evidencia siempre es para el día de hoy</p>
@@ -2194,22 +2310,10 @@
                 pendiente: "Pendiente",
                 no_aplica: "No aplica"
             };
-            const colors = {
-                cumplido: "text-green-500",
-                no_cumplido: "text-red-500",
-                pendiente: "text-amber-400",
-                no_aplica: "text-gray-400"
-            };
-            const rowStyles = {
-                cumplido: "rounded-xl border border-green-500/30 bg-green-500/10 px-3 py-3 text-center",
-                no_cumplido: "rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-3 text-center",
-                pendiente: "rounded-xl border border-amber-500/25 bg-amber-500/10 px-3 py-3 text-center",
-                no_aplica: "rounded-xl border border-white/10 bg-black/20 px-3 py-3 text-center opacity-70"
-            };
             if (!el) return;
             el.textContent = labels[status] || status;
-            el.className = `text-[11px] font-black uppercase ${colors[status] || "text-gray-400"}`;
-            if (rowEl) rowEl.className = rowStyles[status] || rowStyles.pendiente;
+            el.className = `slot-status slot-status--${status}`;
+            if (rowEl) rowEl.className = `slot-row slot-row--${status}`;
         }
 
         window.changeResidentReportDate = (offset) => {
@@ -2334,8 +2438,8 @@
                 videoStatus.textContent = msg;
                 videoStatus.className =
                     tone === "green"
-                        ? "text-[10px] font-bold uppercase leading-snug text-green-500"
-                        : "text-[10px] font-bold uppercase leading-snug text-red-500";
+                        ? "upload-status-msg upload-status-msg--ok text-[10px] font-bold uppercase leading-snug"
+                        : "upload-status-msg upload-status-msg--warn text-[10px] font-bold uppercase leading-snug";
             }
             if (statusDot) {
                 statusDot.className =
