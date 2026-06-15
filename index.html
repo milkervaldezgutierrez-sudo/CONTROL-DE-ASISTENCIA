@@ -39,18 +39,35 @@
             --status-neutral: #64748b;
         }
 
+        html {
+            height: 100%;
+            -webkit-text-size-adjust: 100%;
+        }
+
         body {
             font-family: 'Poppins', sans-serif;
             background: var(--body-bg);
             background-attachment: fixed;
-            min-height: 100vh;
+            min-height: 100dvh;
+            max-height: 100dvh;
             display: flex;
             align-items: center;
             justify-content: center;
             margin: 0;
-            padding: 20px;
+            padding: 0.75rem;
             color: var(--text-main);
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow-y: auto;
+            overflow-x: hidden;
+            box-sizing: border-box;
+        }
+
+        body > .glass-card,
+        body > #initialLoader {
+            flex-shrink: 0;
+            width: 100%;
+            max-height: calc(100dvh - 1.5rem);
+            overflow-y: auto;
         }
 
         .glass-card {
@@ -237,12 +254,47 @@
             display: block;
         }
 
-        /* Logo principal en pantalla de ingreso: recuadro más grande y imagen aprovechando el espacio */
+        /* Logo principal en pantalla de ingreso */
         .logo-container--hero {
-            width: 128px;
-            height: 128px;
+            width: clamp(72px, 14vh, 96px);
+            height: clamp(72px, 14vh, 96px);
             padding: 2px;
-            border-radius: 16px;
+            border-radius: 14px;
+        }
+
+        .auth-card {
+            padding: 1.25rem 1.35rem;
+            border-radius: 22px;
+        }
+
+        .auth-card .auth-brand { margin-bottom: 0.75rem; }
+        .auth-card .auth-title-block { margin-bottom: 0.85rem; }
+        .auth-card .auth-form { gap: 0.85rem; }
+        .auth-card .auth-footer { margin-top: 0.85rem; padding-top: 0.75rem; }
+
+        .auth-input {
+            padding: 0.625rem 0.875rem !important;
+            font-size: 0.8125rem !important;
+        }
+
+        .auth-input--lg {
+            padding: 0.7rem 0.875rem !important;
+            font-size: 0.9375rem !important;
+        }
+
+        @media (max-height: 780px) {
+            body { padding: 0.5rem; }
+            body > .glass-card { max-height: calc(100dvh - 1rem); }
+            .logo-container--hero {
+                width: 68px;
+                height: 68px;
+            }
+            .auth-card { padding: 1rem 1.15rem; }
+            .auth-card .auth-brand { margin-bottom: 0.5rem; }
+            .auth-card .auth-title-block { margin-bottom: 0.65rem; }
+            .auth-card .auth-form { gap: 0.65rem; }
+            .auth-card .auth-footer { margin-top: 0.65rem; padding-top: 0.6rem; }
+            .label-gold { font-size: 0.6875rem; margin-bottom: 2px; }
         }
 
         .custom-loader {
@@ -278,14 +330,14 @@
 
         .theme-toggle {
             position: fixed;
-            top: 25px;
-            right: 25px;
+            top: 12px;
+            right: 12px;
             z-index: 1000;
             background: var(--card-bg);
             border: 1px solid var(--border-color);
-            border-radius: 16px;
-            width: 50px;
-            height: 50px;
+            border-radius: 14px;
+            width: 44px;
+            height: 44px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -312,41 +364,41 @@
         <p class="text-yellow-500 font-bold animate-pulse uppercase tracking-widest text-xs">Sincronizando con Sede Central Ayacucho...</p>
     </div>
 
-    <div id="authView" class="glass-card p-10 w-full max-w-md hidden border-t-4 border-t-[#991b1b]">
-        <div class="flex flex-col items-center mb-6 text-center">
-            <div class="logo-container logo-container--hero mb-4">
+    <div id="authView" class="glass-card auth-card w-full max-w-md hidden border-t-4 border-t-[#991b1b]">
+        <div class="auth-brand flex flex-col items-center text-center">
+            <div class="logo-container logo-container--hero mb-2">
                 <img src="Imagen1.jpg" alt="Logo GRA">
             </div>
-            <h1 class="text-xs font-bold uppercase tracking-[0.3em] text-[#991b1b] leading-none mb-1">Gobierno Regional</h1>
-            <h2 class="text-2xl font-black uppercase tracking-tight">Ayacucho</h2>
-            <p class="text-[10px] font-black uppercase tracking-wide text-white/70 mt-2">Sub Gerencia de Ejecución de Inversiones</p>
-            <p class="text-[10px] font-black uppercase tracking-wide text-white/60 mt-1">Versión 1.0</p>
-            <div class="h-1 w-12 bg-yellow-500 mt-2 rounded-full"></div>
+            <h1 class="text-[10px] font-bold uppercase tracking-[0.25em] text-[#991b1b] leading-none mb-0.5">Gobierno Regional</h1>
+            <h2 class="text-xl font-black uppercase tracking-tight leading-tight">Ayacucho</h2>
+            <p class="text-[9px] font-black uppercase tracking-wide text-white/70 mt-1">Sub Gerencia de Ejecución de Inversiones</p>
+            <p class="text-[9px] font-black uppercase tracking-wide text-white/60">Versión 1.0</p>
+            <div class="h-0.5 w-10 bg-yellow-500 mt-1.5 rounded-full"></div>
         </div>
 
-        <div class="mb-8 text-center">
-            <h3 id="formTitle" class="text-xl font-bold">Gestión de Inversiones</h3>
-            <p class="text-white/50 text-[10px] mt-1 uppercase tracking-widest font-bold">Control de Obras Públicas</p>
+        <div class="auth-title-block text-center">
+            <h3 id="formTitle" class="text-lg font-bold leading-tight">Gestión de Inversiones</h3>
+            <p class="text-white/50 text-[9px] mt-0.5 uppercase tracking-widest font-bold">Control de Obras Públicas</p>
         </div>
 
-        <form id="projectForm" class="space-y-6">
+        <form id="projectForm" class="auth-form flex flex-col">
             <div id="dynamicInputContainer">
                 <label class="label-gold">PROYECTO DE INVERSIÓN</label>
-                <select id="projectSelector" disabled class="w-full rounded-xl px-4 py-4 text-sm font-bold shadow-sm">
+                <select id="projectSelector" disabled class="auth-input w-full rounded-xl font-bold shadow-sm">
                     <option value="" selected>Cargando obras...</option>
                 </select>
             </div>
-            <div class="space-y-1">
+            <div>
                 <label class="label-gold">CLAVE DE SEGURIDAD</label>
-                <input type="password" id="password" placeholder="••••••••" class="w-full rounded-xl px-4 py-4 text-lg shadow-sm">
+                <input type="password" id="password" placeholder="••••••••" class="auth-input auth-input--lg w-full rounded-xl shadow-sm">
             </div>
-            <button type="submit" id="submitBtn" class="w-full btn-primary py-4 rounded-xl shadow-xl">
+            <button type="submit" id="submitBtn" class="w-full btn-primary py-3 rounded-xl shadow-lg text-sm">
                 <span id="btnText">Ingresar al Sistema</span>
                 <div id="loader" class="custom-loader hidden mx-auto"></div>
             </button>
         </form>
 
-        <div class="mt-8 flex justify-between items-center pt-6 border-t border-gray-400/10">
+        <div class="auth-footer flex justify-between items-center border-t border-gray-400/10">
             <button id="adminModeBtn" class="text-[9px] font-bold opacity-40 hover:opacity-100 uppercase tracking-widest transition-all">
                 <span id="adminBtnLabel">Panel Administrativo</span>
             </button>
@@ -1495,21 +1547,21 @@
             const prevRegResident = document.getElementById('regResident')?.value || '';
             if (mode === 'LOGIN') {
                 if (!projectsLoaded || masterProjects.length === 0) {
-                    container.innerHTML = `<label class="label-gold">PROYECTO DE INVERSIÓN</label><input type="text" id="projectSearchInput" placeholder="Buscar por CUI o nombre..." class="w-full rounded-xl px-4 py-3 mb-2 text-sm font-bold shadow-sm" disabled><select id="projectSelector" disabled class="w-full rounded-xl px-4 py-4 text-sm font-bold shadow-sm"><option value="" selected>Cargando obras...</option></select>`;
+                    container.innerHTML = `<label class="label-gold">PROYECTO DE INVERSIÓN</label><input type="text" id="projectSearchInput" placeholder="Buscar por CUI o nombre..." class="auth-input w-full rounded-xl mb-1.5 font-bold shadow-sm" disabled><select id="projectSelector" disabled class="auth-input w-full rounded-xl font-bold shadow-sm"><option value="" selected>Cargando obras...</option></select>`;
                     submitBtn.disabled = true;
                     updateAuthNavLabels();
                     return;
                 }
-                container.innerHTML = `<label class="label-gold">PROYECTO DE INVERSIÓN</label><input type="text" id="projectSearchInput" placeholder="Buscar por CUI o nombre..." class="w-full rounded-xl px-4 py-3 mb-2 text-sm font-bold shadow-sm" oninput="filterLoginProjects(this.value)"><select id="projectSelector" class="w-full rounded-xl px-4 py-4 text-sm font-bold shadow-sm" onchange="syncLoginSelectorToSearch()"></select>`;
+                container.innerHTML = `<label class="label-gold">PROYECTO DE INVERSIÓN</label><input type="text" id="projectSearchInput" placeholder="Buscar por CUI o nombre..." class="auth-input w-full rounded-xl mb-1.5 font-bold shadow-sm" oninput="filterLoginProjects(this.value)"><select id="projectSelector" class="auth-input w-full rounded-xl font-bold shadow-sm" onchange="syncLoginSelectorToSearch()"></select>`;
                 const projectSearchInput = document.getElementById("projectSearchInput");
                 if (projectSearchInput) projectSearchInput.value = loginProjectQuery;
                 renderLoginProjectOptions(loginProjectQuery);
                 submitBtn.disabled = false;
             } else if (mode === 'ADMIN') {
-                container.innerHTML = `<label class="label-gold">CORREO INSTITUCIONAL</label><input type="email" id="adminEmail" value="" autocomplete="username" placeholder="Ingrese su correo institucional" class="w-full rounded-xl px-4 py-4 text-sm font-bold shadow-sm">`;
+                container.innerHTML = `<label class="label-gold">CORREO INSTITUCIONAL</label><input type="email" id="adminEmail" value="" autocomplete="username" placeholder="Ingrese su correo institucional" class="auth-input w-full rounded-xl font-bold shadow-sm">`;
                 submitBtn.disabled = false;
             } else {
-                container.innerHTML = `<label class="label-gold">NUEVO PROYECTO</label><input type="text" id="regCui" placeholder="Código CUI" class="w-full rounded-xl px-4 py-4 mb-2 font-bold"><textarea id="regName" placeholder="Denominación" class="w-full rounded-xl px-4 py-4 h-24 font-bold shadow-sm mb-2"></textarea><input type="text" id="regResident" placeholder="Nombre del residente" class="w-full rounded-xl px-4 py-4 font-bold shadow-sm">`;
+                container.innerHTML = `<label class="label-gold">NUEVO PROYECTO</label><input type="text" id="regCui" placeholder="Código CUI" class="auth-input w-full rounded-xl mb-1.5 font-bold"><textarea id="regName" placeholder="Denominación" class="auth-input w-full rounded-xl h-20 font-bold shadow-sm mb-1.5 resize-none"></textarea><input type="text" id="regResident" placeholder="Nombre del residente" class="auth-input w-full rounded-xl font-bold shadow-sm">`;
                 document.getElementById('regCui').value = prevRegCui;
                 document.getElementById('regName').value = prevRegName;
                 document.getElementById('regResident').value = prevRegResident;
