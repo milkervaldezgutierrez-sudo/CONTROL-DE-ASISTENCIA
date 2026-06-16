@@ -997,8 +997,8 @@
         <div id="adminEvidenceView" class="admin-tab-panel hidden admin-grid grid grid-cols-1 lg:grid-cols-12">
             <div class="lg:col-span-5 bg-black/5 rounded-3xl border border-gray-400/10 overflow-hidden">
                 <div class="p-4 border-b border-gray-400/10 bg-black/5">
-                    <h4 class="text-[#991b1b] text-[10px] font-black uppercase">Seguimiento por fecha</h4>
-                    <p class="text-[9px] opacity-50 mt-1">Alertas separadas por turno mañana y tarde.</p>
+                    <h4 class="text-[#991b1b] text-[10px] font-black uppercase">Seguimiento del día</h4>
+                    <p id="evidenceFollowUpSubtitle" class="text-[9px] opacity-50 mt-1">Solo actividad de hoy.</p>
                     <input
                         type="text"
                         id="evidenceProjectSearch"
@@ -1011,7 +1011,6 @@
                     <table class="w-full text-left">
                         <thead>
                             <tr class="bg-black/5 border-b border-gray-400/10">
-                                <th class="p-3 text-[#991b1b] text-[9px] font-black uppercase">Fecha</th>
                                 <th class="p-3 text-[#991b1b] text-[9px] font-black uppercase">CUI</th>
                                 <th class="p-3 text-[#991b1b] text-[9px] font-black uppercase">Proyecto</th>
                                 <th class="p-3 text-[#991b1b] text-[9px] font-black uppercase text-center">Mañana</th>
@@ -2598,21 +2597,6 @@
             return [...s].sort((a, b) => (a < b ? 1 : a > b ? -1 : 0));
         }
 
-        function collectEvidenceActivityDates(p) {
-            const s = new Set();
-            if (Array.isArray(p.evidence_log)) {
-                p.evidence_log.forEach((b) => {
-                    if (b.fecha) s.add(String(b.fecha));
-                });
-            }
-            const rev = p.evidence_reviews || {};
-            Object.keys(rev).forEach((k) => {
-                const m = k.match(/^sustento_(\d{4}-\d{2}-\d{2})_(mañana|tarde)$/);
-                if (m) s.add(m[1]);
-            });
-            return [...s].sort((a, b) => (a < b ? 1 : a > b ? -1 : 0));
-        }
-
         function formatEvidenceDateShort(ymd) {
             const [y, m, d] = String(ymd || "").split("-");
             if (!y || !m || !d) return ymd || "—";
@@ -2663,19 +2647,15 @@
 
         function buildEvidenceFollowUpRows() {
             const rows = [];
+            const todayYmd = fechaCarpetaLima();
             const filteredProjects = masterProjects.filter((p) => projectMatchesQuery(p, adminEvidenceQuery));
             filteredProjects.forEach((p) => {
-                collectEvidenceActivityDates(p).forEach((fecha) => {
-                    const manana = getTurnoReviewStatus(p, fecha, "mañana");
-                    const tarde = getTurnoReviewStatus(p, fecha, "tarde");
-                    if (manana === "empty" && tarde === "empty") return;
-                    rows.push({ p, fecha, manana, tarde });
-                });
+                const manana = getTurnoReviewStatus(p, todayYmd, "mañana");
+                const tarde = getTurnoReviewStatus(p, todayYmd, "tarde");
+                if (manana === "empty" && tarde === "empty") return;
+                rows.push({ p, fecha: todayYmd, manana, tarde });
             });
-            rows.sort((a, b) => {
-                if (a.fecha !== b.fecha) return a.fecha < b.fecha ? 1 : -1;
-                return String(a.p.cui || "").localeCompare(String(b.p.cui || ""));
-            });
+            rows.sort((a, b) => String(a.p.cui || "").localeCompare(String(b.p.cui || "")));
             return rows;
         }
 
@@ -2939,24 +2919,21 @@
             const tbody = document.getElementById("evidenceAdminTableBody");
             if (!tbody) return;
             const sel = evidenceSelectedProjectId;
+            const todayYmd = fechaCarpetaLima();
+            const subtitle = document.getElementById("evidenceFollowUpSubtitle");
+            if (subtitle) {
+                subtitle.textContent = `Solo actividad de hoy (${formatEvidenceDateShort(todayYmd)}).`;
+            }
             const rows = buildEvidenceFollowUpRows();
             if (rows.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center opacity-40 text-[10px] font-bold uppercase">Sin coincidencias</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center opacity-40 text-[10px] font-bold uppercase">Sin actividad hoy</td></tr>`;
                 return;
             }
-            let lastFecha = "";
             tbody.innerHTML = rows
                 .map(({ p, fecha, manana, tarde }) => {
                     const rowClass = p.id === sel ? "bg-[#991b1b]/10" : "hover:bg-black/5";
-                    const groupClass = fecha !== lastFecha ? "evidence-date-group" : "";
-                    if (fecha !== lastFecha) lastFecha = fecha;
-                    const fechaCell =
-                        groupClass
-                            ? `<td class="p-3 text-[10px] font-black font-mono whitespace-nowrap align-top">${formatEvidenceDateShort(fecha)}</td>`
-                            : `<td class="p-3 text-[10px] opacity-25 font-mono whitespace-nowrap align-top">↳</td>`;
                     return `
-                <tr class="${rowClass} ${groupClass}">
-                    ${fechaCell}
+                <tr class="${rowClass}">
                     <td class="p-3 font-mono text-[#991b1b] font-bold text-xs align-top">${escHtml(String(p.cui || ""))}</td>
                     <td class="p-3 text-xs font-semibold align-top">${escHtml(String(p.nombre || ""))}</td>
                     <td class="p-3 text-center align-top">${evidenceShiftBadgeHtml(manana)}</td>
