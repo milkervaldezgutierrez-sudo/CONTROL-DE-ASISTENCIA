@@ -467,6 +467,83 @@
             padding: 0.65rem 0.75rem !important;
         }
 
+        .evidence-shift-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 1.35rem;
+            height: 1.35rem;
+            border-radius: 0.4rem;
+            font-size: 0.65rem;
+            font-weight: 900;
+            line-height: 1;
+        }
+
+        .evidence-shift-badge--pending {
+            background: rgba(250, 204, 21, 0.18);
+            color: #facc15;
+            border: 1px solid rgba(250, 204, 21, 0.35);
+        }
+
+        .evidence-shift-badge--ok {
+            background: rgba(34, 197, 94, 0.15);
+            color: #22c55e;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+
+        .evidence-shift-badge--bad {
+            background: rgba(239, 68, 68, 0.15);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .evidence-shift-badge--sky {
+            background: rgba(56, 189, 248, 0.15);
+            color: #38bdf8;
+            border: 1px solid rgba(56, 189, 248, 0.3);
+        }
+
+        .evidence-shift-badge--empty {
+            background: rgba(148, 163, 184, 0.1);
+            color: rgba(148, 163, 184, 0.7);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+        }
+
+        .evidence-date-group td {
+            border-top: 1px solid rgba(148, 163, 184, 0.12);
+        }
+
+        .evidence-date-group:first-child td {
+            border-top: none;
+        }
+
+        .admin-alerts-banner {
+            border: 1px solid rgba(250, 204, 21, 0.28);
+            background: linear-gradient(180deg, rgba(250, 204, 21, 0.12) 0%, rgba(250, 204, 21, 0.05) 100%);
+        }
+
+        body.light-mode .admin-alerts-banner {
+            background: linear-gradient(180deg, #fffbeb 0%, #fef3c7 100%);
+            border-color: rgba(180, 83, 9, 0.2);
+        }
+
+        .admin-tab-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 1rem;
+            height: 1rem;
+            padding: 0 0.3rem;
+            margin-left: 0.25rem;
+            border-radius: 999px;
+            background: #facc15;
+            color: #111827;
+            font-size: 0.55rem;
+            font-weight: 900;
+            line-height: 1;
+            vertical-align: middle;
+        }
+
         .admin-form-panel {
             padding: 1rem !important;
         }
@@ -716,7 +793,7 @@
                 </div>
                 <div id="filePreviewContainer" class="px-3 grid grid-cols-2 sm:grid-cols-4 gap-2"></div>
                 <div class="px-3 pb-3 pt-1">
-                    <button id="uploadBtn" disabled onclick="simulateUpload()" class="w-full btn-primary py-2.5 rounded-xl text-xs shadow-lg">Enviar Evidencia</button>
+                    <button id="uploadBtn" disabled onclick="simulateUpload()" class="w-full btn-primary py-2.5 rounded-xl text-xs shadow-lg">Sincronizar datos</button>
                     <p id="residentUploadScheduleFooter" class="text-[7px] text-center opacity-40 mt-1.5 uppercase leading-relaxed">Horario Lima · L-V 07:00–09:00 y 17:00–18:00 · Sáb 07:00–09:00 y 12:00–13:00</p>
                 </div>
             </div>
@@ -734,7 +811,7 @@
                     <p class="text-[9px] font-bold uppercase tracking-widest text-white/45 mt-1">Gobierno Regional de Ayacucho</p>
                     <div class="flex flex-wrap gap-3 md:gap-4 mt-1.5">
                         <button onclick="switchAdminTab('list')" id="tabList" class="text-[10px] font-black active-tab pb-1">GESTIÓN</button>
-                        <button onclick="switchAdminTab('evidence')" id="tabEvidence" class="text-[10px] font-black opacity-40 hover:opacity-100 transition-colors uppercase">Evidencias</button>
+                        <button onclick="switchAdminTab('evidence')" id="tabEvidence" class="text-[10px] font-black opacity-40 hover:opacity-100 transition-colors uppercase">Evidencias<span id="tabEvidenceBadge" class="admin-tab-badge hidden"></span></button>
                         <button onclick="switchAdminTab('schedule')" id="tabSchedule" class="text-[10px] font-black opacity-40 hover:opacity-100 transition-colors uppercase">Horarios</button>
                         <button onclick="switchAdminTab('report')" id="tabReport" class="text-[10px] font-black opacity-40 hover:opacity-100 transition-colors uppercase">Cumplimiento Regional</button>
                     </div>
@@ -746,6 +823,18 @@
                 <button id="exportJpgBtn" onclick="exportToJPG()" class="hidden bg-black/5 px-4 py-2 rounded-xl text-[10px] font-black uppercase border border-current/10">Descargar JPG</button>
                 <button type="button" onclick="goBackToHome(event)" class="bg-red-600/10 px-4 py-2 rounded-xl text-[10px] font-black text-red-600 uppercase border border-red-600/10">Cerrar Sesión</button>
             </div>
+        </div>
+
+        <div id="adminAlertsBanner" class="admin-alerts-banner hidden rounded-2xl p-3 md:p-4 mb-3">
+            <div class="flex items-start justify-between gap-3 mb-2">
+                <div>
+                    <p class="text-[10px] font-black uppercase text-amber-300 tracking-widest">Avisos del sistema</p>
+                    <p class="text-[9px] opacity-60 mt-0.5">Pendientes de revisión y nuevas asistencias registradas.</p>
+                </div>
+                <button type="button" onclick="dismissAdminAlertsBanner()" class="text-[10px] font-black uppercase opacity-50 hover:opacity-100 shrink-0">Ocultar</button>
+            </div>
+            <ul id="adminAlertsList" class="space-y-1.5 mb-3"></ul>
+            <button type="button" onclick="switchAdminTab('evidence')" class="bg-[#991b1b]/15 text-[#991b1b] border border-[#991b1b]/25 px-3 py-2 rounded-lg text-[9px] font-black uppercase hover:bg-[#991b1b] hover:text-white transition-colors">Ir a evidencias</button>
         </div>
 
         <div id="adminListView" class="admin-tab-panel admin-grid grid grid-cols-1 lg:grid-cols-12">
@@ -851,8 +940,8 @@
         <div id="adminEvidenceView" class="admin-tab-panel hidden admin-grid grid grid-cols-1 lg:grid-cols-12">
             <div class="lg:col-span-5 bg-black/5 rounded-3xl border border-gray-400/10 overflow-hidden">
                 <div class="p-4 border-b border-gray-400/10 bg-black/5">
-                    <h4 class="text-[#991b1b] text-[10px] font-black uppercase">Proyectos con evidencias</h4>
-                    <p class="text-[9px] opacity-50 mt-1">Elija un proyecto para revisar fotos y videos.</p>
+                    <h4 class="text-[#991b1b] text-[10px] font-black uppercase">Seguimiento por fecha</h4>
+                    <p class="text-[9px] opacity-50 mt-1">Alertas separadas por turno mañana y tarde.</p>
                     <input
                         type="text"
                         id="evidenceProjectSearch"
@@ -865,9 +954,11 @@
                     <table class="w-full text-left">
                         <thead>
                             <tr class="bg-black/5 border-b border-gray-400/10">
+                                <th class="p-3 text-[#991b1b] text-[9px] font-black uppercase">Fecha</th>
                                 <th class="p-3 text-[#991b1b] text-[9px] font-black uppercase">CUI</th>
                                 <th class="p-3 text-[#991b1b] text-[9px] font-black uppercase">Proyecto</th>
-                                <th class="p-3 text-[#991b1b] text-[9px] font-black uppercase text-center">Evid.</th>
+                                <th class="p-3 text-[#991b1b] text-[9px] font-black uppercase text-center">Mañana</th>
+                                <th class="p-3 text-[#991b1b] text-[9px] font-black uppercase text-center">Tarde</th>
                                 <th class="p-3 text-[#991b1b] text-[9px] font-black uppercase text-center">Abrir</th>
                             </tr>
                         </thead>
@@ -1061,6 +1152,10 @@
         let adminListQuery = "";
         let adminEvidenceQuery = "";
         const PROJECTS_CACHE_KEY = `projects_cache_${appId}`;
+        const ADMIN_VISIT_KEY = `admin_last_visit_${appId}`;
+
+        let adminAlertsDismissed = false;
+        let adminSessionStartedAt = "";
 
         const authView = document.getElementById('authView');
         const adminPanelView = document.getElementById('adminPanelView');
@@ -1519,6 +1614,9 @@
                         }
                     }
                     renderElegantFaultReport();
+                    if (adminPanelView && !adminPanelView.classList.contains("hidden")) {
+                        refreshAdminNotifications({ toastNewActivity: true });
+                    }
                 }
             }, (error) => {
                 console.error(error);
@@ -2277,6 +2375,7 @@
                 if (document.getElementById('adminEmail').value === "u202418465@upc.edu.pe" && pass === "Valdez250396@.") {
                     revealAppView(adminPanelView);
                     switchAdminTab('list');
+                    notifyAdminOnEntry();
                 } else showFeedback("Credenciales incorrectas");
             } else if (currentMode === 'LOGIN') {
                 const pId = document.getElementById('projectSelector').value;
@@ -2418,6 +2517,250 @@
             return [...s].sort((a, b) => (a < b ? 1 : a > b ? -1 : 0));
         }
 
+        function collectEvidenceActivityDates(p) {
+            const s = new Set();
+            if (Array.isArray(p.evidence_log)) {
+                p.evidence_log.forEach((b) => {
+                    if (b.fecha) s.add(String(b.fecha));
+                });
+            }
+            const rev = p.evidence_reviews || {};
+            Object.keys(rev).forEach((k) => {
+                const m = k.match(/^sustento_(\d{4}-\d{2}-\d{2})_(mañana|tarde)$/);
+                if (m) s.add(m[1]);
+            });
+            return [...s].sort((a, b) => (a < b ? 1 : a > b ? -1 : 0));
+        }
+
+        function formatEvidenceDateShort(ymd) {
+            const [y, m, d] = String(ymd || "").split("-");
+            if (!y || !m || !d) return ymd || "—";
+            return `${d}/${m}/${y}`;
+        }
+
+        function getTurnoReviewStatus(p, fecha, turno) {
+            const reviews = p.evidence_reviews || {};
+            const log = Array.isArray(p.evidence_log) ? p.evidence_log : [];
+            const batches = log.filter(
+                (b) => String(b.fecha || "") === fecha && String(b.turno || "") === turno
+            );
+            if (batches.length > 0) {
+                const statuses = batches.map((b) => (reviews[batchReviewKey(b)] || {}).status || "pendiente");
+                if (statuses.some((s) => s === "pendiente")) return "pending";
+                if (statuses.some((s) => s === "rechazado")) return "rejected";
+                if (statuses.every((s) => s === "aprobado")) return "approved";
+                if (statuses.some((s) => s === "sustentado")) return "sustentado";
+                return "done";
+            }
+            const sustKey = sustentoReviewKey(fecha, turno);
+            if ((reviews[sustKey] || {}).status === "sustentado") return "sustentado";
+            return "empty";
+        }
+
+        function evidenceShiftBadgeHtml(status) {
+            const map = {
+                pending: '<span class="evidence-shift-badge evidence-shift-badge--pending" title="Pendiente de revisión">!</span>',
+                approved: '<span class="evidence-shift-badge evidence-shift-badge--ok" title="Aprobado">✓</span>',
+                done: '<span class="evidence-shift-badge evidence-shift-badge--ok" title="Revisado">✓</span>',
+                rejected: '<span class="evidence-shift-badge evidence-shift-badge--bad" title="Rechazado">✗</span>',
+                sustentado: '<span class="evidence-shift-badge evidence-shift-badge--sky" title="Sustentado">S</span>',
+                empty: '<span class="evidence-shift-badge evidence-shift-badge--empty" title="Sin carga">—</span>'
+            };
+            return map[status] || map.empty;
+        }
+
+        function countPendingTurnoReviews(p, turno) {
+            const reviews = p.evidence_reviews || {};
+            let count = 0;
+            (p.evidence_log || []).forEach((b) => {
+                if (String(b.turno || "") !== turno) return;
+                const st = (reviews[batchReviewKey(b)] || {}).status || "pendiente";
+                if (st === "pendiente") count++;
+            });
+            return count;
+        }
+
+        function buildEvidenceFollowUpRows() {
+            const rows = [];
+            const filteredProjects = masterProjects.filter((p) => projectMatchesQuery(p, adminEvidenceQuery));
+            filteredProjects.forEach((p) => {
+                collectEvidenceActivityDates(p).forEach((fecha) => {
+                    const manana = getTurnoReviewStatus(p, fecha, "mañana");
+                    const tarde = getTurnoReviewStatus(p, fecha, "tarde");
+                    if (manana === "empty" && tarde === "empty") return;
+                    rows.push({ p, fecha, manana, tarde });
+                });
+            });
+            rows.sort((a, b) => {
+                if (a.fecha !== b.fecha) return a.fecha < b.fecha ? 1 : -1;
+                return String(a.p.cui || "").localeCompare(String(b.p.cui || ""));
+            });
+            return rows;
+        }
+
+        function getAdminLastVisitAt() {
+            return localStorage.getItem(ADMIN_VISIT_KEY) || "";
+        }
+
+        function markAdminVisitNow() {
+            localStorage.setItem(ADMIN_VISIT_KEY, new Date().toISOString());
+        }
+
+        function collectAdminNotifications() {
+            const lastVisit = getAdminLastVisitAt();
+            const lastVisitMs = Date.parse(lastVisit);
+            const sessionStartMs = Date.parse(adminSessionStartedAt || "");
+            const pending = [];
+            const newUploads = [];
+            const seenUploadKeys = new Set();
+
+            masterProjects.forEach((p) => {
+                (p.evidence_log || []).forEach((batch) => {
+                    const reviewKey = batchReviewKey(batch);
+                    const status = (p.evidence_reviews?.[reviewKey] || {}).status || "pendiente";
+                    const uploadedMs = Date.parse(String(batch.uploaded_at || ""));
+                    const uploadKey = `${p.id}_${reviewKey}`;
+
+                    if (status === "pendiente") {
+                        pending.push({
+                            projectId: p.id,
+                            cui: p.cui,
+                            nombre: p.nombre,
+                            fecha: batch.fecha || "",
+                            turno: batch.turno || "",
+                            uploaded_at: batch.uploaded_at || ""
+                        });
+                    }
+
+                    if (!Number.isFinite(uploadedMs) || seenUploadKeys.has(uploadKey)) return;
+                    seenUploadKeys.add(uploadKey);
+
+                    const isNewSinceLastVisit = Number.isFinite(lastVisitMs) && uploadedMs > lastVisitMs;
+                    const isNewThisSession =
+                        Number.isFinite(sessionStartMs) && uploadedMs > sessionStartMs && adminSessionStartedAt;
+
+                    if (isNewSinceLastVisit || isNewThisSession) {
+                        newUploads.push({
+                            projectId: p.id,
+                            cui: p.cui,
+                            nombre: p.nombre,
+                            fecha: batch.fecha || "",
+                            turno: batch.turno || "",
+                            uploaded_at: batch.uploaded_at || ""
+                        });
+                    }
+                });
+            });
+
+            pending.sort((a, b) => String(b.uploaded_at || "").localeCompare(String(a.uploaded_at || "")));
+            newUploads.sort((a, b) => String(b.uploaded_at || "").localeCompare(String(a.uploaded_at || "")));
+            return { pending, newUploads };
+        }
+
+        function updateAdminTabBadges(pendingCount) {
+            const badge = document.getElementById("tabEvidenceBadge");
+            if (!badge) return;
+            if (pendingCount > 0) {
+                badge.textContent = String(pendingCount);
+                badge.classList.remove("hidden");
+            } else {
+                badge.textContent = "";
+                badge.classList.add("hidden");
+            }
+        }
+
+        function renderAdminAlertsBanner() {
+            const banner = document.getElementById("adminAlertsBanner");
+            const list = document.getElementById("adminAlertsList");
+            if (!banner || !list) return;
+
+            const { pending, newUploads } = collectAdminNotifications();
+            updateAdminTabBadges(pending.length);
+
+            if (adminAlertsDismissed || (pending.length === 0 && newUploads.length === 0)) {
+                banner.classList.add("hidden");
+                return;
+            }
+
+            const parts = [];
+            if (pending.length > 0) {
+                parts.push(
+                    `<li class="text-[10px] font-black text-amber-200">Tienes ${pending.length} evidencia(s) pendiente(s) de revisión.</li>`
+                );
+                pending.slice(0, 4).forEach((item) => {
+                    parts.push(
+                        `<li class="text-[9px] opacity-80 pl-2 border-l-2 border-amber-400/40">CUI ${escHtml(String(item.cui || ""))} · ${escHtml(formatEvidenceDateShort(item.fecha))} · ${escHtml(item.turno || "sin turno")}</li>`
+                    );
+                });
+                if (pending.length > 4) {
+                    parts.push(`<li class="text-[8px] opacity-50 pl-2">+ ${pending.length - 4} pendiente(s) más</li>`);
+                }
+            }
+            if (newUploads.length > 0) {
+                parts.push(
+                    `<li class="text-[10px] font-black text-green-300 mt-1">${newUploads.length} obra(s) registraron asistencia recientemente.</li>`
+                );
+                newUploads.slice(0, 4).forEach((item) => {
+                    parts.push(
+                        `<li class="text-[9px] opacity-80 pl-2 border-l-2 border-green-400/40">CUI ${escHtml(String(item.cui || ""))} · ${escHtml(formatEvidenceDateShort(item.fecha))} · ${escHtml(item.turno || "sin turno")}</li>`
+                    );
+                });
+                if (newUploads.length > 4) {
+                    parts.push(`<li class="text-[8px] opacity-50 pl-2">+ ${newUploads.length - 4} registro(s) más</li>`);
+                }
+            }
+
+            list.innerHTML = parts.join("");
+            banner.classList.remove("hidden");
+        }
+
+        window.dismissAdminAlertsBanner = () => {
+            adminAlertsDismissed = true;
+            const banner = document.getElementById("adminAlertsBanner");
+            if (banner) banner.classList.add("hidden");
+        };
+
+        function notifyAdminOnEntry() {
+            adminAlertsDismissed = false;
+            adminSessionStartedAt = new Date().toISOString();
+            const { pending, newUploads } = collectAdminNotifications();
+            renderAdminAlertsBanner();
+
+            const messages = [];
+            if (pending.length > 0) {
+                messages.push(`Tienes ${pending.length} evidencia(s) pendiente(s) de revisión.`);
+            }
+            if (newUploads.length > 0) {
+                messages.push(`${newUploads.length} obra(s) registraron asistencia desde su última visita.`);
+            }
+            if (messages.length > 0) {
+                showFeedback(messages.join(" "), "info", 9000);
+            }
+
+            markAdminVisitNow();
+        }
+
+        function refreshAdminNotifications(options = {}) {
+            const { toastNewActivity = false } = options;
+            if (!adminPanelView || adminPanelView.classList.contains("hidden")) return;
+
+            if (toastNewActivity && adminSessionStartedAt) {
+                const { newUploads } = collectAdminNotifications();
+                const sessionMs = Date.parse(adminSessionStartedAt);
+                const fresh = newUploads.filter((item) => Date.parse(item.uploaded_at || "") > sessionMs);
+                if (fresh.length > 0) {
+                    showFeedback(
+                        `Nueva asistencia registrada: CUI ${fresh[0].cui} · ${formatEvidenceDateShort(fresh[0].fecha)} · ${fresh[0].turno || "sin turno"}`,
+                        "info",
+                        7000
+                    );
+                    adminSessionStartedAt = new Date().toISOString();
+                }
+            }
+
+            renderAdminAlertsBanner();
+        }
+
         function hasPendingEvidenceReview(p) {
             const reviews = p.evidence_reviews || {};
             if (Array.isArray(p.evidence_log) && p.evidence_log.length > 0) {
@@ -2436,10 +2779,27 @@
         }
 
         function evidenceReviewTableCell(p) {
-            const hasFiles = (Array.isArray(p.evidence_log) && p.evidence_log.length > 0) || (Array.isArray(p.last_evidence_files) && p.last_evidence_files.length > 0);
+            const pendingManana = countPendingTurnoReviews(p, "mañana");
+            const pendingTarde = countPendingTurnoReviews(p, "tarde");
+            const hasFiles =
+                (Array.isArray(p.evidence_log) && p.evidence_log.length > 0) ||
+                (Array.isArray(p.last_evidence_files) && p.last_evidence_files.length > 0);
             if (!hasFiles) return '<span class="text-[10px] opacity-30">—</span>';
-            if (hasPendingEvidenceReview(p)) return '<span class="text-yellow-400 font-black text-lg leading-none" title="Evidencia por revisar">!</span>';
-            return '<span class="text-green-500 text-xs font-black" title="Revisado">✓</span>';
+            if (pendingManana === 0 && pendingTarde === 0) {
+                return '<span class="text-green-500 text-xs font-black" title="Revisado">✓</span>';
+            }
+            const badges = [];
+            if (pendingManana > 0) {
+                badges.push(
+                    `<span class="evidence-shift-badge evidence-shift-badge--pending" title="${pendingManana} pendiente(s) en mañana">M!</span>`
+                );
+            }
+            if (pendingTarde > 0) {
+                badges.push(
+                    `<span class="evidence-shift-badge evidence-shift-badge--pending" title="${pendingTarde} pendiente(s) en tarde">T!</span>`
+                );
+            }
+            return `<div class="flex items-center justify-center gap-1">${badges.join("")}</div>`;
         }
 
         window.deleteProject = async (projectId) => {
@@ -2504,26 +2864,37 @@
         }
 
         function renderEvidenceAdminProjectTable() {
-            const tbody = document.getElementById('evidenceAdminTableBody');
+            const tbody = document.getElementById("evidenceAdminTableBody");
             if (!tbody) return;
             const sel = evidenceSelectedProjectId;
-            const filteredProjects = masterProjects.filter((p) => projectMatchesQuery(p, adminEvidenceQuery));
-            if (filteredProjects.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center opacity-40 text-[10px] font-bold uppercase">Sin coincidencias</td></tr>`;
+            const rows = buildEvidenceFollowUpRows();
+            if (rows.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center opacity-40 text-[10px] font-bold uppercase">Sin coincidencias</td></tr>`;
                 return;
             }
-            tbody.innerHTML = filteredProjects.map((p) => {
-                const rowClass = p.id === sel ? 'bg-[#991b1b]/10' : 'hover:bg-black/5';
-                return `
-                <tr class="${rowClass}">
-                    <td class="p-3 font-mono text-[#991b1b] font-bold text-xs">${p.cui}</td>
-                    <td class="p-3 text-xs font-semibold">${p.nombre}</td>
-                    <td class="p-3 text-center">${evidenceReviewTableCell(p)}</td>
-                    <td class="p-3 text-center">
-                        <button type="button" onclick="openEvidenceReviewTab('${p.id}')" class="bg-[#991b1b]/5 text-[#991b1b] px-3 py-1 rounded text-[10px] font-black border border-[#991b1b]/10 hover:bg-[#991b1b] hover:text-white transition-all uppercase font-bold">Revisar</button>
+            let lastFecha = "";
+            tbody.innerHTML = rows
+                .map(({ p, fecha, manana, tarde }) => {
+                    const rowClass = p.id === sel ? "bg-[#991b1b]/10" : "hover:bg-black/5";
+                    const groupClass = fecha !== lastFecha ? "evidence-date-group" : "";
+                    if (fecha !== lastFecha) lastFecha = fecha;
+                    const fechaCell =
+                        groupClass
+                            ? `<td class="p-3 text-[10px] font-black font-mono whitespace-nowrap align-top">${formatEvidenceDateShort(fecha)}</td>`
+                            : `<td class="p-3 text-[10px] opacity-25 font-mono whitespace-nowrap align-top">↳</td>`;
+                    return `
+                <tr class="${rowClass} ${groupClass}">
+                    ${fechaCell}
+                    <td class="p-3 font-mono text-[#991b1b] font-bold text-xs align-top">${escHtml(String(p.cui || ""))}</td>
+                    <td class="p-3 text-xs font-semibold align-top">${escHtml(String(p.nombre || ""))}</td>
+                    <td class="p-3 text-center align-top">${evidenceShiftBadgeHtml(manana)}</td>
+                    <td class="p-3 text-center align-top">${evidenceShiftBadgeHtml(tarde)}</td>
+                    <td class="p-3 text-center align-top">
+                        <button type="button" onclick="openEvidenceReviewTab('${p.id}', '${fecha}')" class="bg-[#991b1b]/5 text-[#991b1b] px-3 py-1 rounded text-[10px] font-black border border-[#991b1b]/10 hover:bg-[#991b1b] hover:text-white transition-all uppercase font-bold">Revisar</button>
                     </td>
                 </tr>`;
-            }).join('');
+                })
+                .join("");
         }
 
         window.setAdminListSearch = (value) => {
@@ -2593,12 +2964,16 @@
             }
         };
 
-        window.openEvidenceReviewTab = (id) => {
+        window.openEvidenceReviewTab = (id, fecha = "") => {
             evidenceSelectedProjectId = id;
-            evidenceFilterDate = "";
+            evidenceFilterDate = fecha || "";
             const p = masterProjects.find((x) => x.id === id);
             const label = document.getElementById('evidenceSelectedLabel');
-            if (label && p) label.textContent = `CUI ${p.cui} — ${p.nombre}`;
+            if (label && p) {
+                label.textContent = fecha
+                    ? `CUI ${p.cui} — ${p.nombre} · ${formatEvidenceDateShort(fecha)}`
+                    : `CUI ${p.cui} — ${p.nombre}`;
+            }
             renderEvidenceAdminProjectTable();
             if (p) {
                 updateEvidenceDateFilterOptions(p);
@@ -2959,6 +3334,7 @@
                 }
                 renderEvidenceAdminProjectTable();
                 renderAdminTable();
+                refreshAdminNotifications();
                 const okMsg =
                     status === "aprobado"
                         ? "Evidencia aprobada."
@@ -3691,7 +4067,13 @@
         function showFeedback(msg, type = "error", durationMs = 4000) {
             const fb = document.getElementById('feedback');
             fb.textContent = msg;
-            fb.className = `toast-banner fixed top-5 left-1/2 z-[3000] text-center text-xs px-4 py-3 rounded-xl border max-w-sm ${type === "success" ? "border-green-500/50 bg-green-950/60 text-green-200" : "border-red-500/50 bg-red-950/60 text-red-200"}`;
+            const tone =
+                type === "success"
+                    ? "border-green-500/50 bg-green-950/60 text-green-200"
+                    : type === "info"
+                      ? "border-amber-500/50 bg-amber-950/60 text-amber-200"
+                      : "border-red-500/50 bg-red-950/60 text-red-200";
+            fb.className = `toast-banner fixed top-5 left-1/2 z-[3000] text-center text-xs px-4 py-3 rounded-xl border max-w-sm ${tone}`;
             fb.classList.remove('hidden');
             requestAnimationFrame(() => fb.classList.add('toast-visible'));
             clearTimeout(fb._hideTimer);
