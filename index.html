@@ -769,6 +769,149 @@
         }
 
         body.light-mode tr.bg-white\/5 { background-color: #f1f5f9; }
+
+        .admin-export-menu {
+            position: relative;
+        }
+
+        .admin-export-dropdown {
+            position: absolute;
+            right: 0;
+            top: calc(100% + 0.35rem);
+            min-width: 11.5rem;
+            z-index: 1200;
+            border-radius: 0.85rem;
+            border: 1px solid rgba(153, 27, 27, 0.25);
+            background: #0f172a;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+            padding: 0.35rem;
+        }
+
+        body.light-mode .admin-export-dropdown {
+            background: #fff;
+            border-color: rgba(153, 27, 27, 0.2);
+            box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12);
+        }
+
+        .admin-export-dropdown button {
+            display: block;
+            width: 100%;
+            text-align: left;
+            padding: 0.55rem 0.75rem;
+            border-radius: 0.55rem;
+            font-size: 0.62rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            transition: background 0.15s ease;
+        }
+
+        .admin-export-dropdown button:hover {
+            background: rgba(153, 27, 27, 0.12);
+        }
+
+        .admin-export-dropdown button.danger {
+            color: #f87171;
+        }
+
+        #evidenceCaptureArea {
+            position: fixed;
+            left: -10000px;
+            top: 0;
+            width: 920px;
+            padding: 2rem 2.25rem;
+            background: #f8fafc;
+            color: #0f172a;
+            font-family: system-ui, sans-serif;
+        }
+
+        #evidenceCaptureArea .evidence-export-header {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        #evidenceCaptureArea .evidence-export-logo {
+            width: 72px;
+            height: auto;
+            margin: 0 auto 0.75rem;
+            display: block;
+        }
+
+        #evidenceCaptureArea .evidence-export-title {
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: #334155;
+            line-height: 1.5;
+        }
+
+        #evidenceCaptureArea .evidence-export-subtitle {
+            font-size: 0.95rem;
+            font-weight: 900;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #991b1b;
+            margin-top: 0.35rem;
+        }
+
+        #evidenceCaptureArea .evidence-export-date {
+            font-size: 0.8rem;
+            font-weight: 800;
+            color: #475569;
+            margin-top: 0.5rem;
+            text-transform: uppercase;
+        }
+
+        #evidenceCaptureArea table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.68rem;
+        }
+
+        #evidenceCaptureArea th {
+            background: #991b1b;
+            color: #fff;
+            padding: 0.55rem 0.45rem;
+            text-align: left;
+            font-size: 0.58rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        #evidenceCaptureArea th.center {
+            text-align: center;
+        }
+
+        #evidenceCaptureArea td {
+            border: 1px solid #e2e8f0;
+            padding: 0.5rem 0.45rem;
+            vertical-align: top;
+        }
+
+        #evidenceCaptureArea td.cui {
+            color: #991b1b;
+            font-weight: 900;
+            font-family: ui-monospace, monospace;
+            white-space: nowrap;
+        }
+
+        #evidenceCaptureArea td.center {
+            text-align: center;
+            font-weight: 900;
+            font-size: 0.85rem;
+        }
+
+        #evidenceCaptureArea tr:nth-child(even) td {
+            background: #f1f5f9;
+        }
+
+        .evidence-export-cell--ok { color: #16a34a; }
+        .evidence-export-cell--bad { color: #dc2626; }
+        .evidence-export-cell--pending { color: #ca8a04; }
+        .evidence-export-cell--sky { color: #0284c7; }
+        .evidence-export-cell--empty { color: #94a3b8; }
     </style>
 </head>
 <body class="dark-mode">
@@ -780,6 +923,27 @@
     </button>
 
     <div id="feedback" class="toast-banner hidden fixed top-5 left-1/2 z-[3000] text-center text-xs px-4 py-3 rounded-xl border max-w-sm"></div>
+
+    <div id="evidenceCaptureArea" aria-hidden="true">
+        <div class="evidence-export-header">
+            <img src="Imagen1.jpg" alt="Logo GRA" class="evidence-export-logo" crossorigin="anonymous">
+            <p class="evidence-export-title">Gobierno Regional de Ayacucho</p>
+            <p class="evidence-export-title">Sub Gerencia de Ejecución de Inversiones</p>
+            <p class="evidence-export-subtitle">Reporte de cumplimiento diario</p>
+            <p id="evidenceCaptureDate" class="evidence-export-date"></p>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>CUI</th>
+                    <th>Proyecto</th>
+                    <th class="center">Mañana</th>
+                    <th class="center">Tarde</th>
+                </tr>
+            </thead>
+            <tbody id="evidenceCaptureTableBody"></tbody>
+        </table>
+    </div>
 
     <div id="initialLoader" class="flex flex-col items-center gap-4">
         <div class="custom-loader w-12 h-12"></div>
@@ -945,10 +1109,19 @@
                     </div>
                 </div>
             </div>
-            <div class="flex gap-2 flex-wrap justify-center">
-                <button id="resetMonthBtn" onclick="confirmResetMonth()" class="hidden bg-red-600/20 px-3 py-2 rounded-xl text-[10px] font-black text-red-500 hover:bg-red-600/40 uppercase transition-all border border-red-600/20">Cierre de Mes</button>
-                <button id="exportCriticosBtn" onclick="exportCriticosJPG()" class="hidden bg-red-600/10 px-3 py-2 rounded-xl text-[10px] font-black text-red-500 hover:bg-red-600/20 uppercase transition-all border border-red-600/20">Reporte Crítico</button>
-                <button id="exportJpgBtn" onclick="exportToJPG()" class="hidden bg-black/5 px-4 py-2 rounded-xl text-[10px] font-black uppercase border border-current/10">Descargar JPG</button>
+            <div class="flex gap-2 flex-wrap justify-center items-center">
+                <div id="adminReportExportMenu" class="admin-export-menu hidden">
+                    <button type="button" id="adminExportMenuBtn" onclick="toggleAdminExportMenu()" class="bg-black/5 px-4 py-2 rounded-xl text-[10px] font-black uppercase border border-current/10 flex items-center gap-1.5">
+                        Exportar reporte
+                        <svg class="w-3 h-3 opacity-60" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.94a.75.75 0 111.08 1.04l-4.24 4.5a.75.75 0 01-1.08 0l-4.24-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd"/></svg>
+                    </button>
+                    <div id="adminExportMenuList" class="admin-export-dropdown hidden">
+                        <button type="button" onclick="runAdminExportAction('jpg')">Descargar JPG</button>
+                        <button type="button" onclick="runAdminExportAction('critico')">Reporte crítico</button>
+                        <button type="button" class="danger" onclick="runAdminExportAction('cierre')">Cierre de mes</button>
+                    </div>
+                </div>
+                <button type="button" id="exportEvidenceBtn" onclick="exportEvidenceDailyJPG()" class="hidden bg-[#991b1b]/10 px-4 py-2 rounded-xl text-[10px] font-black text-[#991b1b] uppercase border border-[#991b1b]/20 hover:bg-[#991b1b] hover:text-white transition-all">Exportar cuadro de evidencias</button>
                 <button type="button" onclick="goBackToHome(event)" class="bg-red-600/10 px-4 py-2 rounded-xl text-[10px] font-black text-red-600 uppercase border border-red-600/10">Cerrar Sesión</button>
             </div>
         </div>
@@ -1949,16 +2122,15 @@
         }
 
         window.confirmResetMonth = async () => {
-            if (confirm("¿Confirmar cierre de mes? Se reiniciarán todos los contadores.")) {
-                const currentMonth = new Date().toISOString().slice(0, 7);
-                for (const p of masterProjects) {
-                    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'projects', p.id), {
-                        faults_accumulated: 0,
-                        last_reset_month: currentMonth
-                    });
-                }
-                showFeedback("✓ Mes reiniciado.");
+            if (!confirm("¿Confirmar cierre de mes? Se reiniciarán todos los contadores.")) return;
+            const currentMonth = new Date().toISOString().slice(0, 7);
+            for (const p of masterProjects) {
+                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'projects', p.id), {
+                    faults_accumulated: 0,
+                    last_reset_month: currentMonth
+                });
             }
+            showFeedback("✓ Mes reiniciado.");
         };
 
         window.setReportPeriod = (period) => {
@@ -2089,6 +2261,122 @@
             document.body.removeChild(link);
         }
 
+        window.toggleAdminExportMenu = (forceOpen) => {
+            const list = document.getElementById("adminExportMenuList");
+            if (!list) return;
+            const nextOpen = typeof forceOpen === "boolean" ? forceOpen : list.classList.contains("hidden");
+            list.classList.toggle("hidden", !nextOpen);
+        };
+
+        window.runAdminExportAction = async (action) => {
+            toggleAdminExportMenu(false);
+            if (action === "jpg") {
+                await exportToJPG();
+                return;
+            }
+            if (action === "critico") {
+                await exportCriticosJPG();
+                return;
+            }
+            if (action === "cierre") {
+                await confirmResetMonth();
+            }
+        };
+
+        function setAdminExportBusy(busy, label) {
+            const btn = document.getElementById("adminExportMenuBtn");
+            if (!btn) return;
+            if (busy) {
+                if (!btn.dataset.originalText) btn.dataset.originalText = btn.textContent.trim();
+                btn.disabled = true;
+                if (label) btn.textContent = label;
+            } else {
+                btn.disabled = false;
+                btn.textContent = btn.dataset.originalText || "Exportar reporte";
+            }
+        }
+
+        function evidenceExportCellHtml(status) {
+            const map = {
+                pending: { text: "!", cls: "evidence-export-cell--pending" },
+                approved: { text: "✓", cls: "evidence-export-cell--ok" },
+                done: { text: "✓", cls: "evidence-export-cell--ok" },
+                rejected: { text: "✗", cls: "evidence-export-cell--bad" },
+                sustentado: { text: "S", cls: "evidence-export-cell--sky" },
+                empty: { text: "—", cls: "evidence-export-cell--empty" }
+            };
+            const item = map[status] || map.empty;
+            return `<span class="${item.cls}">${item.text}</span>`;
+        }
+
+        function buildEvidenceDailyExportRows() {
+            const todayYmd = fechaCarpetaLima();
+            return masterProjects
+                .filter((p) => projectMatchesQuery(p, adminEvidenceQuery))
+                .map((p) => ({
+                    p,
+                    fecha: todayYmd,
+                    manana: getTurnoReviewStatus(p, todayYmd, "mañana"),
+                    tarde: getTurnoReviewStatus(p, todayYmd, "tarde")
+                }))
+                .filter(({ manana, tarde }) => manana !== "empty" || tarde !== "empty")
+                .sort((a, b) => String(a.p.cui || "").localeCompare(String(b.p.cui || "")));
+        }
+
+        function populateEvidenceCaptureArea() {
+            const dateEl = document.getElementById("evidenceCaptureDate");
+            const tbody = document.getElementById("evidenceCaptureTableBody");
+            if (!tbody) return;
+            const todayYmd = fechaCarpetaLima();
+            if (dateEl) dateEl.textContent = formatEvidenceDateShort(todayYmd);
+            const rows = buildEvidenceDailyExportRows();
+            if (rows.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:1.25rem;color:#64748b;font-weight:700;text-transform:uppercase;font-size:0.62rem;">Sin actividad registrada hoy</td></tr>`;
+                return;
+            }
+            tbody.innerHTML = rows
+                .map(
+                    ({ p, manana, tarde }) => `<tr>
+                    <td class="cui">${escHtml(String(p.cui || ""))}</td>
+                    <td>${escHtml(String(p.nombre || ""))}</td>
+                    <td class="center">${evidenceExportCellHtml(manana)}</td>
+                    <td class="center">${evidenceExportCellHtml(tarde)}</td>
+                </tr>`
+                )
+                .join("");
+        }
+
+        window.exportEvidenceDailyJPG = async () => {
+            const btn = document.getElementById("exportEvidenceBtn");
+            const area = document.getElementById("evidenceCaptureArea");
+            if (!btn || !area) return;
+            const originalText = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = "Generando imagen...";
+            try {
+                populateEvidenceCaptureArea();
+                await new Promise((r) => requestAnimationFrame(() => r()));
+                await new Promise((r) => setTimeout(r, 120));
+                const canvas = await html2canvas(area, {
+                    backgroundColor: "#f8fafc",
+                    scale: 2,
+                    useCORS: true
+                });
+                const stamp = fechaCarpetaLima();
+                downloadJpgDataUrl(
+                    canvas.toDataURL("image/jpeg", 0.92),
+                    `Cuadro_Evidencias_GRA_${stamp}.jpg`
+                );
+                showFeedback("Cuadro de evidencias exportado.", "success");
+            } catch (e) {
+                console.error(e);
+                showFeedback(`Error al exportar: ${e.message || e}`, "error");
+            } finally {
+                btn.disabled = false;
+                btn.textContent = originalText;
+            }
+        };
+
         /**
          * Exporta el reporte en una o varias imágenes JPG (alto legible).
          * @param {string} fileBase nombre base sin extensión
@@ -2163,11 +2451,8 @@
         }
 
         window.exportToJPG = async () => {
-            const btn = document.getElementById("exportJpgBtn");
-            if (!btn) return;
-            const originalText = btn.textContent;
-            btn.disabled = true;
-            btn.textContent = "Generando imágenes...";
+            if (!document.getElementById("adminExportMenuBtn")) return;
+            setAdminExportBusy(true, "Generando imágenes...");
             const stamp = new Date().toISOString().slice(0, 10);
             try {
                 await exportCaptureAreaMultiJpg(`Reporte_Incumplimiento_GRA_${stamp}`);
@@ -2179,16 +2464,12 @@
                 console.error(e);
                 showFeedback(`Error al exportar: ${e.message || e}`, "error");
             } finally {
-                btn.disabled = false;
-                btn.textContent = originalText;
+                setAdminExportBusy(false);
             }
         };
 
         window.exportCriticosJPG = async () => {
-            const btn = document.getElementById("exportCriticosBtn");
-            if (!btn) return;
-            const originalText = btn.textContent;
-            btn.disabled = true;
+            setAdminExportBusy(true, "Filtrando...");
             const criticos = masterProjects.filter((p) => complianceTotalForProject(p) >= 3);
 
             if (criticos.length === 0) {
@@ -2196,11 +2477,10 @@
             }
 
             try {
-                btn.textContent = "Filtrando...";
                 activeProjects = criticos;
                 renderElegantFaultReport();
                 await new Promise((r) => setTimeout(r, 500));
-                btn.textContent = "Generando imágenes...";
+                setAdminExportBusy(true, "Generando imágenes...");
                 const stamp = new Date().toISOString().slice(0, 10);
                 await exportCaptureAreaMultiJpg(`REPORTE_CRITICO_GRA_${stamp}`);
                 showFeedback("Reporte crítico exportado (varias imágenes si aplica).", "success");
@@ -2210,8 +2490,7 @@
             } finally {
                 activeProjects = [...masterProjects];
                 renderElegantFaultReport();
-                btn.disabled = false;
-                btn.textContent = originalText;
+                setAdminExportBusy(false);
             }
         };
 
@@ -2477,9 +2756,8 @@
             const report = document.getElementById('adminReportView');
             const evidence = document.getElementById('adminEvidenceView');
             const schedule = document.getElementById('adminSettingsView');
-            const exportBtn = document.getElementById('exportJpgBtn');
-            const resetBtn = document.getElementById('resetMonthBtn');
-            const criticoBtn = document.getElementById('exportCriticosBtn');
+            const reportExportMenu = document.getElementById('adminReportExportMenu');
+            const evidenceExportBtn = document.getElementById('exportEvidenceBtn');
             const btnList = document.getElementById('tabList');
             const btnReport = document.getElementById('tabReport');
             const btnEvidence = document.getElementById('tabEvidence');
@@ -2499,9 +2777,9 @@
                 renderUploadScheduleAdminForm();
             }
             const showReportExports = tab === 'report';
-            exportBtn.classList.toggle('hidden', !showReportExports);
-            resetBtn.classList.toggle('hidden', !showReportExports);
-            criticoBtn.classList.toggle('hidden', !showReportExports);
+            reportExportMenu?.classList.toggle('hidden', !showReportExports);
+            evidenceExportBtn?.classList.toggle('hidden', tab !== 'evidence');
+            if (!showReportExports) toggleAdminExportMenu(false);
 
             btnList.className = tab === 'list' ? tabActive : tabInactive;
             if (btnEvidence) btnEvidence.className = tab === 'evidence' ? tabActive : tabInactive;
@@ -3000,6 +3278,15 @@
                 list.scrollTop = 0;
             });
         };
+
+        function wireAdminExportMenu() {
+            document.addEventListener("click", (e) => {
+                const menu = document.getElementById("adminReportExportMenu");
+                const list = document.getElementById("adminExportMenuList");
+                if (!menu || !list || list.classList.contains("hidden")) return;
+                if (!menu.contains(e.target)) toggleAdminExportMenu(false);
+            });
+        }
 
         function wireAdminAlertsList() {
             const list = document.getElementById("adminAlertsList");
@@ -4392,6 +4679,7 @@
         updateUploadScheduleFooter();
         wireEvidenceDropZone();
         wireAdminAlertsList();
+        wireAdminExportMenu();
         init();
     </script>
 </body>
