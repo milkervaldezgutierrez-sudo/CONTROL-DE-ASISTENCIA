@@ -459,6 +459,735 @@
             gap: 0.65rem;
         }
 
+        .admin-shell.app-panel {
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .admin-shell {
+            display: flex;
+            flex-direction: column;
+            min-height: 28rem;
+        }
+
+        .admin-sidebar {
+            display: flex;
+            flex-direction: row;
+            align-items: stretch;
+            gap: 0.35rem;
+            padding: 0.65rem 0.75rem;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+            background: linear-gradient(180deg, rgba(0, 0, 0, 0.22) 0%, rgba(0, 0, 0, 0.08) 100%);
+            overflow-x: auto;
+        }
+
+        body.light-mode .admin-sidebar {
+            background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+            border-bottom-color: rgba(153, 27, 27, 0.12);
+        }
+
+        .admin-sidebar-brand {
+            display: none;
+        }
+
+        .admin-sidebar-nav {
+            display: flex;
+            flex-direction: row;
+            gap: 0.35rem;
+            flex: 1;
+            min-width: min-content;
+        }
+
+        .admin-sidebar-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.55rem 0.75rem;
+            border-radius: 0.75rem;
+            font-size: 0.62rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            opacity: 0.55;
+            border: 1px solid transparent;
+            white-space: nowrap;
+            transition: opacity 0.2s ease, background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+        }
+
+        .admin-sidebar-link:hover {
+            opacity: 0.9;
+            background: rgba(153, 27, 27, 0.08);
+        }
+
+        .admin-sidebar-link--active {
+            opacity: 1;
+            color: var(--accent-gold);
+            background: rgba(250, 204, 21, 0.1);
+            border-color: rgba(250, 204, 21, 0.22);
+            box-shadow: inset 3px 0 0 var(--accent-gold);
+        }
+
+        body.light-mode .admin-sidebar-link--active {
+            background: rgba(153, 27, 27, 0.06);
+            border-color: rgba(153, 27, 27, 0.15);
+            box-shadow: inset 3px 0 0 #991b1b;
+            color: #991b1b;
+        }
+
+        .admin-sidebar-link svg {
+            width: 1rem;
+            height: 1rem;
+            flex-shrink: 0;
+            opacity: 0.85;
+        }
+
+        .admin-sidebar-footer {
+            display: none;
+        }
+
+        .admin-main {
+            flex: 1;
+            min-width: 0;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Panel admin a pantalla completa */
+        body.admin-fullscreen {
+            padding: 0;
+            align-items: stretch;
+            justify-content: stretch;
+            overflow: hidden;
+        }
+
+        body.admin-fullscreen > #adminPanelView {
+            flex: 1;
+            width: 100%;
+            max-width: none;
+            height: 100dvh;
+            max-height: 100dvh;
+            border-radius: 0;
+            box-shadow: none;
+            border-left: none;
+            border-right: none;
+            border-bottom: none;
+            overflow: hidden;
+        }
+
+        body.admin-fullscreen > #adminPanelView.admin-shell {
+            min-height: 100dvh;
+            height: 100dvh;
+        }
+
+        body.admin-fullscreen .admin-content {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        body.admin-fullscreen .admin-tab-panel:not(.hidden) {
+            flex: 1;
+            min-height: 0;
+        }
+
+        body.admin-fullscreen .admin-tab-panel.admin-grid:not(.hidden) {
+            display: grid;
+            align-content: stretch;
+        }
+
+        body.admin-fullscreen .admin-tab-panel.admin-grid > * {
+            min-height: 0;
+        }
+
+        body.admin-fullscreen .admin-panel-col {
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+
+        body.admin-fullscreen .admin-panel-scroll {
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            max-height: none;
+        }
+
+        body.admin-fullscreen .admin-tab-panel.hidden {
+            display: none !important;
+        }
+
+        body.admin-fullscreen #adminSettingsView:not(.hidden) {
+            overflow: hidden;
+            min-height: 0;
+        }
+
+        body.admin-fullscreen #adminReportView {
+            overflow-y: auto;
+            min-height: 0;
+        }
+
+        body.admin-fullscreen .admin-settings-shell {
+            flex: 1;
+            min-height: 0;
+            height: 100%;
+        }
+
+        body.admin-fullscreen .admin-settings-detail {
+            min-height: 0;
+            height: 100%;
+        }
+
+        body.admin-fullscreen #adminEvidenceView > .admin-panel-col:last-child > *:not(#evidenceReviewList) {
+            flex-shrink: 0;
+        }
+
+        .admin-topbar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+            padding: 0.85rem 1rem;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+            background: rgba(0, 0, 0, 0.08);
+        }
+
+        body.light-mode .admin-topbar {
+            background: rgba(255, 255, 255, 0.65);
+        }
+
+        .admin-content {
+            flex: 1;
+            padding: 0.85rem 1rem 1rem;
+            min-height: 0;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+
+        .admin-settings-shell {
+            width: 100%;
+            max-width: none;
+            min-height: 0;
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.85rem;
+            align-items: stretch;
+        }
+
+        @media (min-width: 768px) {
+            .admin-settings-shell {
+                grid-template-columns: minmax(13.5rem, 17rem) minmax(0, 1fr);
+                gap: 1rem;
+            }
+        }
+
+        @media (min-width: 1280px) {
+            .admin-settings-shell {
+                grid-template-columns: minmax(15rem, 18rem) minmax(0, 1fr);
+            }
+        }
+
+        .admin-settings-nav {
+            display: flex;
+            flex-direction: row;
+            gap: 0.45rem;
+            overflow-x: auto;
+            padding-bottom: 0.15rem;
+            scrollbar-width: thin;
+        }
+
+        @media (min-width: 768px) {
+            .admin-settings-nav {
+                flex-direction: column;
+                overflow-x: visible;
+                overflow-y: auto;
+                padding-bottom: 0;
+            }
+        }
+
+        .admin-settings-nav-btn {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.6rem;
+            flex-shrink: 0;
+            min-width: 10.5rem;
+            padding: 0.75rem 0.85rem;
+            border-radius: 0.95rem;
+            border: 1px solid rgba(148, 163, 184, 0.14);
+            background: rgba(0, 0, 0, 0.06);
+            color: inherit;
+            text-align: left;
+            cursor: pointer;
+            transition:
+                border-color var(--duration-fast) var(--ease-out),
+                background var(--duration-fast) var(--ease-out),
+                box-shadow var(--duration-fast) var(--ease-out),
+                transform var(--duration-fast) var(--ease-out);
+        }
+
+        body.light-mode .admin-settings-nav-btn {
+            background: rgba(255, 255, 255, 0.55);
+        }
+
+        .admin-settings-nav-btn:hover {
+            border-color: rgba(250, 204, 21, 0.35);
+            background: rgba(153, 27, 27, 0.08);
+        }
+
+        .admin-settings-nav-btn--active {
+            border-color: rgba(250, 204, 21, 0.45);
+            background: rgba(153, 27, 27, 0.14);
+            box-shadow: 0 0 0 1px rgba(153, 27, 27, 0.15);
+        }
+
+        .admin-settings-nav-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 2rem;
+            height: 2rem;
+            border-radius: 0.65rem;
+            background: rgba(153, 27, 27, 0.12);
+            color: #f87171;
+            flex-shrink: 0;
+        }
+
+        .admin-settings-nav-btn--active .admin-settings-nav-icon {
+            background: rgba(250, 204, 21, 0.18);
+            color: var(--accent-gold);
+        }
+
+        .admin-settings-nav-icon svg {
+            width: 1rem;
+            height: 1rem;
+        }
+
+        .admin-settings-nav-text {
+            display: flex;
+            flex-direction: column;
+            gap: 0.15rem;
+            min-width: 0;
+        }
+
+        .admin-settings-nav-text strong {
+            font-size: 0.62rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            line-height: 1.2;
+        }
+
+        .admin-settings-nav-hint {
+            font-size: 0.58rem;
+            font-weight: 600;
+            opacity: 0.5;
+            line-height: 1.25;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .admin-settings-detail {
+            min-width: 0;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            background: rgba(0, 0, 0, 0.06);
+            border: 1px solid rgba(148, 163, 184, 0.12);
+            border-radius: 1.15rem;
+            overflow: hidden;
+        }
+
+        body.light-mode .admin-settings-detail {
+            background: rgba(255, 255, 255, 0.72);
+        }
+
+        .admin-settings-panel {
+            display: none;
+            flex-direction: column;
+            flex: 1;
+            min-height: 0;
+            animation: panelFadeIn var(--duration-normal) var(--ease-smooth) both;
+        }
+
+        .admin-settings-panel.active {
+            display: flex;
+        }
+
+        .admin-settings-panel-head {
+            padding: 1.1rem 1.25rem 0.85rem;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+            background: rgba(0, 0, 0, 0.04);
+        }
+
+        body.light-mode .admin-settings-panel-head {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .admin-settings-panel-head h4 {
+            font-size: 0.72rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            color: #991b1b;
+            letter-spacing: 0.05em;
+        }
+
+        .admin-settings-panel-head p {
+            font-size: 0.58rem;
+            opacity: 0.55;
+            margin-top: 0.35rem;
+            line-height: 1.45;
+        }
+
+        .admin-settings-panel-body {
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            padding: 1.1rem 1.25rem;
+        }
+
+        .admin-settings-panel-footer {
+            padding: 0.85rem 1.25rem;
+            border-top: 1px solid rgba(148, 163, 184, 0.1);
+            background: rgba(0, 0, 0, 0.04);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.65rem;
+            align-items: center;
+        }
+
+        body.light-mode .admin-settings-panel-footer {
+            background: rgba(255, 255, 255, 0.45);
+        }
+
+        .settings-save-btn {
+            min-width: 11rem;
+        }
+
+        .settings-form-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.85rem;
+        }
+
+        @media (min-width: 900px) {
+            .settings-form-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .settings-form-grid--single {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .settings-time-block {
+            padding: 0.85rem;
+            border-radius: 0.9rem;
+            border: 1px solid rgba(148, 163, 184, 0.12);
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        body.light-mode .settings-time-block {
+            background: rgba(255, 255, 255, 0.65);
+        }
+
+        .settings-preview-box {
+            margin-top: 1rem;
+            padding: 0.85rem;
+            border-radius: 0.9rem;
+            border: 1px solid rgba(153, 27, 27, 0.2);
+            background: rgba(153, 27, 27, 0.06);
+        }
+
+        .sched-visual-grid {
+            display: grid;
+            grid-template-columns: repeat(7, minmax(0, 1fr));
+            gap: 0.4rem;
+            margin-top: 0.85rem;
+        }
+
+        .sched-visual-col {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.45rem 0.2rem;
+            border-radius: 0.65rem;
+            background: rgba(0, 0, 0, 0.06);
+        }
+
+        body.light-mode .sched-visual-col {
+            background: rgba(255, 255, 255, 0.55);
+        }
+
+        .sched-visual-col--off {
+            opacity: 0.35;
+        }
+
+        .sched-visual-day {
+            font-size: 0.55rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            opacity: 0.65;
+            line-height: 1;
+        }
+
+        .sched-visual-slots {
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+            width: 100%;
+        }
+
+        .sched-visual-slot {
+            height: 0.38rem;
+            border-radius: 999px;
+            background: rgba(148, 163, 184, 0.2);
+        }
+
+        .sched-visual-slot--morning:not(.is-empty) {
+            background: linear-gradient(90deg, #ca8a04, #facc15);
+        }
+
+        .sched-visual-slot--afternoon:not(.is-empty) {
+            background: linear-gradient(90deg, #7f1d1d, #991b1b);
+        }
+
+        .sched-visual-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-top: 0.65rem;
+            font-size: 0.55rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            opacity: 0.55;
+        }
+
+        .sched-visual-legend span {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .sched-visual-legend i {
+            width: 0.65rem;
+            height: 0.38rem;
+            border-radius: 999px;
+            display: inline-block;
+        }
+
+        .settings-day-picker {
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+            align-items: stretch;
+        }
+
+        .settings-day-display {
+            font-size: 2.25rem;
+            font-weight: 900;
+            color: #991b1b;
+            line-height: 1;
+            text-align: center;
+        }
+
+        .settings-day-display small {
+            display: block;
+            font-size: 0.6rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            opacity: 0.45;
+            margin-top: 0.25rem;
+        }
+
+        .settings-range {
+            width: 100%;
+            accent-color: #991b1b;
+            cursor: pointer;
+        }
+
+        .settings-day-presets {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+        }
+
+        .settings-day-preset {
+            padding: 0.35rem 0.65rem;
+            border-radius: 999px;
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            background: rgba(0, 0, 0, 0.06);
+            font-size: 0.58rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: background var(--duration-fast) var(--ease-out);
+        }
+
+        .settings-day-preset:hover,
+        .settings-day-preset.is-active {
+            background: rgba(153, 27, 27, 0.15);
+            border-color: rgba(153, 27, 27, 0.35);
+            color: #991b1b;
+        }
+
+        .settings-toggle-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            padding: 1rem;
+            border-radius: 0.9rem;
+            border: 1px solid rgba(148, 163, 184, 0.12);
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        body.light-mode .settings-toggle-row {
+            background: rgba(255, 255, 255, 0.65);
+        }
+
+        .settings-toggle {
+            position: relative;
+            width: 2.75rem;
+            height: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .settings-toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+            position: absolute;
+        }
+
+        .settings-toggle-track {
+            position: absolute;
+            inset: 0;
+            border-radius: 999px;
+            background: rgba(148, 163, 184, 0.35);
+            transition: background var(--duration-fast) var(--ease-out);
+            cursor: pointer;
+        }
+
+        .settings-toggle-track::after {
+            content: "";
+            position: absolute;
+            width: 1.15rem;
+            height: 1.15rem;
+            left: 0.18rem;
+            top: 0.18rem;
+            border-radius: 50%;
+            background: #fff;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+            transition: transform var(--duration-fast) var(--ease-out);
+        }
+
+        .settings-toggle input:checked + .settings-toggle-track {
+            background: #991b1b;
+        }
+
+        .settings-toggle input:checked + .settings-toggle-track::after {
+            transform: translateX(1.25rem);
+        }
+
+        .settings-status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.25rem 0.55rem;
+            border-radius: 999px;
+            font-size: 0.55rem;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        .settings-status-pill--on {
+            background: rgba(34, 197, 94, 0.15);
+            color: #4ade80;
+        }
+
+        .settings-status-pill--off {
+            background: rgba(148, 163, 184, 0.15);
+            color: rgba(148, 163, 184, 0.9);
+        }
+
+        body.light-mode .settings-status-pill--on {
+            color: #166534;
+        }
+
+        body.light-mode .settings-status-pill--off {
+            color: #64748b;
+        }
+
+        .admin-sidebar-link--logout {
+            color: #f87171 !important;
+            border-color: rgba(248, 113, 113, 0.2) !important;
+        }
+
+        .admin-sidebar-link--logout:hover {
+            background: rgba(248, 113, 113, 0.1) !important;
+        }
+
+        @media (min-width: 1024px) {
+            .admin-shell {
+                flex-direction: row;
+                min-height: 36rem;
+            }
+
+            body.admin-fullscreen > #adminPanelView.admin-shell {
+                min-height: 100dvh;
+            }
+
+            .admin-sidebar {
+                flex-direction: column;
+                width: 14.5rem;
+                min-width: 14.5rem;
+                padding: 1rem 0.75rem;
+                border-bottom: none;
+                border-right: 1px solid rgba(148, 163, 184, 0.12);
+                overflow-x: visible;
+                overflow-y: auto;
+            }
+
+            .admin-sidebar-brand {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+                padding: 0 0.35rem 1rem;
+                margin-bottom: 0.5rem;
+                border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+            }
+
+            .admin-sidebar-nav {
+                flex-direction: column;
+                gap: 0.3rem;
+                flex: 1;
+            }
+
+            .admin-sidebar-link--logout {
+                margin-top: auto;
+            }
+
+            .admin-sidebar-link {
+                width: 100%;
+                padding: 0.7rem 0.8rem;
+                font-size: 0.65rem;
+            }
+
+            .admin-sidebar-footer {
+                display: block;
+                margin-top: auto;
+                padding-top: 1rem;
+                text-align: center;
+            }
+        }
+
         .admin-grid {
             gap: 0.85rem;
         }
@@ -1092,43 +1821,69 @@
         </section>
     </div>
 
-    <div id="adminPanelView" class="glass-card app-panel app-view w-full max-w-6xl hidden border-t-4 border-t-[#991b1b]">
-        <div class="admin-panel-header flex flex-col md:flex-row justify-between items-center">
-            <div class="flex items-center gap-3">
-                <div class="logo-container h-14 w-12 !p-1">
+    <div id="adminPanelView" class="glass-card app-panel app-view w-full hidden border-t-4 border-t-[#991b1b] admin-shell">
+        <aside class="admin-sidebar" id="adminSidebar" aria-label="Menú administrativo">
+            <div class="admin-sidebar-brand">
+                <div class="logo-container h-14 w-12 !p-1 mx-auto">
                     <img src="Imagen1.jpg" alt="Logo GRA">
                 </div>
-                <div>
-                    <h2 class="text-base sm:text-lg md:text-xl font-black uppercase tracking-tight leading-snug max-w-xl">Sub Gerencia de Ejecución de Inversiones</h2>
-                    <p class="text-[9px] font-bold uppercase tracking-widest text-white/45 mt-1">Gobierno Regional de Ayacucho</p>
-                    <div class="flex flex-wrap gap-3 md:gap-4 mt-1.5">
-                        <button onclick="switchAdminTab('list')" id="tabList" class="text-[10px] font-black active-tab pb-1">GESTIÓN</button>
-                        <button onclick="switchAdminTab('evidence')" id="tabEvidence" class="text-[10px] font-black opacity-40 hover:opacity-100 transition-colors uppercase">Evidencias<span id="tabEvidenceBadge" class="admin-tab-badge hidden"></span></button>
-                        <button onclick="switchAdminTab('settings')" id="tabSettings" class="text-[10px] font-black opacity-40 hover:opacity-100 transition-colors uppercase">Configuración</button>
-                        <button onclick="switchAdminTab('report')" id="tabReport" class="text-[10px] font-black opacity-40 hover:opacity-100 transition-colors uppercase">Cumplimiento Regional</button>
-                    </div>
-                </div>
+                <p class="text-[8px] font-black uppercase tracking-widest text-[#991b1b] mt-2 leading-snug">Gobierno Regional de Ayacucho</p>
+                <p class="text-[9px] font-bold uppercase opacity-55 mt-1 leading-snug">Sub Gerencia de Ejecución de Inversiones</p>
             </div>
-            <div class="flex gap-2 flex-wrap justify-center items-center">
-                <div id="adminReportExportMenu" class="admin-export-menu hidden">
-                    <button type="button" id="adminExportMenuBtn" onclick="toggleAdminExportMenu()" class="bg-black/5 px-4 py-2 rounded-xl text-[10px] font-black uppercase border border-current/10 flex items-center gap-1.5">
-                        Exportar reporte
-                        <svg class="w-3 h-3 opacity-60" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.94a.75.75 0 111.08 1.04l-4.24 4.5a.75.75 0 01-1.08 0l-4.24-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd"/></svg>
-                    </button>
-                    <div id="adminExportMenuList" class="admin-export-dropdown hidden">
-                        <button type="button" onclick="runAdminExportAction('jpg')">Descargar JPG</button>
-                        <button type="button" onclick="runAdminExportAction('critico')">Reporte crítico</button>
-                        <button type="button" class="danger" onclick="runAdminExportAction('cierre')">Cierre de mes</button>
-                    </div>
-                </div>
-                <button type="button" id="exportEvidenceBtn" onclick="exportEvidenceDailyJPG()" class="hidden bg-[#991b1b]/10 px-4 py-2 rounded-xl text-[10px] font-black text-[#991b1b] uppercase border border-[#991b1b]/20 hover:bg-[#991b1b] hover:text-white transition-all">Exportar cuadro de evidencias</button>
-                <button type="button" onclick="goBackToHome(event)" class="bg-red-600/10 px-4 py-2 rounded-xl text-[10px] font-black text-red-600 uppercase border border-red-600/10">Cerrar Sesión</button>
+            <nav class="admin-sidebar-nav">
+                <button type="button" onclick="switchAdminTab('list')" id="tabList" data-admin-tab="list" class="admin-sidebar-link admin-sidebar-link--active">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10" stroke-linecap="round"/></svg>
+                    Gestión
+                </button>
+                <button type="button" onclick="switchAdminTab('evidence')" id="tabEvidence" data-admin-tab="evidence" class="admin-sidebar-link">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    Evidencias<span id="tabEvidenceBadge" class="admin-tab-badge hidden"></span>
+                </button>
+                <button type="button" onclick="switchAdminTab('settings')" id="tabSettings" data-admin-tab="settings" class="admin-sidebar-link">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    Configuración
+                </button>
+                <button type="button" onclick="switchAdminTab('report')" id="tabReport" data-admin-tab="report" class="admin-sidebar-link">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    Cumplimiento
+                </button>
+                <button type="button" onclick="goBackToHome(event)" class="admin-sidebar-link admin-sidebar-link--logout">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    Cerrar sesión
+                </button>
+            </nav>
+            <div class="admin-sidebar-footer">
+                <p class="text-[8px] font-bold uppercase opacity-35 tracking-widest">Panel administrativo v1.0</p>
             </div>
-        </div>
+        </aside>
+
+        <div class="admin-main">
+            <header class="admin-topbar">
+                <div class="min-w-0">
+                    <p id="adminPageSubtitle" class="text-[9px] font-bold uppercase tracking-widest opacity-45">Expedientes y fichas de obra</p>
+                    <h2 id="adminPageTitle" class="text-sm sm:text-base font-black uppercase tracking-tight text-[#991b1b] leading-snug mt-0.5">Gestión de proyectos</h2>
+                </div>
+                <div class="flex gap-2 flex-wrap justify-end items-center shrink-0">
+                    <div id="adminReportExportMenu" class="admin-export-menu hidden">
+                        <button type="button" id="adminExportMenuBtn" onclick="toggleAdminExportMenu()" class="bg-black/5 px-4 py-2 rounded-xl text-[10px] font-black uppercase border border-current/10 flex items-center gap-1.5">
+                            Exportar reporte
+                            <svg class="w-3 h-3 opacity-60" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.94a.75.75 0 111.08 1.04l-4.24 4.5a.75.75 0 01-1.08 0l-4.24-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd"/></svg>
+                        </button>
+                        <div id="adminExportMenuList" class="admin-export-dropdown hidden">
+                            <button type="button" onclick="runAdminExportAction('jpg')">Descargar JPG</button>
+                            <button type="button" onclick="runAdminExportAction('critico')">Reporte crítico</button>
+                            <button type="button" class="danger" onclick="runAdminExportAction('cierre')">Cierre de mes</button>
+                        </div>
+                    </div>
+                    <button type="button" id="exportEvidenceBtn" onclick="exportEvidenceDailyJPG()" class="hidden bg-[#991b1b]/10 px-4 py-2 rounded-xl text-[10px] font-black text-[#991b1b] uppercase border border-[#991b1b]/20 hover:bg-[#991b1b] hover:text-white transition-all">Exportar cuadro de evidencias</button>
+                </div>
+            </header>
+
+            <div class="admin-content">
 
         <div id="adminListView" class="admin-tab-panel admin-grid grid grid-cols-1 lg:grid-cols-12">
-            <div class="lg:col-span-8 bg-black/5 rounded-2xl border border-gray-400/10 overflow-hidden">
-                <div class="p-3 border-b border-gray-400/10 bg-black/5">
+            <div class="admin-panel-col lg:col-span-8 bg-black/5 rounded-2xl border border-gray-400/10 overflow-hidden">
+                <div class="p-3 border-b border-gray-400/10 bg-black/5 shrink-0">
                     <input
                         type="text"
                         id="adminListSearch"
@@ -1137,6 +1892,7 @@
                         oninput="setAdminListSearch(this.value)"
                     >
                 </div>
+                <div class="admin-panel-scroll overflow-x-auto">
                 <table class="w-full text-left">
                     <thead>
                         <tr class="bg-black/5 border-b border-gray-400/10">
@@ -1148,8 +1904,9 @@
                     </thead>
                     <tbody id="adminTableBody" class="divide-y divide-gray-400/10"></tbody>
                 </table>
+                </div>
             </div>
-            <div class="lg:col-span-4 bg-black/5 rounded-2xl admin-form-panel border border-gray-400/10 opacity-30 pointer-events-none transition-all" id="editSection">
+            <div class="admin-panel-col lg:col-span-4 bg-black/5 rounded-2xl admin-form-panel border border-gray-400/10 opacity-30 pointer-events-none transition-all overflow-y-auto" id="editSection">
                 <h4 class="text-[#991b1b] text-[10px] font-black uppercase mb-3">Detalles del Expediente</h4>
                 <div class="space-y-3">
                     <input type="hidden" id="editDocId">
@@ -1169,101 +1926,200 @@
             </div>
         </div>
 
-        <div id="adminSettingsView" class="admin-tab-panel hidden max-w-lg mx-auto w-full space-y-4">
-            <div class="bg-black/5 rounded-2xl border border-gray-400/10 p-5 md:p-6">
-                <h4 class="text-[#991b1b] text-[10px] font-black uppercase mb-1">Horarios de subida de evidencias</h4>
-                <p class="text-[9px] opacity-55 mb-4 leading-relaxed">Zona horaria: Lima (America/Lima). Los residentes solo pueden adjuntar archivos dentro de estas ventanas.</p>
-                <div class="space-y-4">
-                    <div>
-                        <p class="label-gold text-[8px] mb-2">Turno mañana (L-V y sábados)</p>
-                        <div class="grid grid-cols-2 gap-2">
-                            <div>
-                                <label class="text-[8px] font-bold uppercase opacity-60">Inicio</label>
-                                <input type="time" id="schedMorningStart" class="w-full rounded-xl px-3 py-2 text-sm font-bold bg-black/10 border border-gray-400/20">
+        <div id="adminSettingsView" class="admin-tab-panel hidden admin-settings-shell">
+            <nav class="admin-settings-nav" aria-label="Secciones de configuración">
+                <button type="button" class="admin-settings-nav-btn admin-settings-nav-btn--active" data-settings-panel="schedule" onclick="switchSettingsPanel('schedule')">
+                    <span class="admin-settings-nav-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2" stroke-linecap="round"/></svg>
+                    </span>
+                    <span class="admin-settings-nav-text">
+                        <strong>Horarios</strong>
+                        <span id="settingsNavHintSchedule" class="admin-settings-nav-hint">Ventanas de subida</span>
+                    </span>
+                </button>
+                <button type="button" class="admin-settings-nav-btn" data-settings-panel="fault" onclick="switchSettingsPanel('fault')">
+                    <span class="admin-settings-nav-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 7V3m8 4V3M4 11h16M5 21h14a2 2 0 002-2V7H3v12a2 2 0 002 2z" stroke-linecap="round"/></svg>
+                    </span>
+                    <span class="admin-settings-nav-text">
+                        <strong>Conteo de faltas</strong>
+                        <span id="settingsNavHintFault" class="admin-settings-nav-hint">Inicio mensual</span>
+                    </span>
+                </button>
+                <button type="button" class="admin-settings-nav-btn" data-settings-panel="bulk" onclick="switchSettingsPanel('bulk')">
+                    <span class="admin-settings-nav-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" stroke-linecap="round"/></svg>
+                    </span>
+                    <span class="admin-settings-nav-text">
+                        <strong>Sustento en bloque</strong>
+                        <span id="settingsNavHintBulk" class="admin-settings-nav-hint">Evidencias</span>
+                    </span>
+                </button>
+                <button type="button" class="admin-settings-nav-btn" data-settings-panel="access" onclick="switchSettingsPanel('access')">
+                    <span class="admin-settings-nav-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" stroke-linecap="round"/></svg>
+                    </span>
+                    <span class="admin-settings-nav-text">
+                        <strong>Acceso admin</strong>
+                        <span id="settingsNavHintAccess" class="admin-settings-nav-hint">Correo institucional</span>
+                    </span>
+                </button>
+            </nav>
+
+            <div class="admin-settings-detail">
+                <section id="settingsPanelSchedule" class="admin-settings-panel active" data-settings-panel="schedule">
+                    <div class="admin-settings-panel-head">
+                        <h4>Horarios de subida de evidencias</h4>
+                        <p>Zona horaria Lima (America/Lima). Los residentes solo pueden adjuntar archivos dentro de estas ventanas.</p>
+                    </div>
+                    <div class="admin-settings-panel-body">
+                        <div class="settings-form-grid">
+                            <div class="settings-time-block">
+                                <p class="label-gold text-[8px] mb-2">Turno mañana (L-V y sábados)</p>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <label class="text-[8px] font-bold uppercase opacity-60">Inicio</label>
+                                        <input type="time" id="schedMorningStart" class="w-full rounded-xl px-3 py-2 text-sm font-bold bg-black/10 border border-gray-400/20 mt-0.5">
+                                    </div>
+                                    <div>
+                                        <label class="text-[8px] font-bold uppercase opacity-60">Fin</label>
+                                        <input type="time" id="schedMorningEnd" class="w-full rounded-xl px-3 py-2 text-sm font-bold bg-black/10 border border-gray-400/20 mt-0.5">
+                                    </div>
+                                </div>
                             </div>
-                            <div>
-                                <label class="text-[8px] font-bold uppercase opacity-60">Fin</label>
-                                <input type="time" id="schedMorningEnd" class="w-full rounded-xl px-3 py-2 text-sm font-bold bg-black/10 border border-gray-400/20">
+                            <div class="settings-time-block">
+                                <p class="label-gold text-[8px] mb-2">Turno tarde — lunes a viernes</p>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <label class="text-[8px] font-bold uppercase opacity-60">Inicio</label>
+                                        <input type="time" id="schedAfternoonLvStart" class="w-full rounded-xl px-3 py-2 text-sm font-bold bg-black/10 border border-gray-400/20 mt-0.5">
+                                    </div>
+                                    <div>
+                                        <label class="text-[8px] font-bold uppercase opacity-60">Fin</label>
+                                        <input type="time" id="schedAfternoonLvEnd" class="w-full rounded-xl px-3 py-2 text-sm font-bold bg-black/10 border border-gray-400/20 mt-0.5">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="settings-time-block">
+                                <p class="label-gold text-[8px] mb-2">Turno tarde — sábados</p>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <label class="text-[8px] font-bold uppercase opacity-60">Inicio</label>
+                                        <input type="time" id="schedAfternoonSatStart" class="w-full rounded-xl px-3 py-2 text-sm font-bold bg-black/10 border border-gray-400/20 mt-0.5">
+                                    </div>
+                                    <div>
+                                        <label class="text-[8px] font-bold uppercase opacity-60">Fin</label>
+                                        <input type="time" id="schedAfternoonSatEnd" class="w-full rounded-xl px-3 py-2 text-sm font-bold bg-black/10 border border-gray-400/20 mt-0.5">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="settings-time-block flex flex-col justify-center">
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="checkbox" id="schedBlockSunday" class="rounded border-gray-400/30">
+                                    <span class="text-[10px] font-bold">Sin entregas los domingos</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="settings-preview-box">
+                            <p class="text-[8px] font-black uppercase text-[#991b1b] mb-2">Vista semanal en vivo</p>
+                            <div id="schedVisualGrid" class="sched-visual-grid"></div>
+                            <div class="sched-visual-legend">
+                                <span><i style="background:linear-gradient(90deg,#ca8a04,#facc15)"></i> Mañana</span>
+                                <span><i style="background:linear-gradient(90deg,#7f1d1d,#991b1b)"></i> Tarde</span>
+                            </div>
+                            <p id="schedPreviewText" class="text-[9px] font-bold opacity-80 leading-relaxed uppercase mt-3"></p>
+                        </div>
+                    </div>
+                    <div class="admin-settings-panel-footer">
+                        <button type="button" onclick="saveScheduleSettings()" id="schedSaveBtn" class="settings-save-btn btn-primary py-2.5 px-4 rounded-xl text-xs font-black uppercase">Guardar horarios</button>
+                    </div>
+                </section>
+
+                <section id="settingsPanelFault" class="admin-settings-panel" data-settings-panel="fault">
+                    <div class="admin-settings-panel-head">
+                        <h4>Conteo de faltas del mes</h4>
+                        <p>Define desde qué día de cada mes se contabilizan las faltas en el reporte de cumplimiento.</p>
+                    </div>
+                    <div class="admin-settings-panel-body">
+                        <div class="settings-form-grid settings-form-grid--single">
+                            <div class="settings-time-block settings-day-picker">
+                                <output id="faultCountDayDisplay" for="configFaultCountDay" class="settings-day-display">1<small>día del mes</small></output>
+                                <input type="range" id="configFaultCountDay" min="1" max="31" value="1" class="settings-range">
+                                <div class="settings-day-presets">
+                                    <button type="button" class="settings-day-preset" data-day="1" onclick="setFaultCountDay(1)">Día 1</button>
+                                    <button type="button" class="settings-day-preset" data-day="5" onclick="setFaultCountDay(5)">Día 5</button>
+                                    <button type="button" class="settings-day-preset" data-day="10" onclick="setFaultCountDay(10)">Día 10</button>
+                                    <button type="button" class="settings-day-preset" data-day="15" onclick="setFaultCountDay(15)">Día 15</button>
+                                    <button type="button" class="settings-day-preset" data-day="20" onclick="setFaultCountDay(20)">Día 20</button>
+                                </div>
+                            </div>
+                            <div class="settings-preview-box">
+                                <p class="text-[8px] font-black uppercase text-[#991b1b] mb-1">Vista previa conteo</p>
+                                <p id="faultCountPreviewText" class="text-[9px] font-bold opacity-80 leading-relaxed"></p>
                             </div>
                         </div>
                     </div>
-                    <div>
-                        <p class="label-gold text-[8px] mb-2">Turno tarde — lunes a viernes</p>
-                        <div class="grid grid-cols-2 gap-2">
+                    <div class="admin-settings-panel-footer">
+                        <button type="button" onclick="saveFaultCountSettings()" id="faultCountSaveBtn" class="settings-save-btn btn-primary py-2.5 px-4 rounded-xl text-xs font-black uppercase">Guardar conteo</button>
+                    </div>
+                </section>
+
+                <section id="settingsPanelBulk" class="admin-settings-panel" data-settings-panel="bulk">
+                    <div class="admin-settings-panel-head">
+                        <h4>Sustento en bloque</h4>
+                        <p>Permite marcar varios turnos sin carga como sustentados desde la pestaña Evidencias.</p>
+                    </div>
+                    <div class="admin-settings-panel-body">
+                        <div class="settings-toggle-row">
                             <div>
-                                <label class="text-[8px] font-bold uppercase opacity-60">Inicio</label>
-                                <input type="time" id="schedAfternoonLvStart" class="w-full rounded-xl px-3 py-2 text-sm font-bold bg-black/10 border border-gray-400/20">
+                                <p class="text-[10px] font-black uppercase">Habilitar sustento en bloque</p>
+                                <p class="text-[9px] opacity-50 mt-1">Activa checkboxes y panel de marcado masivo en Evidencias.</p>
+                                <span id="bulkSustentoStatusPill" class="settings-status-pill settings-status-pill--on mt-2">Activo</span>
                             </div>
+                            <label class="settings-toggle">
+                                <input type="checkbox" id="configBulkSustentoEnabled">
+                                <span class="settings-toggle-track"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="admin-settings-panel-footer">
+                        <button type="button" onclick="saveBulkSustentoSettings()" id="bulkSustentoSaveBtn" class="settings-save-btn btn-primary py-2.5 px-4 rounded-xl text-xs font-black uppercase">Guardar opción</button>
+                    </div>
+                </section>
+
+                <section id="settingsPanelAccess" class="admin-settings-panel" data-settings-panel="access">
+                    <div class="admin-settings-panel-head">
+                        <h4>Acceso administrativo</h4>
+                        <p>Correo y contraseña para ingresar al panel. Deje la contraseña en blanco si no desea cambiarla.</p>
+                    </div>
+                    <div class="admin-settings-panel-body">
+                        <div class="settings-form-grid settings-form-grid--single max-w-xl">
                             <div>
-                                <label class="text-[8px] font-bold uppercase opacity-60">Fin</label>
-                                <input type="time" id="schedAfternoonLvEnd" class="w-full rounded-xl px-3 py-2 text-sm font-bold bg-black/10 border border-gray-400/20">
+                                <label for="configAdminEmail" class="text-[8px] font-bold uppercase opacity-60">Correo institucional</label>
+                                <input type="email" id="configAdminEmail" autocomplete="username" placeholder="correo@institucion.pe" class="w-full rounded-xl px-3 py-2 text-sm font-bold bg-black/10 border border-gray-400/20 mt-1">
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div>
+                                    <label for="configAdminPassword" class="text-[8px] font-bold uppercase opacity-60">Nueva contraseña</label>
+                                    <input type="password" id="configAdminPassword" autocomplete="new-password" placeholder="Opcional" class="w-full rounded-xl px-3 py-2 text-sm font-bold bg-black/10 border border-gray-400/20 mt-1">
+                                </div>
+                                <div>
+                                    <label for="configAdminPasswordConfirm" class="text-[8px] font-bold uppercase opacity-60">Confirmar contraseña</label>
+                                    <input type="password" id="configAdminPasswordConfirm" autocomplete="new-password" placeholder="Repita si cambia" class="w-full rounded-xl px-3 py-2 text-sm font-bold bg-black/10 border border-gray-400/20 mt-1">
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div>
-                        <p class="label-gold text-[8px] mb-2">Turno tarde — sábados</p>
-                        <div class="grid grid-cols-2 gap-2">
-                            <div>
-                                <label class="text-[8px] font-bold uppercase opacity-60">Inicio</label>
-                                <input type="time" id="schedAfternoonSatStart" class="w-full rounded-xl px-3 py-2 text-sm font-bold bg-black/10 border border-gray-400/20">
-                            </div>
-                            <div>
-                                <label class="text-[8px] font-bold uppercase opacity-60">Fin</label>
-                                <input type="time" id="schedAfternoonSatEnd" class="w-full rounded-xl px-3 py-2 text-sm font-bold bg-black/10 border border-gray-400/20">
-                            </div>
-                        </div>
+                    <div class="admin-settings-panel-footer">
+                        <button type="button" onclick="saveAdminCredentialsSettings()" id="adminCredsSaveBtn" class="settings-save-btn btn-primary py-2.5 px-4 rounded-xl text-xs font-black uppercase">Guardar acceso</button>
                     </div>
-                    <label class="flex items-center gap-2 cursor-pointer">
-                        <input type="checkbox" id="schedBlockSunday" class="rounded border-gray-400/30">
-                        <span class="text-[10px] font-bold">Sin entregas los domingos</span>
-                    </label>
-                    <div class="rounded-xl border border-[#991b1b]/20 bg-[#991b1b]/5 p-3">
-                        <p class="text-[8px] font-black uppercase text-[#991b1b] mb-1">Vista previa horarios</p>
-                        <p id="schedPreviewText" class="text-[9px] font-bold opacity-80 leading-relaxed uppercase"></p>
-                    </div>
-                </div>
+                </section>
             </div>
-
-            <div class="bg-black/5 rounded-2xl border border-gray-400/10 p-5 md:p-6">
-                <h4 class="text-[#991b1b] text-[10px] font-black uppercase mb-1">Conteo de faltas del mes</h4>
-                <p class="text-[9px] opacity-55 mb-4 leading-relaxed">Define desde qué día de cada mes se contabilizan las faltas en el reporte de cumplimiento. Los días anteriores no suman al total mensual.</p>
-                <div class="space-y-3">
-                    <div>
-                        <label for="configFaultCountFromDate" class="text-[8px] font-bold uppercase opacity-60">Contar faltas desde el día</label>
-                        <input type="date" id="configFaultCountFromDate" class="w-full rounded-xl px-3 py-2 text-sm font-bold bg-black/10 border border-gray-400/20 mt-1">
-                    </div>
-                    <div class="rounded-xl border border-[#991b1b]/20 bg-[#991b1b]/5 p-3">
-                        <p class="text-[8px] font-black uppercase text-[#991b1b] mb-1">Vista previa conteo</p>
-                        <p id="faultCountPreviewText" class="text-[9px] font-bold opacity-80 leading-relaxed"></p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="bg-black/5 rounded-2xl border border-gray-400/10 p-5 md:p-6">
-                <h4 class="text-[#991b1b] text-[10px] font-black uppercase mb-1">Acceso administrativo</h4>
-                <p class="text-[9px] opacity-55 mb-4 leading-relaxed">Correo y contraseña para ingresar al panel administrativo. Deje la contraseña en blanco si no desea cambiarla.</p>
-                <div class="space-y-3">
-                    <div>
-                        <label for="configAdminEmail" class="text-[8px] font-bold uppercase opacity-60">Correo institucional</label>
-                        <input type="email" id="configAdminEmail" autocomplete="username" placeholder="correo@institucion.pe" class="w-full rounded-xl px-3 py-2 text-sm font-bold bg-black/10 border border-gray-400/20 mt-1">
-                    </div>
-                    <div>
-                        <label for="configAdminPassword" class="text-[8px] font-bold uppercase opacity-60">Nueva contraseña</label>
-                        <input type="password" id="configAdminPassword" autocomplete="new-password" placeholder="Dejar en blanco para mantener la actual" class="w-full rounded-xl px-3 py-2 text-sm font-bold bg-black/10 border border-gray-400/20 mt-1">
-                    </div>
-                    <div>
-                        <label for="configAdminPasswordConfirm" class="text-[8px] font-bold uppercase opacity-60">Confirmar contraseña</label>
-                        <input type="password" id="configAdminPasswordConfirm" autocomplete="new-password" placeholder="Repita la nueva contraseña" class="w-full rounded-xl px-3 py-2 text-sm font-bold bg-black/10 border border-gray-400/20 mt-1">
-                    </div>
-                </div>
-            </div>
-
-            <button type="button" onclick="saveAdminSettings()" id="settingsSaveBtn" class="w-full btn-primary py-2.5 rounded-xl text-xs font-black uppercase">Guardar configuración</button>
         </div>
 
         <div id="adminEvidenceView" class="admin-tab-panel hidden admin-grid grid grid-cols-1 lg:grid-cols-12">
-            <div class="lg:col-span-5 bg-black/5 rounded-3xl border border-gray-400/10 overflow-hidden">
-                <div class="p-4 border-b border-gray-400/10 bg-black/5">
+            <div class="admin-panel-col lg:col-span-5 bg-black/5 rounded-3xl border border-gray-400/10 overflow-hidden">
+                <div class="p-4 border-b border-gray-400/10 bg-black/5 shrink-0">
                     <h4 class="text-[#991b1b] text-[10px] font-black uppercase">Seguimiento del día</h4>
                     <p id="evidenceFollowUpSubtitle" class="text-[9px] opacity-50 mt-1">Solo actividad de hoy.</p>
                     <input
@@ -1274,7 +2130,7 @@
                         oninput="setEvidenceProjectSearch(this.value)"
                     >
                 </div>
-                <div class="overflow-x-auto max-h-[32rem] overflow-y-auto">
+                <div class="admin-panel-scroll overflow-x-auto">
                     <table class="w-full text-left">
                         <thead>
                             <tr class="bg-black/5 border-b border-gray-400/10">
@@ -1289,7 +2145,7 @@
                     </table>
                 </div>
             </div>
-            <div class="lg:col-span-7 bg-black/5 rounded-3xl border border-gray-400/10 p-6 md:p-8">
+            <div class="admin-panel-col lg:col-span-7 bg-black/5 rounded-3xl border border-gray-400/10 p-6 md:p-8 overflow-hidden">
                 <h4 class="text-[#991b1b] text-[10px] font-black uppercase mb-2">Verificación de evidencias</h4>
                 <p id="evidenceSelectedLabel" class="text-[10px] font-bold opacity-60 mb-4">Seleccione un proyecto en la lista de la izquierda.</p>
                 <div class="flex flex-wrap items-center gap-2 mb-3">
@@ -1298,7 +2154,7 @@
                         <option value="">Todas las fechas</option>
                     </select>
                 </div>
-                <div class="rounded-xl border border-sky-500/25 bg-sky-950/10 p-3 mb-3">
+                <div id="bulkSustentoPanel" class="rounded-xl border border-sky-500/25 bg-sky-950/10 p-3 mb-3">
                     <p class="text-[9px] font-black uppercase text-sky-300 mb-2">Sustento en bloque (sin carga)</p>
                     <textarea id="bulkSustentoNote" rows="2" placeholder="Motivo para los turnos seleccionados..." class="w-full rounded-lg px-2 py-2 text-[10px] mb-2"></textarea>
                     <div class="flex flex-wrap gap-2">
@@ -1311,7 +2167,7 @@
                 <p class="text-[9px] opacity-50 mb-1">El administrador puede revisar las entregas anteriores, aprobarlas o rechazarlas con observación.</p>
                 <p class="text-[9px] opacity-50 mb-2">Los videos y fotos se eliminan automáticamente 4 días después de la entrega.</p>
                 <p class="text-[9px] opacity-55 mb-3 leading-relaxed">Cada envío registra IP, ubicación aproximada por red y GPS del dispositivo. Para cargar evidencia es obligatorio habilitar ubicación.</p>
-                <div id="evidenceReviewList" class="max-h-[32rem] overflow-y-auto space-y-4 pr-1"></div>
+                <div id="evidenceReviewList" class="admin-panel-scroll space-y-4 pr-1"></div>
             </div>
 
             <div class="admin-evidence-fab-wrap col-span-full h-0 overflow-visible">
@@ -1419,6 +2275,8 @@
                 </div>
             </div>
         </div>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -1480,9 +2338,14 @@
             password: "Valdez250396@."
         };
 
+        const DEFAULT_EVIDENCE_SETTINGS = {
+            bulk_sustento_enabled: true
+        };
+
         let uploadSchedule = { ...DEFAULT_UPLOAD_SCHEDULE };
         let faultCountSettings = { ...DEFAULT_FAULT_COUNT_SETTINGS };
         let adminCredentials = { ...DEFAULT_ADMIN_CREDENTIALS };
+        let evidenceSettings = { ...DEFAULT_EVIDENCE_SETTINGS };
         let settingsSyncStarted = false;
         let settingsUnsubscribe = null;
 
@@ -1520,6 +2383,10 @@
 
         const APP_VIEWS = [authView, adminPanelView, residentModuleView];
 
+        function syncBodyLayoutClass(activeView) {
+            document.body.classList.toggle('admin-fullscreen', activeView === adminPanelView);
+        }
+
         function revealAppView(el) {
             if (!el) return;
             APP_VIEWS.forEach((v) => {
@@ -1532,6 +2399,7 @@
             el.classList.remove('view-animate-in');
             void el.offsetWidth;
             el.classList.add('view-animate-in');
+            syncBodyLayoutClass(el);
         }
 
         function replayAdminTabAnimation(panel) {
@@ -1543,7 +2411,9 @@
 
         window.toggleTheme = () => {
             isDarkMode = !isDarkMode;
+            const adminFullscreen = document.body.classList.contains('admin-fullscreen');
             document.body.className = isDarkMode ? 'dark-mode' : 'light-mode';
+            if (adminFullscreen) document.body.classList.add('admin-fullscreen');
             const icon = document.getElementById('themeIcon');
             icon.innerHTML = isDarkMode ? 
                 `<svg class="w-6 h-6 text-yellow-400" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>` : 
@@ -1706,11 +2576,145 @@
         }
 
         function readFaultCountDayFromAdminForm() {
-            const el = document.getElementById("configFaultCountFromDate");
-            const value = el?.value || "";
-            const m = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-            if (!m) return faultCountSettings.start_day || 1;
-            return Math.max(1, Math.min(31, Number(m[3]) || 1));
+            const el = document.getElementById("configFaultCountDay");
+            const day = Number(el?.value);
+            if (Number.isFinite(day) && day >= 1 && day <= 31) return Math.floor(day);
+            return faultCountSettings.start_day || 1;
+        }
+
+        function syncFaultCountDayUI() {
+            const day = readFaultCountDayFromAdminForm();
+            const display = document.getElementById("faultCountDayDisplay");
+            if (display) display.innerHTML = `${day}<small>día del mes</small>`;
+            document.querySelectorAll(".settings-day-preset").forEach((btn) => {
+                btn.classList.toggle("is-active", Number(btn.dataset.day) === day);
+            });
+        }
+
+        window.setFaultCountDay = (day) => {
+            const slider = document.getElementById("configFaultCountDay");
+            if (!slider) return;
+            slider.value = String(Math.max(1, Math.min(31, Number(day) || 1)));
+            syncFaultCountDayUI();
+            updateFaultCountPreview();
+        };
+
+        function renderScheduleVisualGrid() {
+            const grid = document.getElementById("schedVisualGrid");
+            if (!grid) return;
+            const s = readUploadScheduleFromAdminForm();
+            const dayConfigs = [
+                { label: "Lun", type: "lv" },
+                { label: "Mar", type: "lv" },
+                { label: "Mié", type: "lv" },
+                { label: "Jue", type: "lv" },
+                { label: "Vie", type: "lv" },
+                { label: "Sáb", type: "sat" },
+                { label: "Dom", type: "sun" }
+            ];
+            grid.innerHTML = dayConfigs.map((d) => {
+                const blocked = d.type === "sun" && s.block_sunday;
+                const hasMorning = !blocked;
+                const hasAfternoon = !blocked && d.type !== "sun";
+                const morningTitle = hasMorning ? `Mañana ${s.morning_start}–${s.morning_end}` : "Sin turno";
+                const afternoonTitle = hasAfternoon
+                    ? (d.type === "sat"
+                        ? `Tarde ${s.afternoon_sat_start}–${s.afternoon_sat_end}`
+                        : `Tarde ${s.afternoon_lv_start}–${s.afternoon_lv_end}`)
+                    : "Sin turno";
+                return `<div class="sched-visual-col${blocked ? " sched-visual-col--off" : ""}">
+                    <span class="sched-visual-day">${d.label}</span>
+                    <div class="sched-visual-slots">
+                        <div class="sched-visual-slot sched-visual-slot--morning${hasMorning ? "" : " is-empty"}" title="${morningTitle}"></div>
+                        <div class="sched-visual-slot sched-visual-slot--afternoon${hasAfternoon ? "" : " is-empty"}" title="${afternoonTitle}"></div>
+                    </div>
+                </div>`;
+            }).join("");
+        }
+
+        function updateSettingsNavHints() {
+            const schedHint = document.getElementById("settingsNavHintSchedule");
+            if (schedHint) {
+                const s = document.getElementById("schedMorningStart")
+                    ? readUploadScheduleFromAdminForm()
+                    : uploadSchedule;
+                schedHint.textContent = `Mañana ${s.morning_start}–${s.morning_end}`;
+            }
+            const faultHint = document.getElementById("settingsNavHintFault");
+            if (faultHint) {
+                faultHint.textContent = `Desde día ${readFaultCountDayFromAdminForm()}`;
+            }
+            const bulkHint = document.getElementById("settingsNavHintBulk");
+            const bulkEnabled = readBulkSustentoEnabledFromForm();
+            if (bulkHint) bulkHint.textContent = bulkEnabled ? "Habilitado" : "Deshabilitado";
+            const bulkPill = document.getElementById("bulkSustentoStatusPill");
+            if (bulkPill) {
+                bulkPill.textContent = bulkEnabled ? "Activo" : "Inactivo";
+                bulkPill.classList.toggle("settings-status-pill--on", bulkEnabled);
+                bulkPill.classList.toggle("settings-status-pill--off", !bulkEnabled);
+            }
+            const accessHint = document.getElementById("settingsNavHintAccess");
+            const email = document.getElementById("configAdminEmail")?.value?.trim()
+                || adminCredentials.email
+                || DEFAULT_ADMIN_CREDENTIALS.email;
+            if (accessHint) {
+                accessHint.textContent = email.length > 22 ? `${email.slice(0, 20)}…` : email;
+            }
+        }
+
+        let activeSettingsPanel = "schedule";
+
+        window.switchSettingsPanel = (panel) => {
+            activeSettingsPanel = panel || "schedule";
+            document.querySelectorAll(".admin-settings-nav-btn").forEach((btn) => {
+                btn.classList.toggle("admin-settings-nav-btn--active", btn.dataset.settingsPanel === activeSettingsPanel);
+            });
+            document.querySelectorAll(".admin-settings-panel").forEach((sec) => {
+                sec.classList.toggle("active", sec.dataset.settingsPanel === activeSettingsPanel);
+            });
+        };
+
+        function normalizeEvidenceSettings(raw) {
+            return {
+                bulk_sustento_enabled: raw?.bulk_sustento_enabled !== false
+            };
+        }
+
+        function isBulkSustentoEnabled() {
+            return !!evidenceSettings.bulk_sustento_enabled;
+        }
+
+        function refreshBulkSustentoPanelVisibility() {
+            const panel = document.getElementById("bulkSustentoPanel");
+            if (panel) panel.classList.toggle("hidden", !isBulkSustentoEnabled());
+            const toggle = document.getElementById("configBulkSustentoEnabled");
+            if (toggle) toggle.checked = isBulkSustentoEnabled();
+            updateSettingsNavHints();
+        }
+
+        function readBulkSustentoEnabledFromForm() {
+            return !!document.getElementById("configBulkSustentoEnabled")?.checked;
+        }
+
+        async function persistSettingsSection(patch, successMsg, btn) {
+            const original = btn?.textContent || "Guardar";
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = "Guardando...";
+            }
+            try {
+                await setDoc(doc(db, "artifacts", appId, "public", "data", "settings", "general"), patch, { merge: true });
+                showFeedback(successMsg, "success");
+            } catch (e) {
+                console.error(e);
+                showFeedback(`No se pudo guardar: ${e.code || e.message}`, "error");
+                throw e;
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.textContent = original;
+                }
+            }
         }
 
         function normalizeAdminCredentials(raw) {
@@ -1758,10 +2762,12 @@
         function updateFaultCountPreview() {
             const preview = document.getElementById("faultCountPreviewText");
             if (!preview) return;
+            syncFaultCountDayUI();
             const monthISO = getSelectedMonthISO();
             const startDay = readFaultCountDayFromAdminForm();
             const startYmd = faultCountStartYmdForMonth(monthISO, startDay);
             preview.textContent = `En ${formatMonthLabel(monthISO)} el conteo de faltas inicia el ${formatEvidenceDateShort(startYmd)} (día ${startDay} de cada mes).`;
+            updateSettingsNavHints();
         }
 
         function renderUploadScheduleAdminForm() {
@@ -1782,12 +2788,13 @@
             const previewHandler = () => {
                 const draft = readUploadScheduleFromAdminForm();
                 const preview = document.getElementById("schedPreviewText");
-                const footer = document.getElementById("residentUploadScheduleFooter");
                 const text = (() => {
                     const s = draft;
                     return `Horario Lima · L-V ${s.morning_start}–${s.morning_end} y ${s.afternoon_lv_start}–${s.afternoon_lv_end} · Sáb ${s.morning_start}–${s.morning_end} y ${s.afternoon_sat_start}–${s.afternoon_sat_end}`;
                 })();
                 if (preview) preview.textContent = text;
+                renderScheduleVisualGrid();
+                updateSettingsNavHints();
             };
             [
                 "schedMorningStart", "schedMorningEnd",
@@ -1801,23 +2808,33 @@
             updateUploadScheduleFooter();
             previewHandler();
 
-            const faultDateEl = document.getElementById("configFaultCountFromDate");
-            if (faultDateEl) {
-                const monthISO = fechaCarpetaLima().slice(0, 7);
-                const dim = daysInMonthYm(monthISO);
-                const day = Math.min(Math.max(1, Number(faultCountSettings.start_day) || 1), dim);
-                faultDateEl.value = `${monthISO}-${String(day).padStart(2, "0")}`;
-                faultDateEl.onchange = updateFaultCountPreview;
-                faultDateEl.oninput = updateFaultCountPreview;
+            const faultDayEl = document.getElementById("configFaultCountDay");
+            if (faultDayEl) {
+                const day = Math.min(Math.max(1, Number(faultCountSettings.start_day) || 1), 31);
+                faultDayEl.value = String(day);
+                faultDayEl.oninput = () => {
+                    syncFaultCountDayUI();
+                    updateFaultCountPreview();
+                };
             }
+            syncFaultCountDayUI();
             updateFaultCountPreview();
 
             const adminEmailEl = document.getElementById("configAdminEmail");
             const adminPassEl = document.getElementById("configAdminPassword");
             const adminPassConfirmEl = document.getElementById("configAdminPasswordConfirm");
-            if (adminEmailEl) adminEmailEl.value = adminCredentials.email || DEFAULT_ADMIN_CREDENTIALS.email;
+            if (adminEmailEl) {
+                adminEmailEl.value = adminCredentials.email || DEFAULT_ADMIN_CREDENTIALS.email;
+                adminEmailEl.oninput = updateSettingsNavHints;
+            }
             if (adminPassEl) adminPassEl.value = "";
             if (adminPassConfirmEl) adminPassConfirmEl.value = "";
+
+            const bulkToggle = document.getElementById("configBulkSustentoEnabled");
+            if (bulkToggle) bulkToggle.onchange = updateSettingsNavHints;
+
+            refreshBulkSustentoPanelVisibility();
+            switchSettingsPanel(activeSettingsPanel);
         }
 
         function validateUploadSchedule(sched) {
@@ -1834,68 +2851,93 @@
             return null;
         }
 
-        window.saveAdminSettings = async () => {
+        window.saveScheduleSettings = async () => {
             const sched = readUploadScheduleFromAdminForm();
             const schedErr = validateUploadSchedule(sched);
             if (schedErr) {
                 showFeedback(schedErr, "error");
                 return;
             }
-            const startDay = readFaultCountDayFromAdminForm();
-            const faultSettings = { start_day: startDay };
+            try {
+                await persistSettingsSection(
+                    { upload_schedule: { ...sched, updated_at: new Date().toISOString() } },
+                    "Horarios guardados correctamente.",
+                    document.getElementById("schedSaveBtn")
+                );
+                uploadSchedule = sched;
+                updateUploadScheduleFooter();
+                const resV = document.getElementById("residentModuleView");
+                if (resV && !resV.classList.contains("hidden") && activeProjectId) {
+                    refreshResidentUploadSection();
+                }
+            } catch {
+                /* feedback shown */
+            }
+        };
+
+        window.saveFaultCountSettings = async () => {
+            const faultSettings = { start_day: readFaultCountDayFromAdminForm() };
+            try {
+                await persistSettingsSection(
+                    { fault_count_settings: { ...faultSettings, updated_at: new Date().toISOString() } },
+                    "Conteo de faltas guardado.",
+                    document.getElementById("faultCountSaveBtn")
+                );
+                faultCountSettings = faultSettings;
+                updateFaultCountPreview();
+                const report = document.getElementById("adminReportView");
+                if (report && !report.classList.contains("hidden")) {
+                    renderElegantFaultReport();
+                }
+            } catch {
+                /* feedback shown */
+            }
+        };
+
+        window.saveBulkSustentoSettings = async () => {
+            const settings = { bulk_sustento_enabled: readBulkSustentoEnabledFromForm() };
+            try {
+                await persistSettingsSection(
+                    { evidence_settings: { ...settings, updated_at: new Date().toISOString() } },
+                    settings.bulk_sustento_enabled
+                        ? "Sustento en bloque habilitado."
+                        : "Sustento en bloque deshabilitado.",
+                    document.getElementById("bulkSustentoSaveBtn")
+                );
+                evidenceSettings = settings;
+                refreshBulkSustentoPanelVisibility();
+                const p = masterProjects.find((x) => x.id === evidenceSelectedProjectId);
+                if (p) renderEvidenceReview(p);
+            } catch {
+                /* feedback shown */
+            }
+        };
+
+        window.saveAdminCredentialsSettings = async () => {
             const credResult = resolveAdminCredentialsForSave();
             if (credResult.error) {
                 showFeedback(credResult.error, "error");
                 return;
             }
             const creds = credResult.creds;
-
-            const btn = document.getElementById("settingsSaveBtn");
-            const original = btn?.textContent || "Guardar configuración";
-            if (btn) {
-                btn.disabled = true;
-                btn.textContent = "Guardando...";
-            }
             try {
-                await setDoc(
-                    doc(db, "artifacts", appId, "public", "data", "settings", "general"),
-                    {
-                        upload_schedule: { ...sched, updated_at: new Date().toISOString() },
-                        fault_count_settings: { ...faultSettings, updated_at: new Date().toISOString() },
-                        admin_credentials: { ...creds, updated_at: new Date().toISOString() }
-                    },
-                    { merge: true }
+                await persistSettingsSection(
+                    { admin_credentials: { ...creds, updated_at: new Date().toISOString() } },
+                    "Acceso administrativo actualizado.",
+                    document.getElementById("adminCredsSaveBtn")
                 );
-                uploadSchedule = sched;
-                faultCountSettings = faultSettings;
                 adminCredentials = { ...creds };
-                updateUploadScheduleFooter();
-                updateFaultCountPreview();
                 const adminPassEl = document.getElementById("configAdminPassword");
                 const adminPassConfirmEl = document.getElementById("configAdminPasswordConfirm");
                 if (adminPassEl) adminPassEl.value = "";
                 if (adminPassConfirmEl) adminPassConfirmEl.value = "";
-                showFeedback("Configuración guardada correctamente.", "success");
-                const resV = document.getElementById("residentModuleView");
-                if (resV && !resV.classList.contains("hidden") && activeProjectId) {
-                    refreshResidentUploadSection();
-                }
-                const report = document.getElementById("adminReportView");
-                if (report && !report.classList.contains("hidden")) {
-                    renderElegantFaultReport();
-                }
-            } catch (e) {
-                console.error(e);
-                showFeedback(`No se pudo guardar: ${e.code || e.message}`, "error");
-            } finally {
-                if (btn) {
-                    btn.disabled = false;
-                    btn.textContent = original;
-                }
+            } catch {
+                /* feedback shown */
             }
         };
 
-        window.saveUploadSchedule = () => saveAdminSettings();
+        window.saveAdminSettings = () => saveScheduleSettings();
+        window.saveUploadSchedule = () => saveScheduleSettings();
 
         function startSettingsSync() {
             const settingsRef = doc(db, "artifacts", appId, "public", "data", "settings", "general");
@@ -1912,9 +2954,13 @@
                     if (data?.admin_credentials) {
                         adminCredentials = normalizeAdminCredentials(data.admin_credentials);
                     }
+                    if (data?.evidence_settings) {
+                        evidenceSettings = normalizeEvidenceSettings(data.evidence_settings);
+                    }
                 }
                 updateUploadScheduleFooter();
                 renderUploadScheduleAdminForm();
+                refreshBulkSustentoPanelVisibility();
                 const report = document.getElementById("adminReportView");
                 if (report && !report.classList.contains("hidden")) {
                     renderElegantFaultReport();
@@ -2840,6 +3886,13 @@
             }).join('');
         }
 
+        const ADMIN_TAB_META = {
+            list: { title: "Gestión de proyectos", subtitle: "Expedientes y fichas de obra" },
+            evidence: { title: "Evidencias", subtitle: "Seguimiento y verificación diaria" },
+            settings: { title: "Configuración", subtitle: "Horarios, faltas y acceso administrativo" },
+            report: { title: "Cumplimiento regional", subtitle: "Reporte de incumplimiento" }
+        };
+
         window.switchAdminTab = (tab) => {
             const list = document.getElementById('adminListView');
             const report = document.getElementById('adminReportView');
@@ -2847,12 +3900,9 @@
             const schedule = document.getElementById('adminSettingsView');
             const reportExportMenu = document.getElementById('adminReportExportMenu');
             const evidenceExportBtn = document.getElementById('exportEvidenceBtn');
-            const btnList = document.getElementById('tabList');
-            const btnReport = document.getElementById('tabReport');
-            const btnEvidence = document.getElementById('tabEvidence');
-            const btnSettings = document.getElementById('tabSettings');
-            const tabInactive = "text-[10px] font-black opacity-40 hover:opacity-100 transition-all duration-300 uppercase";
-            const tabActive = "text-[10px] font-black active-tab pb-1 transition-all duration-300";
+            const pageTitle = document.getElementById('adminPageTitle');
+            const pageSubtitle = document.getElementById('adminPageSubtitle');
+            const meta = ADMIN_TAB_META[tab] || ADMIN_TAB_META.list;
 
             list.classList.toggle('hidden', tab !== 'list');
             report.classList.toggle('hidden', tab !== 'report');
@@ -2870,14 +3920,17 @@
             evidenceExportBtn?.classList.toggle('hidden', tab !== 'evidence');
             if (!showReportExports) toggleAdminExportMenu(false);
 
-            btnList.className = tab === 'list' ? tabActive : tabInactive;
-            if (btnEvidence) btnEvidence.className = tab === 'evidence' ? tabActive : tabInactive;
-            if (btnSettings) btnSettings.className = tab === 'settings' ? tabActive : tabInactive;
-            btnReport.className = tab === 'report' ? tabActive : tabInactive;
+            document.querySelectorAll('.admin-sidebar-link').forEach((btn) => {
+                btn.classList.toggle('admin-sidebar-link--active', btn.dataset.adminTab === tab);
+            });
+            if (pageTitle) pageTitle.textContent = meta.title;
+            if (pageSubtitle) pageSubtitle.textContent = meta.subtitle;
+
             if (tab === 'report') renderElegantFaultReport();
             if (tab === 'evidence') {
                 renderEvidenceAdminProjectTable();
                 renderAdminAlertsWidget();
+                refreshBulkSustentoPanelVisibility();
                 const lbl = document.getElementById('evidenceSelectedLabel');
                 const revList = document.getElementById('evidenceReviewList');
                 const p = masterProjects.find((x) => x.id === evidenceSelectedProjectId);
@@ -3553,6 +4606,10 @@
         };
 
         window.applyBulkSustento = async () => {
+            if (!isBulkSustentoEnabled()) {
+                showFeedback("El sustento en bloque está deshabilitado en Configuración.", "error");
+                return;
+            }
             const projectId = evidenceSelectedProjectId;
             if (!projectId) {
                 showFeedback("Seleccione un proyecto para aplicar sustento en bloque.", "error");
@@ -3841,10 +4898,14 @@
                                 <span class="text-[#991b1b]">${escHtml(fecha)}</span> · ${turnoLabel}
                             </div>
                             <div class="flex items-center gap-2">
-                                <label class="text-[8px] font-black uppercase opacity-70 flex items-center gap-1">
+                                ${
+                                    isBulkSustentoEnabled()
+                                        ? `<label class="text-[8px] font-black uppercase opacity-70 flex items-center gap-1">
                                     <input type="checkbox" class="bulkSustentoCheck accent-sky-500" data-pid="${p.id}" data-bkey="${sustKey}">
                                     Lote
-                                </label>
+                                </label>`
+                                        : ""
+                                }
                                 <span class="text-[9px] font-black text-orange-400/90">SIN CARGA</span>
                             </div>
                         </div>
