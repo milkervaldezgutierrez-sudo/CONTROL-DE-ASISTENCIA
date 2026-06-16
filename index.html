@@ -707,6 +707,44 @@
         .status-dot.tier-2 { background-color: #f97316; box-shadow: 0 0 8px rgba(249, 115, 22, 0.45); }
         .status-dot.tier-3 { background-color: #dc2626; box-shadow: 0 0 8px rgba(220, 38, 38, 0.5); }
 
+        .status-split-dot {
+            position: relative;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            overflow: hidden;
+            display: inline-flex;
+            border: 1px solid rgba(128, 128, 128, 0.35);
+            flex-shrink: 0;
+        }
+
+        .status-split-dot::after {
+            content: "";
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 1px;
+            background: rgba(0, 0, 0, 0.28);
+            transform: translateX(-50%);
+            pointer-events: none;
+        }
+
+        .status-split-half {
+            flex: 1 1 50%;
+            height: 100%;
+            min-width: 0;
+        }
+
+        .status-split-half--ok { background-color: #22c55e; }
+        .status-split-half--fail { background-color: #dc2626; }
+        .status-split-half--pending { background-color: rgba(128, 128, 128, 0.14); }
+        .status-split-half--na { background-color: rgba(128, 128, 128, 0.06); }
+
+        body.light-mode .status-split-dot::after {
+            background: rgba(255, 255, 255, 0.65);
+        }
+
         .active-tab {
             color: var(--accent-gold);
             border-bottom: 3px solid var(--accent-gold);
@@ -902,7 +940,7 @@
                     <div class="flex flex-wrap gap-3 md:gap-4 mt-1.5">
                         <button onclick="switchAdminTab('list')" id="tabList" class="text-[10px] font-black active-tab pb-1">GESTIÓN</button>
                         <button onclick="switchAdminTab('evidence')" id="tabEvidence" class="text-[10px] font-black opacity-40 hover:opacity-100 transition-colors uppercase">Evidencias<span id="tabEvidenceBadge" class="admin-tab-badge hidden"></span></button>
-                        <button onclick="switchAdminTab('schedule')" id="tabSchedule" class="text-[10px] font-black opacity-40 hover:opacity-100 transition-colors uppercase">Horarios</button>
+                        <button onclick="switchAdminTab('settings')" id="tabSettings" class="text-[10px] font-black opacity-40 hover:opacity-100 transition-colors uppercase">Configuración</button>
                         <button onclick="switchAdminTab('report')" id="tabReport" class="text-[10px] font-black opacity-40 hover:opacity-100 transition-colors uppercase">Cumplimiento Regional</button>
                     </div>
                 </div>
@@ -958,7 +996,7 @@
             </div>
         </div>
 
-        <div id="adminScheduleView" class="admin-tab-panel hidden max-w-lg mx-auto w-full">
+        <div id="adminSettingsView" class="admin-tab-panel hidden max-w-lg mx-auto w-full space-y-4">
             <div class="bg-black/5 rounded-2xl border border-gray-400/10 p-5 md:p-6">
                 <h4 class="text-[#991b1b] text-[10px] font-black uppercase mb-1">Horarios de subida de evidencias</h4>
                 <p class="text-[9px] opacity-55 mb-4 leading-relaxed">Zona horaria: Lima (America/Lima). Los residentes solo pueden adjuntar archivos dentro de estas ventanas.</p>
@@ -1007,12 +1045,28 @@
                         <span class="text-[10px] font-bold">Sin entregas los domingos</span>
                     </label>
                     <div class="rounded-xl border border-[#991b1b]/20 bg-[#991b1b]/5 p-3">
-                        <p class="text-[8px] font-black uppercase text-[#991b1b] mb-1">Vista previa</p>
+                        <p class="text-[8px] font-black uppercase text-[#991b1b] mb-1">Vista previa horarios</p>
                         <p id="schedPreviewText" class="text-[9px] font-bold opacity-80 leading-relaxed uppercase"></p>
                     </div>
-                    <button type="button" onclick="saveUploadSchedule()" id="schedSaveBtn" class="w-full btn-primary py-2.5 rounded-xl text-xs font-black uppercase">Guardar horarios</button>
                 </div>
             </div>
+
+            <div class="bg-black/5 rounded-2xl border border-gray-400/10 p-5 md:p-6">
+                <h4 class="text-[#991b1b] text-[10px] font-black uppercase mb-1">Conteo de faltas del mes</h4>
+                <p class="text-[9px] opacity-55 mb-4 leading-relaxed">Define desde qué día de cada mes se contabilizan las faltas en el reporte de cumplimiento. Los días anteriores no suman al total mensual.</p>
+                <div class="space-y-3">
+                    <div>
+                        <label for="configFaultCountFromDate" class="text-[8px] font-bold uppercase opacity-60">Contar faltas desde el día</label>
+                        <input type="date" id="configFaultCountFromDate" class="w-full rounded-xl px-3 py-2 text-sm font-bold bg-black/10 border border-gray-400/20 mt-1">
+                    </div>
+                    <div class="rounded-xl border border-[#991b1b]/20 bg-[#991b1b]/5 p-3">
+                        <p class="text-[8px] font-black uppercase text-[#991b1b] mb-1">Vista previa conteo</p>
+                        <p id="faultCountPreviewText" class="text-[9px] font-bold opacity-80 leading-relaxed"></p>
+                    </div>
+                </div>
+            </div>
+
+            <button type="button" onclick="saveAdminSettings()" id="settingsSaveBtn" class="w-full btn-primary py-2.5 rounded-xl text-xs font-black uppercase">Guardar configuración</button>
         </div>
 
         <div id="adminEvidenceView" class="admin-tab-panel hidden admin-grid grid grid-cols-1 lg:grid-cols-12">
@@ -1116,7 +1170,8 @@
                     </div>
                     <div class="w-full md:w-auto md:min-w-[300px] lg:min-w-[340px] rounded-xl border border-[#991b1b]/25 bg-gradient-to-br from-black/35 via-[#991b1b]/[0.07] to-black/25 p-3 md:p-4 shadow-lg">
                         <p class="text-[9px] font-black uppercase tracking-[0.15em] text-[#991b1b] mb-2 pb-1.5 border-b border-white/10">Leyenda del indicador</p>
-                        <p class="text-[8px] font-bold text-white/45 uppercase mb-2 leading-snug">Faltas de evidencia acumuladas en el mes hasta el día (mañana y tarde).</p>
+                        <p class="text-[8px] font-bold text-white/45 uppercase mb-2 leading-snug">Vista semanal: círculo partido (izq. mañana, der. tarde). Verde = registrado, rojo = falta, gris = pendiente.</p>
+                        <p class="text-[8px] font-bold text-white/45 uppercase mb-2 leading-snug">Vista mensual: faltas acumuladas en el mes hasta el día.</p>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                             <div class="flex gap-2.5 rounded-xl border border-emerald-500/15 bg-emerald-950/20 px-2.5 py-2">
                                 <div class="status-dot tier-0 shrink-0 mt-0.5"></div>
@@ -1224,7 +1279,12 @@
             block_sunday: true
         };
 
+        const DEFAULT_FAULT_COUNT_SETTINGS = {
+            start_day: 1
+        };
+
         let uploadSchedule = { ...DEFAULT_UPLOAD_SCHEDULE };
+        let faultCountSettings = { ...DEFAULT_FAULT_COUNT_SETTINGS };
         let settingsSyncStarted = false;
         let settingsUnsubscribe = null;
 
@@ -1429,6 +1489,41 @@
             });
         }
 
+        function normalizeFaultCountSettings(raw) {
+            const day = Number(raw?.start_day);
+            return {
+                start_day: Number.isFinite(day) && day >= 1 && day <= 31 ? Math.floor(day) : 1
+            };
+        }
+
+        function faultCountStartYmdForMonth(monthISO, startDay) {
+            const day = Math.max(1, Math.min(31, Number(startDay) || 1));
+            const dim = daysInMonthYm(monthISO);
+            const safeDay = Math.min(day, dim);
+            return `${monthISO}-${String(safeDay).padStart(2, "0")}`;
+        }
+
+        function getFaultCountStartYmd(monthISO) {
+            return faultCountStartYmdForMonth(monthISO, faultCountSettings.start_day);
+        }
+
+        function readFaultCountDayFromAdminForm() {
+            const el = document.getElementById("configFaultCountFromDate");
+            const value = el?.value || "";
+            const m = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+            if (!m) return faultCountSettings.start_day || 1;
+            return Math.max(1, Math.min(31, Number(m[3]) || 1));
+        }
+
+        function updateFaultCountPreview() {
+            const preview = document.getElementById("faultCountPreviewText");
+            if (!preview) return;
+            const monthISO = getSelectedMonthISO();
+            const startDay = readFaultCountDayFromAdminForm();
+            const startYmd = faultCountStartYmdForMonth(monthISO, startDay);
+            preview.textContent = `En ${formatMonthLabel(monthISO)} el conteo de faltas inicia el ${formatEvidenceDateShort(startYmd)} (día ${startDay} de cada mes).`;
+        }
+
         function renderUploadScheduleAdminForm() {
             const ids = {
                 schedMorningStart: uploadSchedule.morning_start,
@@ -1464,6 +1559,18 @@
                 if (el && el.type === "checkbox") el.onchange = previewHandler;
             });
             updateUploadScheduleFooter();
+            previewHandler();
+
+            const faultDateEl = document.getElementById("configFaultCountFromDate");
+            if (faultDateEl) {
+                const monthISO = fechaCarpetaLima().slice(0, 7);
+                const dim = daysInMonthYm(monthISO);
+                const day = Math.min(Math.max(1, Number(faultCountSettings.start_day) || 1), dim);
+                faultDateEl.value = `${monthISO}-${String(day).padStart(2, "0")}`;
+                faultDateEl.onchange = updateFaultCountPreview;
+                faultDateEl.oninput = updateFaultCountPreview;
+            }
+            updateFaultCountPreview();
         }
 
         function validateUploadSchedule(sched) {
@@ -1480,15 +1587,18 @@
             return null;
         }
 
-        window.saveUploadSchedule = async () => {
+        window.saveAdminSettings = async () => {
             const sched = readUploadScheduleFromAdminForm();
-            const err = validateUploadSchedule(sched);
-            if (err) {
-                showFeedback(err, "error");
+            const schedErr = validateUploadSchedule(sched);
+            if (schedErr) {
+                showFeedback(schedErr, "error");
                 return;
             }
-            const btn = document.getElementById("schedSaveBtn");
-            const original = btn?.textContent || "Guardar horarios";
+            const startDay = readFaultCountDayFromAdminForm();
+            const faultSettings = { start_day: startDay };
+
+            const btn = document.getElementById("settingsSaveBtn");
+            const original = btn?.textContent || "Guardar configuración";
             if (btn) {
                 btn.disabled = true;
                 btn.textContent = "Guardando...";
@@ -1497,16 +1607,23 @@
                 await setDoc(
                     doc(db, "artifacts", appId, "public", "data", "settings", "general"),
                     {
-                        upload_schedule: { ...sched, updated_at: new Date().toISOString() }
+                        upload_schedule: { ...sched, updated_at: new Date().toISOString() },
+                        fault_count_settings: { ...faultSettings, updated_at: new Date().toISOString() }
                     },
                     { merge: true }
                 );
                 uploadSchedule = sched;
+                faultCountSettings = faultSettings;
                 updateUploadScheduleFooter();
-                showFeedback("Horarios de subida actualizados.", "success");
+                updateFaultCountPreview();
+                showFeedback("Configuración guardada correctamente.", "success");
                 const resV = document.getElementById("residentModuleView");
                 if (resV && !resV.classList.contains("hidden") && activeProjectId) {
                     refreshResidentUploadSection();
+                }
+                const report = document.getElementById("adminReportView");
+                if (report && !report.classList.contains("hidden")) {
+                    renderElegantFaultReport();
                 }
             } catch (e) {
                 console.error(e);
@@ -1519,15 +1636,27 @@
             }
         };
 
+        window.saveUploadSchedule = () => saveAdminSettings();
+
         function startSettingsSync() {
             const settingsRef = doc(db, "artifacts", appId, "public", "data", "settings", "general");
             if (settingsUnsubscribe) settingsUnsubscribe();
             settingsUnsubscribe = onSnapshot(settingsRef, (snap) => {
-                if (snap.exists() && snap.data()?.upload_schedule) {
-                    uploadSchedule = normalizeUploadSchedule(snap.data().upload_schedule);
+                if (snap.exists()) {
+                    const data = snap.data();
+                    if (data?.upload_schedule) {
+                        uploadSchedule = normalizeUploadSchedule(data.upload_schedule);
+                    }
+                    if (data?.fault_count_settings) {
+                        faultCountSettings = normalizeFaultCountSettings(data.fault_count_settings);
+                    }
                 }
                 updateUploadScheduleFooter();
                 renderUploadScheduleAdminForm();
+                const report = document.getElementById("adminReportView");
+                if (report && !report.classList.contains("hidden")) {
+                    renderElegantFaultReport();
+                }
                 const resV = document.getElementById("residentModuleView");
                 if (resV && !resV.classList.contains("hidden") && activeProjectId) {
                     refreshResidentUploadSection();
@@ -2186,7 +2315,7 @@
             const todayYmd = fechaCarpetaLima();
             const currentMonthISO = todayYmd.slice(0, 7);
             const reportEndYmd = getReportEndYmd(monthISO);
-            const monthStartYmd = `${monthISO}-01`;
+            const monthStartYmd = getFaultCountStartYmd(monthISO);
             let prev = 0;
             if (monthISO === currentMonthISO) {
                 prev = Number(p.faults_accumulated) || 0;
@@ -2210,7 +2339,7 @@
             const { dates: weekDates, weekIndex, totalWeeks } = getActiveWeekDates();
             const todayYmd = fechaCarpetaLima();
             const currentMonthISO = todayYmd.slice(0, 7);
-            const monthStartYmd = `${selectedMonthISO}-01`;
+            const monthStartYmd = getFaultCountStartYmd(selectedMonthISO);
             const reportEndYmd = getReportEndYmd(selectedMonthISO);
 
             if(weekRangeLabel) weekRangeLabel.textContent = `${weekDates[0].getDate()} ${weekDates[0].toLocaleString('es-PE', {month:'short'})} - ${weekDates[5].getDate()} ${weekDates[5].toLocaleString('es-PE', {month:'short'})}`;
@@ -2285,12 +2414,12 @@
                             return `<div class="flex justify-center"><span class="text-[10px] opacity-30">—</span></div>`;
                         }
                         if (cellYmd > reportEndYmd) {
-                            return `<div class="flex justify-center"><div class="status-dot pending mx-auto"></div></div>`;
+                            return `<div class="flex justify-center">${reportWeeklySplitDotHtmlPending()}</div>`;
                         }
-                        // En vista semanal el color representa el estado del día puntual.
-                        // Si el día está cubierto (evidencia o sustento de mañana y tarde), se muestra en verde.
-                        const tier = hasEvidenceOnDate(p, cellYmd) ? "tier-0" : "tier-3";
-                        return `<div class="flex justify-center"><div class="status-dot ${tier} mx-auto"></div></div>`;
+                        if (cellYmd < monthStartYmd) {
+                            return `<div class="flex justify-center"><span class="text-[10px] opacity-30">—</span></div>`;
+                        }
+                        return `<div class="flex justify-center">${reportWeeklySplitDotHtml(p, cellYmd)}</div>`;
                     });
                 } else {
                     const dim = daysInMonthYm(selectedMonthISO);
@@ -2347,25 +2476,25 @@
             const list = document.getElementById('adminListView');
             const report = document.getElementById('adminReportView');
             const evidence = document.getElementById('adminEvidenceView');
-            const schedule = document.getElementById('adminScheduleView');
+            const schedule = document.getElementById('adminSettingsView');
             const exportBtn = document.getElementById('exportJpgBtn');
             const resetBtn = document.getElementById('resetMonthBtn');
             const criticoBtn = document.getElementById('exportCriticosBtn');
             const btnList = document.getElementById('tabList');
             const btnReport = document.getElementById('tabReport');
             const btnEvidence = document.getElementById('tabEvidence');
-            const btnSchedule = document.getElementById('tabSchedule');
+            const btnSettings = document.getElementById('tabSettings');
             const tabInactive = "text-[10px] font-black opacity-40 hover:opacity-100 transition-all duration-300 uppercase";
             const tabActive = "text-[10px] font-black active-tab pb-1 transition-all duration-300";
 
             list.classList.toggle('hidden', tab !== 'list');
             report.classList.toggle('hidden', tab !== 'report');
             if (evidence) evidence.classList.toggle('hidden', tab !== 'evidence');
-            if (schedule) schedule.classList.toggle('hidden', tab !== 'schedule');
+            if (schedule) schedule.classList.toggle('hidden', tab !== 'settings');
             if (tab === 'list') replayAdminTabAnimation(list);
             if (tab === 'report') replayAdminTabAnimation(report);
             if (tab === 'evidence') replayAdminTabAnimation(evidence);
-            if (tab === 'schedule') {
+            if (tab === 'settings') {
                 replayAdminTabAnimation(schedule);
                 renderUploadScheduleAdminForm();
             }
@@ -2376,7 +2505,7 @@
 
             btnList.className = tab === 'list' ? tabActive : tabInactive;
             if (btnEvidence) btnEvidence.className = tab === 'evidence' ? tabActive : tabInactive;
-            if (btnSchedule) btnSchedule.className = tab === 'schedule' ? tabActive : tabInactive;
+            if (btnSettings) btnSettings.className = tab === 'settings' ? tabActive : tabInactive;
             btnReport.className = tab === 'report' ? tabActive : tabInactive;
             if (tab === 'report') renderElegantFaultReport();
             if (tab === 'evidence') {
@@ -3696,6 +3825,44 @@
             if (!isTurnoApplicableOnWeekday(todayWd, slot)) return "no_aplica";
             if (minutesOfDay < end) return "pendiente";
             return "no_cumplido";
+        }
+
+        function reportSlotHalfClass(project, ymd, slot) {
+            const status = getSlotComplianceStatus(project, ymd, slot);
+            if (status === "cumplido") return "status-split-half--ok";
+            if (status === "no_cumplido") return "status-split-half--fail";
+            if (status === "no_aplica") return "status-split-half--na";
+            return "status-split-half--pending";
+        }
+
+        function reportSlotHalfTitle(slot, className) {
+            const slotLabel = slot === "mañana" ? "Mañana" : "Tarde";
+            const state =
+                className === "status-split-half--ok"
+                    ? "Registrado"
+                    : className === "status-split-half--fail"
+                      ? "No registrado"
+                      : className === "status-split-half--na"
+                        ? "No aplica"
+                        : "Pendiente";
+            return `${slotLabel}: ${state}`;
+        }
+
+        function reportWeeklySplitDotHtmlPending() {
+            return `<div class="status-split-dot mx-auto" title="Pendiente">
+                <span class="status-split-half status-split-half--pending" aria-hidden="true"></span>
+                <span class="status-split-half status-split-half--pending" aria-hidden="true"></span>
+            </div>`;
+        }
+
+        function reportWeeklySplitDotHtml(project, ymd) {
+            const ma = reportSlotHalfClass(project, ymd, "mañana");
+            const ta = reportSlotHalfClass(project, ymd, "tarde");
+            const title = `${reportSlotHalfTitle("mañana", ma)} · ${reportSlotHalfTitle("tarde", ta)}`;
+            return `<div class="status-split-dot mx-auto" title="${title}">
+                <span class="status-split-half ${ma}" aria-label="${reportSlotHalfTitle("mañana", ma)}"></span>
+                <span class="status-split-half ${ta}" aria-label="${reportSlotHalfTitle("tarde", ta)}"></span>
+            </div>`;
         }
 
         function applySlotStatusEl(el, status, rowEl) {
