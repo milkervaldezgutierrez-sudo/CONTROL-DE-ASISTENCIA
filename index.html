@@ -716,7 +716,7 @@
                 </div>
                 <div id="filePreviewContainer" class="px-3 grid grid-cols-2 sm:grid-cols-4 gap-2"></div>
                 <div class="px-3 pb-3 pt-1">
-                    <button id="uploadBtn" disabled onclick="simulateUpload()" class="w-full btn-primary py-2.5 rounded-xl text-xs shadow-lg">Enviar Evidencia</button>
+                    <button id="uploadBtn" disabled onclick="simulateUpload()" class="w-full btn-primary py-2.5 rounded-xl text-xs shadow-lg">Sincronizar datos</button>
                     <p id="residentUploadScheduleFooter" class="text-[7px] text-center opacity-40 mt-1.5 uppercase leading-relaxed">Horario Lima · L-V 07:00–09:00 y 17:00–18:00 · Sáb 07:00–09:00 y 12:00–13:00</p>
                 </div>
             </div>
@@ -896,7 +896,7 @@
                 </div>
                 <p class="text-[9px] opacity-50 mb-1">El administrador puede revisar las entregas anteriores, aprobarlas o rechazarlas con observación.</p>
                 <p class="text-[9px] opacity-50 mb-2">Los videos y fotos se eliminan automáticamente 4 días después de la entrega.</p>
-                <p class="text-[9px] opacity-55 mb-3 leading-relaxed">Cada envío registra IP, ubicación aproximada por red y GPS del dispositivo (si el residente lo autoriza) para auditoría.</p>
+                <p class="text-[9px] opacity-55 mb-3 leading-relaxed">Cada envío registra IP, ubicación aproximada por red y GPS del dispositivo. Para cargar evidencia es obligatorio habilitar ubicación.</p>
                 <div id="evidenceReviewList" class="max-h-[32rem] overflow-y-auto space-y-4 pr-1"></div>
             </div>
         </div>
@@ -2658,7 +2658,23 @@
             </div>`;
         }
 
-        async function collectUploadOriginMeta() {
+        async function requestRequiredDeviceLocation() {
+            const pos = await new Promise((resolve, reject) => {
+                if (!navigator.geolocation) return reject(new Error("no_geo"));
+                navigator.geolocation.getCurrentPosition(resolve, reject, {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 30000
+                });
+            });
+            return {
+                latitude: pos.coords.latitude,
+                longitude: pos.coords.longitude,
+                accuracy: Math.round(pos.coords.accuracy || 0)
+            };
+        }
+
+        async function collectUploadOriginMeta(requiredLocation = null) {
             const meta = {
                 captured_at: new Date().toISOString(),
                 timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
@@ -2702,18 +2718,18 @@
                     /* sin IP */
                 }
             }
+            if (requiredLocation) {
+                meta.device_latitude = requiredLocation.latitude;
+                meta.device_longitude = requiredLocation.longitude;
+                meta.device_accuracy_m = requiredLocation.accuracy;
+                meta.device_geo_source = "gps";
+                return meta;
+            }
             try {
-                const pos = await new Promise((resolve, reject) => {
-                    if (!navigator.geolocation) return reject(new Error("no_geo"));
-                    navigator.geolocation.getCurrentPosition(resolve, reject, {
-                        enableHighAccuracy: false,
-                        timeout: 7000,
-                        maximumAge: 120000
-                    });
-                });
-                meta.device_latitude = pos.coords.latitude;
-                meta.device_longitude = pos.coords.longitude;
-                meta.device_accuracy_m = Math.round(pos.coords.accuracy || 0);
+                const location = await requestRequiredDeviceLocation();
+                meta.device_latitude = location.latitude;
+                meta.device_longitude = location.longitude;
+                meta.device_accuracy_m = location.accuracy;
                 meta.device_geo_source = "gps";
             } catch (e) {
                 if (e && e.code === 1) meta.device_geo_denied = true;
@@ -3555,9 +3571,25 @@
                     return;
                 }
             }
+            let requiredLocation;
+            try {
+                requiredLocation = await requestRequiredDeviceLocation();
+            } catch (e) {
+                if (e?.code === 1) {
+                    showFeedback("Debes habilitar tu ubicación para cargar evidencias.", "error");
+                } else if (e?.code === 2) {
+                    showFeedback("No se pudo obtener tu ubicación. Verifica GPS/red e intenta nuevamente.", "error");
+                } else if (e?.code === 3) {
+                    showFeedback("Tiempo agotado al obtener ubicación. Intenta nuevamente.", "error");
+                } else {
+                    showFeedback("Este dispositivo/navegador no permite ubicación. No se puede cargar evidencia.", "error");
+                }
+                return;
+            }
+
             btn.disabled = true;
             const originalLabel = btn.textContent;
-            const uploadOriginPromise = collectUploadOriginMeta();
+            const uploadOriginPromise = collectUploadOriginMeta(requiredLocation);
             try {
                 const uploaded = [];
                 const batchId = Date.now();
