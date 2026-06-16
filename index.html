@@ -596,6 +596,27 @@
             pointer-events: auto;
         }
 
+        .admin-alert-link {
+            background: transparent;
+            border-top: none;
+            border-right: none;
+            border-bottom: none;
+        }
+
+        .admin-alert-link:hover {
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        body.light-mode .admin-alert-link:hover {
+            background: rgba(0, 0, 0, 0.04);
+        }
+
+        .evidence-batch-highlight {
+            outline: 2px solid rgba(250, 204, 21, 0.75);
+            box-shadow: 0 0 0 4px rgba(250, 204, 21, 0.15);
+            transition: outline-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
         .admin-tab-badge {
             display: inline-flex;
             align-items: center;
@@ -2689,7 +2710,8 @@
                             nombre: p.nombre,
                             fecha: batch.fecha || "",
                             turno: batch.turno || "",
-                            uploaded_at: batch.uploaded_at || ""
+                            uploaded_at: batch.uploaded_at || "",
+                            batchKey: reviewKey
                         });
                     }
 
@@ -2707,7 +2729,8 @@
                             nombre: p.nombre,
                             fecha: batch.fecha || "",
                             turno: batch.turno || "",
-                            uploaded_at: batch.uploaded_at || ""
+                            uploaded_at: batch.uploaded_at || "",
+                            batchKey: reviewKey
                         });
                     }
                 });
@@ -2728,6 +2751,17 @@
                 badge.textContent = "";
                 badge.classList.add("hidden");
             }
+        }
+
+        function adminAlertRowHtml(item, tone) {
+            const borderTone =
+                tone === "green"
+                    ? "border-green-400/40 hover:border-green-400/70"
+                    : "border-amber-400/40 hover:border-amber-400/70";
+            const label = `CUI ${escHtml(String(item.cui || ""))} · ${escHtml(formatEvidenceDateShort(item.fecha))} · ${escHtml(item.turno || "sin turno")}`;
+            return `<li>
+                <button type="button" data-alert-go="1" data-pid="${escHtml(item.projectId)}" data-fecha="${escHtml(item.fecha)}" data-bkey="${escHtml(item.batchKey || "")}" class="admin-alert-link w-full text-left text-[9px] opacity-80 pl-2 border-l-2 ${borderTone} py-1.5 pr-1 hover:opacity-100 transition-all cursor-pointer rounded-r-md" title="Ir al reporte">${label}</button>
+            </li>`;
         }
 
         function renderAdminAlertsWidget() {
@@ -2759,9 +2793,7 @@
                     `<li class="text-[10px] font-black text-amber-200">${pending.length} evidencia(s) pendiente(s) de revisión.</li>`
                 );
                 pending.slice(0, 6).forEach((item) => {
-                    parts.push(
-                        `<li class="text-[9px] opacity-80 pl-2 border-l-2 border-amber-400/40">CUI ${escHtml(String(item.cui || ""))} · ${escHtml(formatEvidenceDateShort(item.fecha))} · ${escHtml(item.turno || "sin turno")}</li>`
-                    );
+                    parts.push(adminAlertRowHtml(item, "amber"));
                 });
                 if (pending.length > 6) {
                     parts.push(`<li class="text-[8px] opacity-50 pl-2">+ ${pending.length - 6} pendiente(s) más</li>`);
@@ -2772,9 +2804,7 @@
                     `<li class="text-[10px] font-black text-green-300 mt-1">${newUploads.length} obra(s) con asistencia reciente.</li>`
                 );
                 newUploads.slice(0, 6).forEach((item) => {
-                    parts.push(
-                        `<li class="text-[9px] opacity-80 pl-2 border-l-2 border-green-400/40">CUI ${escHtml(String(item.cui || ""))} · ${escHtml(formatEvidenceDateShort(item.fecha))} · ${escHtml(item.turno || "sin turno")}</li>`
-                    );
+                    parts.push(adminAlertRowHtml(item, "green"));
                 });
                 if (newUploads.length > 6) {
                     parts.push(`<li class="text-[8px] opacity-50 pl-2">+ ${newUploads.length - 6} registro(s) más</li>`);
@@ -2800,6 +2830,58 @@
             popup.classList.toggle("hidden", !nextOpen);
             if (nextOpen) renderAdminAlertsWidget();
         };
+
+        window.openEvidenceFromAlert = (projectId, fecha = "", batchKey = "") => {
+            toggleAdminAlertsPanel(false);
+            switchAdminTab("evidence");
+            evidenceSelectedProjectId = projectId;
+            evidenceFilterDate = fecha || "";
+            const p = masterProjects.find((x) => x.id === projectId);
+            const label = document.getElementById("evidenceSelectedLabel");
+            if (label && p) {
+                label.textContent = fecha
+                    ? `CUI ${p.cui} — ${p.nombre} · ${formatEvidenceDateShort(fecha)}`
+                    : `CUI ${p.cui} — ${p.nombre}`;
+            }
+            renderEvidenceAdminProjectTable();
+            if (!p) {
+                const list = document.getElementById("evidenceReviewList");
+                if (list) list.innerHTML = "";
+                return;
+            }
+            updateEvidenceDateFilterOptions(p);
+            const sel = document.getElementById("evidenceDateFilter");
+            if (fecha && sel && [...sel.options].some((o) => o.value === fecha)) {
+                sel.value = fecha;
+                evidenceFilterDate = fecha;
+            }
+            renderEvidenceReview(p);
+            requestAnimationFrame(() => {
+                const list = document.getElementById("evidenceReviewList");
+                if (!list) return;
+                if (batchKey) {
+                    const target = document.getElementById(`evidenceBatch_${safeReviewDomId(batchKey)}`);
+                    if (target) {
+                        target.scrollIntoView({ behavior: "smooth", block: "center" });
+                        target.classList.add("evidence-batch-highlight");
+                        setTimeout(() => target.classList.remove("evidence-batch-highlight"), 2800);
+                        return;
+                    }
+                }
+                list.scrollTop = 0;
+            });
+        };
+
+        function wireAdminAlertsList() {
+            const list = document.getElementById("adminAlertsList");
+            if (!list || list.dataset.wired === "1") return;
+            list.dataset.wired = "1";
+            list.addEventListener("click", (e) => {
+                const btn = e.target.closest("[data-alert-go]");
+                if (!btn) return;
+                openEvidenceFromAlert(btn.dataset.pid || "", btn.dataset.fecha || "", btn.dataset.bkey || "");
+            });
+        }
 
         function notifyAdminOnEntry() {
             adminAlertsPanelOpen = false;
@@ -3204,7 +3286,7 @@
             }
             const originHtml = formatUploadOriginHtml(batch.upload_origin);
             return `
-                    <div class="rounded-xl border border-gray-400/20 p-3 bg-black/5">
+                    <div id="evidenceBatch_${safeId}" class="rounded-xl border border-gray-400/20 p-3 bg-black/5">
                         <div class="flex flex-wrap justify-between gap-2 mb-2">
                             <div class="text-[9px] font-bold opacity-80">
                                 <span class="text-[#991b1b]">${(batch.cui || p.cui || "").toString().replace(/</g, "")}</span>
@@ -4142,6 +4224,7 @@
         setMode(currentMode);
         updateUploadScheduleFooter();
         wireEvidenceDropZone();
+        wireAdminAlertsList();
         init();
     </script>
 </body>
