@@ -1239,6 +1239,25 @@
                 </div>
             </div>
 
+            <div class="bg-black/5 rounded-2xl border border-gray-400/10 p-5 md:p-6">
+                <h4 class="text-[#991b1b] text-[10px] font-black uppercase mb-1">Acceso administrativo</h4>
+                <p class="text-[9px] opacity-55 mb-4 leading-relaxed">Correo y contraseña para ingresar al panel administrativo. Deje la contraseña en blanco si no desea cambiarla.</p>
+                <div class="space-y-3">
+                    <div>
+                        <label for="configAdminEmail" class="text-[8px] font-bold uppercase opacity-60">Correo institucional</label>
+                        <input type="email" id="configAdminEmail" autocomplete="username" placeholder="correo@institucion.pe" class="w-full rounded-xl px-3 py-2 text-sm font-bold bg-black/10 border border-gray-400/20 mt-1">
+                    </div>
+                    <div>
+                        <label for="configAdminPassword" class="text-[8px] font-bold uppercase opacity-60">Nueva contraseña</label>
+                        <input type="password" id="configAdminPassword" autocomplete="new-password" placeholder="Dejar en blanco para mantener la actual" class="w-full rounded-xl px-3 py-2 text-sm font-bold bg-black/10 border border-gray-400/20 mt-1">
+                    </div>
+                    <div>
+                        <label for="configAdminPasswordConfirm" class="text-[8px] font-bold uppercase opacity-60">Confirmar contraseña</label>
+                        <input type="password" id="configAdminPasswordConfirm" autocomplete="new-password" placeholder="Repita la nueva contraseña" class="w-full rounded-xl px-3 py-2 text-sm font-bold bg-black/10 border border-gray-400/20 mt-1">
+                    </div>
+                </div>
+            </div>
+
             <button type="button" onclick="saveAdminSettings()" id="settingsSaveBtn" class="w-full btn-primary py-2.5 rounded-xl text-xs font-black uppercase">Guardar configuración</button>
         </div>
 
@@ -1456,8 +1475,14 @@
             start_day: 1
         };
 
+        const DEFAULT_ADMIN_CREDENTIALS = {
+            email: "u202418465@upc.edu.pe",
+            password: "Valdez250396@."
+        };
+
         let uploadSchedule = { ...DEFAULT_UPLOAD_SCHEDULE };
         let faultCountSettings = { ...DEFAULT_FAULT_COUNT_SETTINGS };
+        let adminCredentials = { ...DEFAULT_ADMIN_CREDENTIALS };
         let settingsSyncStarted = false;
         let settingsUnsubscribe = null;
 
@@ -1688,6 +1713,48 @@
             return Math.max(1, Math.min(31, Number(m[3]) || 1));
         }
 
+        function normalizeAdminCredentials(raw) {
+            const email = String(raw?.email || DEFAULT_ADMIN_CREDENTIALS.email).trim().toLowerCase();
+            const password = String(raw?.password || DEFAULT_ADMIN_CREDENTIALS.password);
+            return { email, password };
+        }
+
+        function adminLoginMatches(email, pass) {
+            const cred = normalizeAdminCredentials(adminCredentials);
+            return String(email || "").trim().toLowerCase() === cred.email && String(pass || "") === cred.password;
+        }
+
+        function readAdminCredentialsFromForm() {
+            const email = document.getElementById("configAdminEmail")?.value || "";
+            const password = document.getElementById("configAdminPassword")?.value || "";
+            const passwordConfirm = document.getElementById("configAdminPasswordConfirm")?.value || "";
+            return { email, password, passwordConfirm };
+        }
+
+        function resolveAdminCredentialsForSave() {
+            const { email, password, passwordConfirm } = readAdminCredentialsFromForm();
+            const trimmedEmail = String(email || "").trim().toLowerCase();
+            if (!trimmedEmail || !trimmedEmail.includes("@")) {
+                return { error: "Ingrese un correo administrativo válido." };
+            }
+            const hasNewPassword = !!password || !!passwordConfirm;
+            if (!hasNewPassword) {
+                return {
+                    creds: {
+                        email: trimmedEmail,
+                        password: adminCredentials.password || DEFAULT_ADMIN_CREDENTIALS.password
+                    }
+                };
+            }
+            if (!password || password.length < 6) {
+                return { error: "La nueva contraseña debe tener al menos 6 caracteres." };
+            }
+            if (password !== passwordConfirm) {
+                return { error: "La confirmación de contraseña no coincide." };
+            }
+            return { creds: { email: trimmedEmail, password } };
+        }
+
         function updateFaultCountPreview() {
             const preview = document.getElementById("faultCountPreviewText");
             if (!preview) return;
@@ -1744,6 +1811,13 @@
                 faultDateEl.oninput = updateFaultCountPreview;
             }
             updateFaultCountPreview();
+
+            const adminEmailEl = document.getElementById("configAdminEmail");
+            const adminPassEl = document.getElementById("configAdminPassword");
+            const adminPassConfirmEl = document.getElementById("configAdminPasswordConfirm");
+            if (adminEmailEl) adminEmailEl.value = adminCredentials.email || DEFAULT_ADMIN_CREDENTIALS.email;
+            if (adminPassEl) adminPassEl.value = "";
+            if (adminPassConfirmEl) adminPassConfirmEl.value = "";
         }
 
         function validateUploadSchedule(sched) {
@@ -1769,6 +1843,12 @@
             }
             const startDay = readFaultCountDayFromAdminForm();
             const faultSettings = { start_day: startDay };
+            const credResult = resolveAdminCredentialsForSave();
+            if (credResult.error) {
+                showFeedback(credResult.error, "error");
+                return;
+            }
+            const creds = credResult.creds;
 
             const btn = document.getElementById("settingsSaveBtn");
             const original = btn?.textContent || "Guardar configuración";
@@ -1781,14 +1861,20 @@
                     doc(db, "artifacts", appId, "public", "data", "settings", "general"),
                     {
                         upload_schedule: { ...sched, updated_at: new Date().toISOString() },
-                        fault_count_settings: { ...faultSettings, updated_at: new Date().toISOString() }
+                        fault_count_settings: { ...faultSettings, updated_at: new Date().toISOString() },
+                        admin_credentials: { ...creds, updated_at: new Date().toISOString() }
                     },
                     { merge: true }
                 );
                 uploadSchedule = sched;
                 faultCountSettings = faultSettings;
+                adminCredentials = { ...creds };
                 updateUploadScheduleFooter();
                 updateFaultCountPreview();
+                const adminPassEl = document.getElementById("configAdminPassword");
+                const adminPassConfirmEl = document.getElementById("configAdminPasswordConfirm");
+                if (adminPassEl) adminPassEl.value = "";
+                if (adminPassConfirmEl) adminPassConfirmEl.value = "";
                 showFeedback("Configuración guardada correctamente.", "success");
                 const resV = document.getElementById("residentModuleView");
                 if (resV && !resV.classList.contains("hidden") && activeProjectId) {
@@ -1822,6 +1908,9 @@
                     }
                     if (data?.fault_count_settings) {
                         faultCountSettings = normalizeFaultCountSettings(data.fault_count_settings);
+                    }
+                    if (data?.admin_credentials) {
+                        adminCredentials = normalizeAdminCredentials(data.admin_credentials);
                     }
                 }
                 updateUploadScheduleFooter();
@@ -2880,7 +2969,8 @@
             }
             const pass = document.getElementById('password').value;
             if (currentMode === 'ADMIN') {
-                if (document.getElementById('adminEmail').value === "u202418465@upc.edu.pe" && pass === "Valdez250396@.") {
+                const adminEmail = document.getElementById('adminEmail')?.value || "";
+                if (adminLoginMatches(adminEmail, pass)) {
                     revealAppView(adminPanelView);
                     switchAdminTab('list');
                     notifyAdminOnEntry();
