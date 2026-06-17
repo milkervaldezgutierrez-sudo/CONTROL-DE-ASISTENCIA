@@ -580,6 +580,79 @@
             margin-top: 0;
         }
 
+        .public-aviso-card--zoomable {
+            cursor: zoom-in;
+            transition: border-color var(--duration-fast) var(--ease-out), box-shadow var(--duration-fast) var(--ease-out);
+        }
+
+        .public-aviso-card--zoomable:hover {
+            border-color: rgba(250, 204, 21, 0.35);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+        }
+
+        .public-aviso-card__zoom-hint {
+            font-size: 0.5rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            opacity: 0;
+            margin-top: 0.45rem;
+            color: #facc15;
+            transition: opacity var(--duration-fast) var(--ease-out);
+        }
+
+        .public-aviso-card--zoomable:hover .public-aviso-card__zoom-hint {
+            opacity: 0.7;
+        }
+
+        body.light-mode .public-aviso-card__zoom-hint {
+            color: #991b1b;
+        }
+
+        .aviso-view-lightbox-text {
+            max-width: min(42rem, 92vw);
+            max-height: calc(94vh - 4rem);
+            overflow-y: auto;
+            padding: 1.25rem 1.5rem;
+            border-radius: 1rem;
+            border: 1px solid rgba(250, 204, 21, 0.25);
+            background: linear-gradient(165deg, rgba(30, 20, 20, 0.95) 0%, rgba(10, 10, 15, 0.98) 100%);
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+            text-align: left;
+        }
+
+        body.light-mode .aviso-view-lightbox-text {
+            background: #ffffff;
+            border-color: rgba(153, 27, 27, 0.2);
+        }
+
+        .aviso-view-lightbox-text__title {
+            font-size: 0.85rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: #facc15;
+            margin-bottom: 0.75rem;
+            line-height: 1.4;
+        }
+
+        body.light-mode .aviso-view-lightbox-text__title {
+            color: #991b1b;
+        }
+
+        .aviso-view-lightbox-text__body {
+            font-size: 0.9rem;
+            font-weight: 600;
+            line-height: 1.65;
+            white-space: pre-wrap;
+            word-break: break-word;
+            color: rgba(255, 255, 255, 0.92);
+        }
+
+        body.light-mode .aviso-view-lightbox-text__body {
+            color: #334155;
+        }
+
         @media (min-width: 900px) {
             .auth-shell--has-avisos {
                 display: grid;
@@ -3062,6 +3135,7 @@
         let avisoPendingDraft = null;
         let systemNoticesWriteLock = 0;
         const avisoImageUrlCache = new Map();
+        let publicAvisosDisplayCache = [];
         let avisoImageDraft = null;
         let avisoImageDraftUrl = "";
         let settingsSyncStarted = false;
@@ -3609,25 +3683,29 @@
             return `n_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
         }
 
-        function renderPublicAvisoCardHtml(item) {
+        function renderPublicAvisoCardHtml(item, idx) {
             const title = String(item?.title || "").trim();
             const titleHtml = title ? `<p class="public-aviso-card__title">${escHtml(title)}</p>` : "";
+            const idxAttr = Number.isFinite(idx) ? ` data-aviso-idx="${idx}"` : "";
+            const zoomHint = `<p class="public-aviso-card__zoom-hint">Doble clic para ampliar</p>`;
             if (item?.type === "image") {
                 const src = escHtml(item.image_url || "");
                 if (!src) return "";
                 const imageOnly = !title;
-                return `<article class="public-aviso-card${imageOnly ? " public-aviso-card--image-only" : ""}">
+                return `<article${idxAttr} class="public-aviso-card public-aviso-card--zoomable${imageOnly ? " public-aviso-card--image-only" : ""}" title="Doble clic para ampliar">
                     ${titleHtml}
                     <div class="public-aviso-card__image-wrap">
                         <img src="${src}" alt="${escHtml(title || "Aviso institucional")}" class="public-aviso-card__image" loading="lazy">
                     </div>
+                    ${zoomHint}
                 </article>`;
             }
             const body = String(item?.body || "").trim();
             if (!body && !title) return "";
-            return `<article class="public-aviso-card">
+            return `<article${idxAttr} class="public-aviso-card public-aviso-card--zoomable" title="Doble clic para ampliar">
                 ${titleHtml}
                 ${body ? `<p class="public-aviso-card__text">${escHtml(body)}</p>` : ""}
+                ${zoomHint}
             </article>`;
         }
 
@@ -3653,19 +3731,103 @@
             if (!shell || !panel || !list) return;
             const active = getActiveAvisos();
             const cards = [];
+            publicAvisosDisplayCache = [];
             for (const item of active) {
                 let displayItem = item;
                 if (item.type === "image" && !item.image_url) {
                     const url = await resolveAvisoImageUrl(item);
                     if (url) displayItem = { ...item, image_url: url };
                 }
-                const card = renderPublicAvisoCardHtml(displayItem);
+                const idx = publicAvisosDisplayCache.length;
+                publicAvisosDisplayCache.push(displayItem);
+                const card = renderPublicAvisoCardHtml(displayItem, idx);
                 if (card) cards.push(card);
             }
             const hasAvisos = cards.length > 0;
             panel.classList.toggle("hidden", !hasAvisos);
             shell.classList.toggle("auth-shell--has-avisos", hasAvisos);
             list.innerHTML = cards.join("");
+        }
+
+        async function openPublicAvisoView(item) {
+            if (!item) return;
+            if (item.type === "image") {
+                let src = String(item.image_url || "").trim();
+                if (!src) src = await resolveAvisoImageUrl(item);
+                if (!src) {
+                    showFeedback("No se pudo cargar la imagen del aviso.", "error");
+                    return;
+                }
+                openEvidenceLightbox(src, "image", item.title || "Aviso institucional");
+                return;
+            }
+            openAvisoTextLightbox(item.title || "", item.body || "");
+        }
+
+        function openAvisoTextLightbox(title, body) {
+            const box = document.getElementById("avisoViewLightbox");
+            const titleEl = document.getElementById("avisoViewLightboxTitle");
+            const bodyEl = document.getElementById("avisoViewLightboxBody");
+            if (!box || !titleEl || !bodyEl) return;
+            if (typeof window.closeEvidenceLightbox === "function") window.closeEvidenceLightbox();
+            const safeTitle = String(title || "").trim();
+            const safeBody = String(body || "").trim();
+            titleEl.textContent = safeTitle;
+            titleEl.classList.toggle("hidden", !safeTitle);
+            bodyEl.textContent = safeBody || "Sin contenido.";
+            box.classList.remove("hidden");
+            document.body.classList.add("evidence-lightbox-open");
+        }
+
+        function closeAvisoViewLightbox() {
+            const box = document.getElementById("avisoViewLightbox");
+            if (!box) return;
+            box.classList.add("hidden");
+            const evidenceBox = document.getElementById("evidenceLightbox");
+            if (!evidenceBox || evidenceBox.classList.contains("hidden")) {
+                document.body.classList.remove("evidence-lightbox-open");
+            }
+        }
+        window.closeAvisoViewLightbox = closeAvisoViewLightbox;
+
+        function wirePublicAvisosView() {
+            const list = document.getElementById("publicAvisosList");
+            if (list && list.dataset.viewWired !== "1") {
+                list.dataset.viewWired = "1";
+                list.addEventListener("dblclick", (e) => {
+                    const card = e.target.closest(".public-aviso-card");
+                    if (!card) return;
+                    const idx = Number(card.dataset.avisoIdx);
+                    const item = publicAvisosDisplayCache[idx];
+                    if (item) void openPublicAvisoView(item);
+                });
+            }
+            const preview = document.getElementById("avisoEditorPreview");
+            if (preview && preview.dataset.viewWired !== "1") {
+                preview.dataset.viewWired = "1";
+                preview.addEventListener("dblclick", () => {
+                    const draft = readAvisoEditorDraft();
+                    const existing = getAvisoEditorItem(draft.id);
+                    const display = {
+                        type: avisoEditorType,
+                        title: draft.title,
+                        body: draft.body,
+                        image_url: avisoImageDraftUrl || existing?.image_url || "",
+                        storage_path: existing?.storage_path || ""
+                    };
+                    void openPublicAvisoView(display);
+                });
+            }
+            if (!document.body.dataset.avisoViewEscWired) {
+                document.body.dataset.avisoViewEscWired = "1";
+                document.addEventListener("keydown", (e) => {
+                    if (e.key !== "Escape") return;
+                    const avisoBox = document.getElementById("avisoViewLightbox");
+                    if (avisoBox && !avisoBox.classList.contains("hidden")) {
+                        closeAvisoViewLightbox();
+                    }
+                });
+            }
         }
 
         function applySystemNoticesFromRemote(raw) {
@@ -5829,6 +5991,8 @@
             const cap = document.getElementById("evidenceLightboxCaption");
             if (!box || !img || !vid || !src) return;
 
+            closeAvisoViewLightbox();
+
             img.classList.add("hidden");
             vid.classList.add("hidden");
             vid.pause();
@@ -5859,7 +6023,10 @@
             }
             if (img) img.removeAttribute("src");
             if (box) box.classList.add("hidden");
-            document.body.classList.remove("evidence-lightbox-open");
+            const avisoBox = document.getElementById("avisoViewLightbox");
+            if (!avisoBox || avisoBox.classList.contains("hidden")) {
+                document.body.classList.remove("evidence-lightbox-open");
+            }
         };
 
         function wireEvidenceMediaLightbox() {
@@ -7754,6 +7921,7 @@
         wireAdminAlertsList();
         wireAdminExportMenu();
         wireEvidenceMediaLightbox();
+        wirePublicAvisosView();
         init();
     </script>
 
@@ -7764,6 +7932,18 @@
             <img id="evidenceLightboxImg" class="evidence-lightbox-img hidden" alt="">
             <video id="evidenceLightboxVideo" class="evidence-lightbox-video hidden" controls playsinline></video>
             <p id="evidenceLightboxCaption" class="evidence-lightbox-caption"></p>
+            <p class="evidence-lightbox-hint">Esc · clic fuera · botón × para cerrar</p>
+        </div>
+    </div>
+
+    <div id="avisoViewLightbox" class="evidence-lightbox hidden" role="dialog" aria-modal="true" aria-label="Vista ampliada de aviso">
+        <div class="evidence-lightbox-backdrop" onclick="closeAvisoViewLightbox()"></div>
+        <button type="button" class="evidence-lightbox-close" onclick="closeAvisoViewLightbox()" aria-label="Cerrar">×</button>
+        <div class="evidence-lightbox-stage">
+            <div class="aviso-view-lightbox-text">
+                <h3 id="avisoViewLightboxTitle" class="aviso-view-lightbox-text__title"></h3>
+                <p id="avisoViewLightboxBody" class="aviso-view-lightbox-text__body"></p>
+            </div>
             <p class="evidence-lightbox-hint">Esc · clic fuera · botón × para cerrar</p>
         </div>
     </div>
