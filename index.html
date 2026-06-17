@@ -68,7 +68,8 @@
         }
 
         body > .glass-card,
-        body > #initialLoader {
+        body > #initialLoader,
+        body > #authShell {
             flex-shrink: 0;
             width: 100%;
             max-height: calc(100dvh - 1.5rem);
@@ -471,6 +472,272 @@
             margin-bottom: 0.35rem;
         }
 
+        .auth-shell {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            align-items: center;
+            width: 100%;
+            max-width: 56rem;
+            max-height: calc(100dvh - 1.5rem);
+            overflow-y: auto;
+        }
+
+        .auth-shell .auth-card {
+            flex-shrink: 0;
+            width: 100%;
+            max-width: 28rem;
+        }
+
+        .public-avisos-panel {
+            width: 100%;
+            border-radius: 22px;
+            border: 1px solid rgba(250, 204, 21, 0.22);
+            background: linear-gradient(165deg, rgba(153, 27, 27, 0.14) 0%, rgba(0, 0, 0, 0.28) 55%, rgba(0, 0, 0, 0.18) 100%);
+            padding: 1rem 1.1rem;
+            box-shadow: 0 18px 40px -18px rgba(0, 0, 0, 0.55);
+        }
+
+        body.light-mode .public-avisos-panel {
+            background: linear-gradient(165deg, #fff7ed 0%, #ffffff 60%, #f8fafc 100%);
+            border-color: rgba(153, 27, 27, 0.18);
+        }
+
+        .public-avisos-heading {
+            font-size: 0.62rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+            color: #facc15;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid rgba(250, 204, 21, 0.2);
+        }
+
+        body.light-mode .public-avisos-heading { color: #991b1b; }
+
+        .public-avisos-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .public-aviso-card {
+            border-radius: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(0, 0, 0, 0.22);
+            padding: 0.85rem 0.95rem;
+            overflow: hidden;
+        }
+
+        body.light-mode .public-aviso-card {
+            background: #ffffff;
+            border-color: rgba(153, 27, 27, 0.1);
+        }
+
+        .public-aviso-card__title {
+            font-size: 0.72rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: #facc15;
+            margin-bottom: 0.45rem;
+            line-height: 1.35;
+        }
+
+        body.light-mode .public-aviso-card__title { color: #991b1b; }
+
+        .public-aviso-card__text {
+            font-size: 0.78rem;
+            font-weight: 600;
+            line-height: 1.55;
+            color: rgba(255, 255, 255, 0.88);
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        body.light-mode .public-aviso-card__text { color: #334155; }
+
+        .public-aviso-card__image-wrap {
+            border-radius: 0.75rem;
+            overflow: hidden;
+            background: rgba(0, 0, 0, 0.35);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            max-height: min(52vh, 28rem);
+        }
+
+        .public-aviso-card__image {
+            display: block;
+            width: 100%;
+            height: auto;
+            max-height: min(52vh, 28rem);
+            object-fit: contain;
+        }
+
+        .public-aviso-card--image-only .public-aviso-card__image-wrap {
+            margin-top: 0;
+        }
+
+        @media (min-width: 900px) {
+            .auth-shell--has-avisos {
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) min(28rem, calc(100% - 2rem)) minmax(0, 1fr);
+                grid-template-areas: "avisos login .";
+                gap: 1.25rem 2rem;
+                align-items: center;
+                justify-content: unset;
+                max-width: 100%;
+                width: 100%;
+                padding: 0 0.75rem;
+            }
+
+            .auth-shell--has-avisos .public-avisos-panel {
+                grid-area: avisos;
+                justify-self: start;
+                align-self: center;
+                flex: unset;
+                width: min(100%, 36rem);
+                max-width: 36rem;
+                min-width: 0;
+                max-height: calc(100dvh - 1.5rem);
+                overflow-y: auto;
+                margin-right: 0;
+            }
+
+            .auth-shell--has-avisos .auth-card {
+                grid-area: login;
+                justify-self: center;
+                align-self: center;
+                flex: unset;
+                width: 100%;
+                max-width: 28rem;
+                max-height: calc(100dvh - 1.5rem);
+                overflow-y: auto;
+            }
+        }
+
+        .avisos-admin-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .avisos-admin-item {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            padding: 0.65rem 0.75rem;
+            border-radius: 0.85rem;
+            border: 1px solid rgba(148, 163, 184, 0.15);
+            background: rgba(0, 0, 0, 0.12);
+            cursor: pointer;
+            transition: border-color 0.2s ease, background 0.2s ease;
+        }
+
+        .avisos-admin-item:hover {
+            border-color: rgba(250, 204, 21, 0.3);
+            background: rgba(153, 27, 27, 0.08);
+        }
+
+        .avisos-admin-item--active {
+            border-color: rgba(250, 204, 21, 0.45);
+            background: rgba(153, 27, 27, 0.14);
+        }
+
+        body.light-mode .avisos-admin-item {
+            background: #ffffff;
+        }
+
+        .avisos-admin-item__badge {
+            font-size: 0.55rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            padding: 0.2rem 0.45rem;
+            border-radius: 0.4rem;
+            background: rgba(56, 189, 248, 0.15);
+            color: #38bdf8;
+            flex-shrink: 0;
+        }
+
+        .avisos-admin-item__badge--text {
+            background: rgba(250, 204, 21, 0.15);
+            color: #facc15;
+        }
+
+        .avisos-admin-item__meta {
+            min-width: 0;
+            flex: 1;
+        }
+
+        .avisos-admin-item__title {
+            font-size: 0.68rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            line-height: 1.3;
+        }
+
+        .avisos-admin-item__sub {
+            font-size: 0.58rem;
+            opacity: 0.55;
+            margin-top: 0.15rem;
+        }
+
+        .aviso-type-toggle {
+            display: inline-flex;
+            border-radius: 0.75rem;
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            overflow: hidden;
+        }
+
+        .aviso-type-toggle button {
+            padding: 0.45rem 0.85rem;
+            font-size: 0.62rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            opacity: 0.55;
+        }
+
+        .aviso-type-toggle button.active {
+            opacity: 1;
+            background: rgba(153, 27, 27, 0.18);
+            color: #facc15;
+        }
+
+        .aviso-preview-box {
+            border-radius: 1rem;
+            border: 1px dashed rgba(250, 204, 21, 0.25);
+            padding: 0.85rem;
+            background: rgba(0, 0, 0, 0.12);
+        }
+
+        body.light-mode .aviso-preview-box {
+            background: #f8fafc;
+        }
+
+        .aviso-image-drop {
+            border: 2px dashed rgba(153, 27, 27, 0.35);
+            border-radius: 1rem;
+            padding: 1.25rem;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.2s ease, background 0.2s ease;
+        }
+
+        .aviso-image-drop:hover {
+            border-color: rgba(250, 204, 21, 0.5);
+            background: rgba(153, 27, 27, 0.06);
+        }
+
+        .aviso-image-drop img {
+            max-width: 100%;
+            max-height: 14rem;
+            object-fit: contain;
+            margin: 0 auto;
+            border-radius: 0.65rem;
+        }
+
         /* Paneles internos (residente / admin) — compactos para caber en viewport */
         .app-panel {
             padding: 1rem 1.15rem;
@@ -662,6 +929,12 @@
         body.admin-fullscreen #adminReportView {
             overflow-y: auto;
             min-height: 0;
+        }
+
+        body.admin-fullscreen #adminAvisosView {
+            overflow: hidden;
+            min-height: 0;
+            flex: 1;
         }
 
         body.admin-fullscreen .admin-settings-shell {
@@ -1888,7 +2161,13 @@
         <p class="text-yellow-500 font-bold animate-pulse uppercase tracking-widest text-xs">Sincronizando con Sede Central Ayacucho...</p>
     </div>
 
-    <div id="authView" class="glass-card auth-card app-view w-full max-w-md hidden border-t-4 border-t-[#991b1b]">
+    <div id="authShell" class="auth-shell app-view w-full hidden">
+        <aside id="publicAvisosPanel" class="public-avisos-panel hidden" aria-label="Avisos institucionales">
+            <p class="public-avisos-heading">Avisos institucionales</p>
+            <div id="publicAvisosList" class="public-avisos-list"></div>
+        </aside>
+
+        <div id="authView" class="glass-card auth-card w-full border-t-4 border-t-[#991b1b]">
         <div class="auth-brand flex flex-col items-center text-center">
             <div class="logo-container logo-container--hero mb-2">
                 <img src="Imagen1.jpg" alt="Logo GRA">
@@ -1927,6 +2206,7 @@
                 <span id="adminBtnLabel">Panel Administrativo</span>
             </button>
             <button id="toggleBtn" class="text-[#991b1b] opacity-60 hover:opacity-100 text-[9px] uppercase font-black tracking-widest">Solicitar Registro</button>
+        </div>
         </div>
     </div>
 
@@ -2057,6 +2337,10 @@
                 <button type="button" onclick="switchAdminTab('report')" id="tabReport" data-admin-tab="report" class="admin-sidebar-link">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" stroke-linecap="round" stroke-linejoin="round"/></svg>
                     Cumplimiento
+                </button>
+                <button type="button" onclick="switchAdminTab('avisos')" id="tabAvisos" data-admin-tab="avisos" class="admin-sidebar-link">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    Avisos
                 </button>
                 <button type="button" onclick="goBackToHome(event)" class="admin-sidebar-link admin-sidebar-link--logout">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -2460,6 +2744,72 @@
             </div>
         </div>
 
+        <div id="adminAvisosView" class="admin-tab-panel hidden admin-grid grid grid-cols-1 lg:grid-cols-12">
+            <div class="admin-panel-col lg:col-span-5 bg-black/5 rounded-2xl border border-gray-400/10 overflow-hidden flex flex-col">
+                <div class="p-4 border-b border-gray-400/10 bg-black/5 shrink-0 space-y-3">
+                    <div class="flex items-start justify-between gap-2">
+                        <div>
+                            <h4 class="text-[#991b1b] text-[10px] font-black uppercase">Avisos institucionales</h4>
+                            <p class="text-[9px] opacity-55 mt-1 leading-relaxed">Se muestran a la izquierda en la pantalla de ingreso.</p>
+                        </div>
+                        <label class="flex items-center gap-2 cursor-pointer shrink-0">
+                            <input type="checkbox" id="avisosEnabledToggle" class="rounded border-gray-400/30" onchange="toggleAvisosEnabled(this.checked)">
+                            <span class="text-[8px] font-bold uppercase">Activo</span>
+                        </label>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <button type="button" onclick="startNewAviso('text')" class="bg-[#991b1b]/10 text-[#991b1b] px-3 py-2 rounded-xl text-[9px] font-black uppercase border border-[#991b1b]/20 hover:bg-[#991b1b]/20 transition-all">+ Texto</button>
+                        <button type="button" onclick="startNewAviso('image')" class="bg-amber-500/10 text-amber-300 px-3 py-2 rounded-xl text-[9px] font-black uppercase border border-amber-500/20 hover:bg-amber-500/20 transition-all">+ Imagen</button>
+                    </div>
+                </div>
+                <div id="avisosAdminList" class="admin-panel-scroll p-3 avisos-admin-list flex-1"></div>
+            </div>
+            <div class="admin-panel-col lg:col-span-7 bg-black/5 rounded-2xl border border-gray-400/10 p-5 md:p-6 overflow-y-auto" id="avisoEditorSection">
+                <div id="avisoEditorEmpty" class="text-center py-10 opacity-45">
+                    <p class="text-[10px] font-black uppercase">Seleccione un aviso o cree uno nuevo</p>
+                    <p class="text-[9px] mt-2 leading-relaxed max-w-sm mx-auto">Puede publicar comunicados en texto o imágenes. El panel se adapta al contenido en la pantalla de ingreso.</p>
+                </div>
+                <form id="avisoEditorForm" class="hidden space-y-4" onsubmit="event.preventDefault(); saveAvisoEditor();">
+                    <input type="hidden" id="avisoEditId">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <div class="aviso-type-toggle" id="avisoTypeToggle">
+                            <button type="button" data-aviso-type="text" onclick="setAvisoEditorType('text')">Texto</button>
+                            <button type="button" data-aviso-type="image" onclick="setAvisoEditorType('image')">Imagen</button>
+                        </div>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" id="avisoEditActive" class="rounded border-gray-400/30" checked>
+                            <span class="text-[8px] font-bold uppercase">Publicado</span>
+                        </label>
+                    </div>
+                    <div>
+                        <label class="label-gold text-[8px]">Título (opcional)</label>
+                        <input type="text" id="avisoEditTitle" placeholder="Ej. Comunicado importante" class="w-full rounded-xl px-3 py-2 text-sm font-bold bg-black/10 border border-gray-400/20 mt-1">
+                    </div>
+                    <div id="avisoTextFields">
+                        <label class="label-gold text-[8px]">Mensaje</label>
+                        <textarea id="avisoEditBody" rows="6" placeholder="Escriba el aviso para los residentes..." class="w-full rounded-xl px-3 py-2 text-sm font-bold bg-black/10 border border-gray-400/20 mt-1 resize-y min-h-[7rem]"></textarea>
+                    </div>
+                    <div id="avisoImageFields" class="hidden space-y-2">
+                        <label class="label-gold text-[8px]">Imagen del aviso</label>
+                        <div id="avisoImageDrop" class="aviso-image-drop" onclick="document.getElementById('avisoImageInput').click()">
+                            <p class="text-[9px] font-bold opacity-60">Toque para seleccionar imagen · JPG, PNG o WEBP</p>
+                            <img id="avisoImagePreview" class="hidden mt-3" alt="Vista previa del aviso">
+                        </div>
+                        <input type="file" id="avisoImageInput" accept="image/jpeg,image/png,image/webp,image/gif" class="hidden" onchange="onAvisoImagePicked(event)">
+                        <button type="button" id="avisoClearImageBtn" onclick="clearAvisoImageDraft()" class="hidden text-[8px] font-black uppercase text-red-400 hover:text-red-300">Quitar imagen</button>
+                    </div>
+                    <div class="aviso-preview-box">
+                        <p class="text-[8px] font-black uppercase text-[#991b1b] mb-2">Vista previa en ingreso</p>
+                        <div id="avisoEditorPreview"></div>
+                    </div>
+                    <div class="flex flex-wrap gap-2 pt-1">
+                        <button type="button" onclick="deleteAvisoEditor()" id="avisoDeleteBtn" class="hidden px-4 py-2.5 rounded-xl text-[10px] font-black uppercase border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-all">Eliminar</button>
+                        <button type="submit" id="avisoSaveBtn" class="flex-1 btn-primary py-2.5 rounded-xl text-xs font-black uppercase">Guardar aviso</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
         <div id="adminReportView" class="admin-tab-panel hidden">
             <div id="captureArea" class="bg-inherit rounded-3xl border border-gray-400/10 overflow-hidden shadow-2xl p-5 md:p-6">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 md:mb-5 gap-3 md:gap-4">
@@ -2610,12 +2960,21 @@
             file_retention_days: 4,
             file_retention_start_ymd: ""
         };
+        const DEFAULT_SYSTEM_NOTICES = {
+            enabled: true,
+            items: []
+        };
         const MAX_FILE_RETENTION_DAYS = 90;
 
         let uploadSchedule = { ...DEFAULT_UPLOAD_SCHEDULE };
         let faultCountSettings = { ...DEFAULT_FAULT_COUNT_SETTINGS };
         let adminCredentials = { ...DEFAULT_ADMIN_CREDENTIALS };
         let evidenceSettings = { ...DEFAULT_EVIDENCE_SETTINGS };
+        let systemNotices = { ...DEFAULT_SYSTEM_NOTICES, items: [] };
+        let selectedAvisoId = null;
+        let avisoEditorType = "text";
+        let avisoImageDraft = null;
+        let avisoImageDraftUrl = "";
         let settingsSyncStarted = false;
         let settingsUnsubscribe = null;
 
@@ -2648,12 +3007,13 @@
         let adminAlertsPanelOpen = false;
         let adminSessionStartedAt = "";
 
+        const authShell = document.getElementById('authShell');
         const authView = document.getElementById('authView');
         const adminPanelView = document.getElementById('adminPanelView');
         const residentModuleView = document.getElementById('residentModuleView');
         const initialLoader = document.getElementById('initialLoader');
 
-        const APP_VIEWS = [authView, adminPanelView, residentModuleView];
+        const APP_VIEWS = [authShell, adminPanelView, residentModuleView];
 
         function syncBodyLayoutClass(activeView) {
             document.body.classList.toggle('admin-fullscreen', activeView === adminPanelView);
@@ -3102,6 +3462,423 @@
             }
         }
 
+        function normalizeSystemNotices(raw) {
+            const enabled = raw?.enabled !== false;
+            const items = Array.isArray(raw?.items)
+                ? raw.items
+                      .map((item, idx) => {
+                          const type = item?.type === "image" ? "image" : "text";
+                          return {
+                              id: String(item?.id || `n_${idx}`),
+                              type,
+                              title: String(item?.title || "").trim(),
+                              body: String(item?.body || "").trim(),
+                              image_url: String(item?.image_url || "").trim(),
+                              storage_path: String(item?.storage_path || "").trim(),
+                              active: item?.active !== false,
+                              order: Number.isFinite(Number(item?.order)) ? Number(item.order) : idx,
+                              updated_at: String(item?.updated_at || "")
+                          };
+                      })
+                      .sort((a, b) => a.order - b.order)
+                : [];
+            return { enabled, items };
+        }
+
+        function getActiveAvisos() {
+            if (!systemNotices?.enabled) return [];
+            return (systemNotices.items || [])
+                .filter((item) => item.active !== false)
+                .filter((item) => {
+                    if (item.type === "image") return !!(item.image_url || item.storage_path);
+                    return !!(item.body || item.title);
+                })
+                .sort((a, b) => a.order - b.order);
+        }
+
+        function generateNoticeId() {
+            return `n_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+        }
+
+        function renderPublicAvisoCardHtml(item) {
+            const title = String(item?.title || "").trim();
+            const titleHtml = title ? `<p class="public-aviso-card__title">${escHtml(title)}</p>` : "";
+            if (item?.type === "image") {
+                const src = escHtml(item.image_url || "");
+                if (!src) return "";
+                const imageOnly = !title;
+                return `<article class="public-aviso-card${imageOnly ? " public-aviso-card--image-only" : ""}">
+                    ${titleHtml}
+                    <div class="public-aviso-card__image-wrap">
+                        <img src="${src}" alt="${escHtml(title || "Aviso institucional")}" class="public-aviso-card__image" loading="lazy">
+                    </div>
+                </article>`;
+            }
+            const body = String(item?.body || "").trim();
+            if (!body && !title) return "";
+            return `<article class="public-aviso-card">
+                ${titleHtml}
+                ${body ? `<p class="public-aviso-card__text">${escHtml(body)}</p>` : ""}
+            </article>`;
+        }
+
+        function renderPublicAvisosPanel() {
+            const shell = document.getElementById("authShell");
+            const panel = document.getElementById("publicAvisosPanel");
+            const list = document.getElementById("publicAvisosList");
+            if (!shell || !panel || !list) return;
+            const active = getActiveAvisos();
+            const hasAvisos = active.length > 0;
+            panel.classList.toggle("hidden", !hasAvisos);
+            shell.classList.toggle("auth-shell--has-avisos", hasAvisos);
+            list.innerHTML = hasAvisos ? active.map(renderPublicAvisoCardHtml).join("") : "";
+        }
+
+        function avisoListLabel(item) {
+            const title = String(item?.title || "").trim();
+            if (title) return title;
+            if (item?.type === "image") return "Aviso con imagen";
+            const body = String(item?.body || "").trim();
+            return body ? body.slice(0, 48) + (body.length > 48 ? "…" : "") : "Sin contenido";
+        }
+
+        function renderAvisosAdminList() {
+            const listEl = document.getElementById("avisosAdminList");
+            const enabledToggle = document.getElementById("avisosEnabledToggle");
+            if (enabledToggle) enabledToggle.checked = systemNotices.enabled !== false;
+            if (!listEl) return;
+            const items = [...(systemNotices.items || [])].sort((a, b) => a.order - b.order);
+            if (!items.length) {
+                listEl.innerHTML = `<p class="text-[9px] opacity-50 text-center py-6">No hay avisos creados.</p>`;
+                return;
+            }
+            listEl.innerHTML = items
+                .map((item) => {
+                    const activeCls = item.id === selectedAvisoId ? " avisos-admin-item--active" : "";
+                    const badgeCls = item.type === "text" ? " avisos-admin-item__badge--text" : "";
+                    const status = item.active === false ? "Borrador" : "Publicado";
+                    return `<button type="button" class="avisos-admin-item${activeCls}" onclick="openAvisoEditor(${JSON.stringify(item.id)})">
+                        <span class="avisos-admin-item__badge${badgeCls}">${item.type === "image" ? "IMG" : "TXT"}</span>
+                        <span class="avisos-admin-item__meta">
+                            <span class="avisos-admin-item__title">${escHtml(avisoListLabel(item))}</span>
+                            <span class="avisos-admin-item__sub">${status}</span>
+                        </span>
+                    </button>`;
+                })
+                .join("");
+        }
+
+        function resetAvisoImageDraft() {
+            if (avisoImageDraftUrl && avisoImageDraftUrl.startsWith("blob:")) {
+                URL.revokeObjectURL(avisoImageDraftUrl);
+            }
+            avisoImageDraft = null;
+            avisoImageDraftUrl = "";
+        }
+
+        function clearAvisoImageDraft() {
+            resetAvisoImageDraft();
+            const preview = document.getElementById("avisoImagePreview");
+            const clearBtn = document.getElementById("avisoClearImageBtn");
+            const input = document.getElementById("avisoImageInput");
+            if (preview) {
+                preview.src = "";
+                preview.classList.add("hidden");
+            }
+            if (clearBtn) clearBtn.classList.add("hidden");
+            if (input) input.value = "";
+            updateAvisoEditorPreview();
+        }
+
+        function setAvisoEditorType(type) {
+            avisoEditorType = type === "image" ? "image" : "text";
+            document.querySelectorAll("#avisoTypeToggle [data-aviso-type]").forEach((btn) => {
+                btn.classList.toggle("active", btn.dataset.avisoType === avisoEditorType);
+            });
+            document.getElementById("avisoTextFields")?.classList.toggle("hidden", avisoEditorType !== "text");
+            document.getElementById("avisoImageFields")?.classList.toggle("hidden", avisoEditorType !== "image");
+            updateAvisoEditorPreview();
+        }
+
+        function readAvisoEditorDraft() {
+            return {
+                id: document.getElementById("avisoEditId")?.value || "",
+                type: avisoEditorType,
+                title: String(document.getElementById("avisoEditTitle")?.value || "").trim(),
+                body: String(document.getElementById("avisoEditBody")?.value || "").trim(),
+                active: !!document.getElementById("avisoEditActive")?.checked
+            };
+        }
+
+        function updateAvisoEditorPreview() {
+            const preview = document.getElementById("avisoEditorPreview");
+            if (!preview) return;
+            const draft = readAvisoEditorDraft();
+            const existing = (systemNotices.items || []).find((x) => x.id === draft.id);
+            const imageUrl =
+                avisoImageDraftUrl ||
+                (avisoEditorType === "image" ? existing?.image_url || "" : "");
+            preview.innerHTML = renderPublicAvisoCardHtml({
+                type: avisoEditorType,
+                title: draft.title,
+                body: draft.body,
+                image_url: imageUrl
+            }) || `<p class="text-[9px] opacity-50">Complete el aviso para ver la vista previa.</p>`;
+        }
+
+        function wireAvisoEditorInputs() {
+            ["avisoEditTitle", "avisoEditBody"].forEach((id) => {
+                const el = document.getElementById(id);
+                if (el && !el.dataset.avisoWired) {
+                    el.dataset.avisoWired = "1";
+                    el.addEventListener("input", updateAvisoEditorPreview);
+                }
+            });
+            const activeEl = document.getElementById("avisoEditActive");
+            if (activeEl && !activeEl.dataset.avisoWired) {
+                activeEl.dataset.avisoWired = "1";
+                activeEl.addEventListener("change", updateAvisoEditorPreview);
+            }
+        }
+
+        window.openAvisoEditor = (id) => {
+            selectedAvisoId = id || null;
+            const item = (systemNotices.items || []).find((x) => x.id === id);
+            const empty = document.getElementById("avisoEditorEmpty");
+            const form = document.getElementById("avisoEditorForm");
+            const deleteBtn = document.getElementById("avisoDeleteBtn");
+            if (!item) return;
+            resetAvisoImageDraft();
+            empty?.classList.add("hidden");
+            form?.classList.remove("hidden");
+            deleteBtn?.classList.remove("hidden");
+            document.getElementById("avisoEditId").value = item.id;
+            document.getElementById("avisoEditTitle").value = item.title || "";
+            document.getElementById("avisoEditBody").value = item.body || "";
+            document.getElementById("avisoEditActive").checked = item.active !== false;
+            setAvisoEditorType(item.type === "image" ? "image" : "text");
+            const preview = document.getElementById("avisoImagePreview");
+            const clearBtn = document.getElementById("avisoClearImageBtn");
+            if (item.type === "image" && item.image_url && preview) {
+                preview.src = item.image_url;
+                preview.classList.remove("hidden");
+                clearBtn?.classList.remove("hidden");
+            } else {
+                clearAvisoImageDraft();
+            }
+            wireAvisoEditorInputs();
+            updateAvisoEditorPreview();
+            renderAvisosAdminList();
+        };
+
+        window.startNewAviso = (type) => {
+            const id = generateNoticeId();
+            const nextOrder =
+                (systemNotices.items || []).reduce((max, item) => Math.max(max, Number(item.order) || 0), -1) + 1;
+            const item = {
+                id,
+                type: type === "image" ? "image" : "text",
+                title: "",
+                body: "",
+                image_url: "",
+                storage_path: "",
+                active: true,
+                order: nextOrder,
+                updated_at: new Date().toISOString()
+            };
+            systemNotices = {
+                ...systemNotices,
+                items: [...(systemNotices.items || []), item]
+            };
+            openAvisoEditor(id);
+        };
+
+        window.onAvisoImagePicked = (e) => {
+            const file = e?.target?.files?.[0];
+            if (!file) return;
+            if (!file.type.startsWith("image/")) {
+                showFeedback("Seleccione un archivo de imagen válido.", "error");
+                return;
+            }
+            if (file.size > 8 * 1024 * 1024) {
+                showFeedback("La imagen no debe superar 8 MB.", "error");
+                return;
+            }
+            resetAvisoImageDraft();
+            avisoImageDraft = file;
+            avisoImageDraftUrl = URL.createObjectURL(file);
+            const preview = document.getElementById("avisoImagePreview");
+            const clearBtn = document.getElementById("avisoClearImageBtn");
+            if (preview) {
+                preview.src = avisoImageDraftUrl;
+                preview.classList.remove("hidden");
+            }
+            clearBtn?.classList.remove("hidden");
+            updateAvisoEditorPreview();
+        };
+
+        async function uploadAvisoImage(noticeId, file) {
+            const safeName = String(file.name || "aviso.jpg").replace(/[^a-zA-Z0-9._-]/g, "_");
+            const path = `artifacts/${appId}/public/notices/${noticeId}/${Date.now()}_${safeName}`;
+            const storageRef = ref(storage, path);
+            await new Promise((resolve, reject) => {
+                const task = uploadBytesResumable(storageRef, file, { contentType: file.type || "image/jpeg" });
+                task.on("state_changed", null, reject, resolve);
+            });
+            const url = await getDownloadURL(storageRef);
+            return { path, url };
+        }
+
+        async function deleteAvisoStoragePath(path) {
+            const clean = String(path || "").trim();
+            if (!clean) return;
+            try {
+                await deleteObject(ref(storage, clean));
+            } catch {
+                /* ignore missing files */
+            }
+        }
+
+        async function persistSystemNotices(successMsg, btn) {
+            const payload = {
+                system_notices: {
+                    enabled: systemNotices.enabled !== false,
+                    items: (systemNotices.items || []).map((item, idx) => ({
+                        ...item,
+                        order: idx,
+                        updated_at: item.updated_at || new Date().toISOString()
+                    })),
+                    updated_at: new Date().toISOString()
+                }
+            };
+            await persistSettingsSection(payload, successMsg, btn);
+            renderPublicAvisosPanel();
+            renderAvisosAdminList();
+        }
+
+        window.toggleAvisosEnabled = async (enabled) => {
+            systemNotices = { ...systemNotices, enabled: !!enabled };
+            try {
+                await persistSystemNotices(
+                    enabled ? "Avisos activados en ingreso." : "Avisos ocultos en ingreso.",
+                    null
+                );
+            } catch {
+                systemNotices = normalizeSystemNotices(systemNotices);
+                renderAvisosAdminList();
+            }
+        };
+
+        window.saveAvisoEditor = async () => {
+            const btn = document.getElementById("avisoSaveBtn");
+            const draft = readAvisoEditorDraft();
+            if (!draft.id) return;
+            const idx = (systemNotices.items || []).findIndex((x) => x.id === draft.id);
+            if (idx < 0) return;
+
+            if (avisoEditorType === "text" && !draft.body && !draft.title) {
+                showFeedback("Escriba un título o mensaje para el aviso.", "error");
+                return;
+            }
+            if (avisoEditorType === "image") {
+                const current = systemNotices.items[idx];
+                const hasImage = !!(avisoImageDraft || current.image_url || current.storage_path);
+                if (!hasImage) {
+                    showFeedback("Adjunte una imagen para el aviso.", "error");
+                    return;
+                }
+            }
+
+            const original = btn?.textContent || "Guardar aviso";
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = "Guardando...";
+            }
+
+            try {
+                const current = { ...systemNotices.items[idx] };
+                let image_url = current.image_url || "";
+                let storage_path = current.storage_path || "";
+                const oldStoragePath = storage_path;
+
+                if (avisoEditorType === "image" && avisoImageDraft) {
+                    const uploaded = await uploadAvisoImage(draft.id, avisoImageDraft);
+                    image_url = uploaded.url;
+                    storage_path = uploaded.path;
+                    if (oldStoragePath && oldStoragePath !== storage_path) {
+                        await deleteAvisoStoragePath(oldStoragePath);
+                    }
+                }
+
+                const nextItem = {
+                    ...current,
+                    type: avisoEditorType,
+                    title: draft.title,
+                    body: avisoEditorType === "text" ? draft.body : "",
+                    image_url: avisoEditorType === "image" ? image_url : "",
+                    storage_path: avisoEditorType === "image" ? storage_path : "",
+                    active: draft.active,
+                    updated_at: new Date().toISOString()
+                };
+
+                if (avisoEditorType === "text" && current.storage_path) {
+                    await deleteAvisoStoragePath(current.storage_path);
+                    nextItem.image_url = "";
+                    nextItem.storage_path = "";
+                }
+
+                const items = [...systemNotices.items];
+                items[idx] = nextItem;
+                systemNotices = { ...systemNotices, items };
+                resetAvisoImageDraft();
+                await persistSystemNotices("Aviso guardado correctamente.", btn);
+                openAvisoEditor(draft.id);
+            } catch (e) {
+                console.error(e);
+                showFeedback(`No se pudo guardar el aviso: ${e.code || e.message}`, "error");
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.textContent = original;
+                }
+            }
+        };
+
+        window.deleteAvisoEditor = async () => {
+            const id = document.getElementById("avisoEditId")?.value || selectedAvisoId;
+            if (!id) return;
+            const item = (systemNotices.items || []).find((x) => x.id === id);
+            if (!item) return;
+            if (!confirm("¿Eliminar este aviso?")) return;
+            const btn = document.getElementById("avisoDeleteBtn");
+            const original = btn?.textContent || "Eliminar";
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = "Eliminando...";
+            }
+            try {
+                if (item.storage_path) await deleteAvisoStoragePath(item.storage_path);
+                systemNotices = {
+                    ...systemNotices,
+                    items: (systemNotices.items || []).filter((x) => x.id !== id)
+                };
+                selectedAvisoId = null;
+                resetAvisoImageDraft();
+                document.getElementById("avisoEditorForm")?.classList.add("hidden");
+                document.getElementById("avisoEditorEmpty")?.classList.remove("hidden");
+                document.getElementById("avisoDeleteBtn")?.classList.add("hidden");
+                await persistSystemNotices("Aviso eliminado.", btn);
+            } catch (e) {
+                console.error(e);
+                showFeedback(`No se pudo eliminar: ${e.code || e.message}`, "error");
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.textContent = original;
+                }
+            }
+        };
+
         function normalizeAdminCredentials(raw) {
             const email = String(raw?.email || DEFAULT_ADMIN_CREDENTIALS.email).trim().toLowerCase();
             const password = String(raw?.password || DEFAULT_ADMIN_CREDENTIALS.password);
@@ -3379,11 +4156,20 @@
                     if (data?.evidence_settings) {
                         evidenceSettings = normalizeEvidenceSettings(data.evidence_settings);
                     }
+                    if (data?.system_notices) {
+                        systemNotices = normalizeSystemNotices(data.system_notices);
+                    }
                 }
                 updateUploadScheduleFooter();
                 updateEvidenceRetentionInfoTexts();
                 renderUploadScheduleAdminForm();
                 refreshBulkSustentoPanelVisibility();
+                renderPublicAvisosPanel();
+                const avisosView = document.getElementById("adminAvisosView");
+                if (avisosView && !avisosView.classList.contains("hidden")) {
+                    renderAvisosAdminList();
+                    if (selectedAvisoId) openAvisoEditor(selectedAvisoId);
+                }
                 const report = document.getElementById("adminReportView");
                 if (report && !report.classList.contains("hidden")) {
                     renderElegantFaultReport();
@@ -3416,7 +4202,7 @@
         }
 
         function shouldRefreshLoginForm() {
-            return currentMode === "LOGIN" && authView && !authView.classList.contains("hidden");
+            return currentMode === "LOGIN" && authShell && !authShell.classList.contains("hidden");
         }
 
         function renderLoginProjectOptions(query = loginProjectQuery) {
@@ -3488,7 +4274,8 @@
         async function init() {
             initialLoader.classList.add('loader-exit');
             setTimeout(() => initialLoader.classList.add('hidden'), 380);
-            revealAppView(authView);
+            revealAppView(authShell);
+            renderPublicAvisosPanel();
 
             if (window.location.protocol === "file:") {
                 showFeedback(
@@ -4452,7 +5239,8 @@
             list: { title: "Gestión de proyectos", subtitle: "Expedientes y fichas de obra" },
             evidence: { title: "Evidencias", subtitle: "Seguimiento y verificación diaria" },
             settings: { title: "Configuración", subtitle: "Horarios, faltas y acceso administrativo" },
-            report: { title: "Cumplimiento regional", subtitle: "Reporte de incumplimiento" }
+            report: { title: "Cumplimiento regional", subtitle: "Reporte de incumplimiento" },
+            avisos: { title: "Avisos institucionales", subtitle: "Comunicados visibles en la pantalla de ingreso" }
         };
 
         window.switchAdminTab = (tab) => {
@@ -4460,6 +5248,7 @@
             const report = document.getElementById('adminReportView');
             const evidence = document.getElementById('adminEvidenceView');
             const schedule = document.getElementById('adminSettingsView');
+            const avisos = document.getElementById('adminAvisosView');
             const reportExportMenu = document.getElementById('adminReportExportMenu');
             const evidenceExportBtn = document.getElementById('exportEvidenceBtn');
             const pageTitle = document.getElementById('adminPageTitle');
@@ -4470,9 +5259,14 @@
             report.classList.toggle('hidden', tab !== 'report');
             if (evidence) evidence.classList.toggle('hidden', tab !== 'evidence');
             if (schedule) schedule.classList.toggle('hidden', tab !== 'settings');
+            if (avisos) avisos.classList.toggle('hidden', tab !== 'avisos');
             if (tab === 'list') replayAdminTabAnimation(list);
             if (tab === 'report') replayAdminTabAnimation(report);
             if (tab === 'evidence') replayAdminTabAnimation(evidence);
+            if (tab === 'avisos') {
+                replayAdminTabAnimation(avisos);
+                renderAvisosAdminList();
+            }
             if (tab === 'settings') {
                 replayAdminTabAnimation(schedule);
                 renderUploadScheduleAdminForm();
@@ -4682,7 +5476,7 @@
             if (document.activeElement && typeof document.activeElement.blur === "function") {
                 document.activeElement.blur();
             }
-            revealAppView(authView);
+            revealAppView(authShell);
             setMode('LOGIN');
         };
 
@@ -5214,7 +6008,7 @@
                     if (fi) fi.value = '';
                     const resV = document.getElementById('residentModuleView');
                     if (resV && !resV.classList.contains('hidden')) {
-                        revealAppView(authView);
+                        revealAppView(authShell);
                         setMode('LOGIN');
                     }
                 }
