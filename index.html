@@ -472,6 +472,20 @@
             margin-bottom: 0.35rem;
         }
 
+        .auth-autofill-trap {
+            position: absolute;
+            left: -9999px;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .auth-form {
+            position: relative;
+        }
+
         .auth-shell {
             display: flex;
             flex-direction: column;
@@ -2340,16 +2354,20 @@
             <p class="text-white/50 text-[9px] mt-0.5 uppercase tracking-widest font-bold">Control de Obras Públicas</p>
         </div>
 
-        <form id="projectForm" class="auth-form flex flex-col">
+        <form id="projectForm" class="auth-form flex flex-col" autocomplete="off" novalidate>
+            <div class="auth-autofill-trap" aria-hidden="true">
+                <input type="text" id="authAutofillTrapUser" name="auth-trap-user" tabindex="-1" autocomplete="username">
+                <input type="password" id="authAutofillTrapPass" name="auth-trap-pass" tabindex="-1" autocomplete="current-password">
+            </div>
             <div id="dynamicInputContainer" class="auth-field">
                 <label class="label-gold">PROYECTO DE INVERSIÓN</label>
-                <select id="projectSelector" disabled class="auth-input w-full rounded-xl font-bold shadow-sm">
+                <select id="projectSelector" disabled class="auth-input w-full rounded-xl font-bold shadow-sm" autocomplete="off">
                     <option value="" selected>Cargando obras...</option>
                 </select>
             </div>
             <div class="auth-field">
                 <label class="label-gold">CLAVE DE SEGURIDAD</label>
-                <input type="password" id="password" placeholder="••••••••" class="auth-input auth-input--lg w-full rounded-xl shadow-sm">
+                <input type="password" id="password" name="clave-proyecto" placeholder="••••••••" autocomplete="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore data-form-type="other" class="auth-input auth-input--lg w-full rounded-xl shadow-sm">
             </div>
             <button type="submit" id="submitBtn" class="auth-btn w-full btn-primary rounded-xl shadow-lg text-sm">
                 <span id="btnText">Ingresar al Sistema</span>
@@ -3195,7 +3213,15 @@
             void el.offsetWidth;
             el.classList.add('view-animate-in');
             syncBodyLayoutClass(el);
-            if (el === authShell) void renderPublicAvisosPanel();
+            if (el === authShell) {
+                configureAuthFormAutofill(currentMode);
+                void renderPublicAvisosPanel();
+                if (currentMode === "LOGIN") {
+                    loginAutofillCleanedOnce = false;
+                    setTimeout(clearBrowserAutofillOnLoginFields, 80);
+                    setTimeout(clearBrowserAutofillOnLoginFields, 400);
+                }
+            }
         }
 
         function replayAdminTabAnimation(panel) {
@@ -3252,8 +3278,8 @@
                     <p class="text-[10px] font-bold text-red-400 leading-relaxed">${safeMsg}</p>
                     <button type="button" onclick="retryProjectsLoad()" class="mt-2 w-full py-2 rounded-lg text-[10px] font-black uppercase border border-red-500/40 text-red-500 hover:bg-red-500/10 transition-colors">Reintentar conexión</button>
                 </div>
-                <input type="text" id="projectSearchInput" placeholder="Buscar por CUI o nombre..." class="auth-input w-full rounded-xl mb-2 font-bold shadow-sm" disabled>
-                <select id="projectSelector" disabled class="auth-input w-full rounded-xl font-bold shadow-sm"><option value="" selected>Sin conexión con Firebase</option></select>`;
+                <input type="text" id="projectSearchInput" name="obra-busqueda" placeholder="Buscar por CUI o nombre..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore data-form-type="other" class="auth-input w-full rounded-xl mb-2 font-bold shadow-sm" disabled>
+                <select id="projectSelector" disabled autocomplete="off" class="auth-input w-full rounded-xl font-bold shadow-sm"><option value="" selected>Sin conexión con Firebase</option></select>`;
             if (submitBtn) submitBtn.disabled = true;
         }
 
@@ -3269,7 +3295,8 @@
                 const container = document.getElementById("dynamicInputContainer");
                 const submitBtn = document.getElementById("submitBtn");
                 if (container) {
-                    container.innerHTML = `<label class="label-gold">PROYECTO DE INVERSIÓN</label><input type="text" id="projectSearchInput" placeholder="Buscar por CUI o nombre..." class="auth-input w-full rounded-xl mb-2 font-bold shadow-sm" disabled><select id="projectSelector" disabled class="auth-input w-full rounded-xl font-bold shadow-sm"><option value="" selected>Cargando obras...</option></select>`;
+                    container.innerHTML = loginProjectFieldsHtml({ disabled: true });
+                    container.querySelector("#projectSelector").innerHTML = '<option value="" selected>Cargando obras...</option>';
                 }
                 if (submitBtn) submitBtn.disabled = true;
             }
@@ -4724,6 +4751,8 @@
                 return;
             }
             renderLoginProjectOptions(loginProjectQuery);
+            configureAuthFormAutofill("LOGIN");
+            clearBrowserAutofillOnLoginFields();
             const submitBtn = document.getElementById("submitBtn");
             if (submitBtn) submitBtn.disabled = false;
         }
@@ -5801,6 +5830,83 @@
             }
         }
 
+        function configureAuthFormAutofill(mode) {
+            const passInput = document.getElementById("password");
+            const trapUser = document.getElementById("authAutofillTrapUser");
+            const trapPass = document.getElementById("authAutofillTrapPass");
+            if (passInput) {
+                if (mode === "ADMIN") {
+                    passInput.autocomplete = "current-password";
+                    passInput.name = "admin-password";
+                    passInput.removeAttribute("data-form-type");
+                } else {
+                    passInput.autocomplete = "off";
+                    passInput.name = "clave-proyecto";
+                    passInput.setAttribute("data-form-type", "other");
+                }
+            }
+            const projectSearch = document.getElementById("projectSearchInput");
+            if (projectSearch) {
+                projectSearch.autocomplete = "off";
+                projectSearch.name = "obra-busqueda";
+                projectSearch.setAttribute("data-lpignore", "true");
+                projectSearch.setAttribute("data-1p-ignore", "");
+                projectSearch.setAttribute("data-form-type", "other");
+            }
+            const projectSelector = document.getElementById("projectSelector");
+            if (projectSelector) projectSelector.autocomplete = "off";
+            const adminEmail = document.getElementById("adminEmail");
+            if (adminEmail) {
+                adminEmail.autocomplete = "username";
+                adminEmail.name = "admin-email";
+            }
+            if (trapUser && trapPass) {
+                trapUser.value = "";
+                trapPass.value = "";
+                trapUser.tabIndex = mode === "LOGIN" ? -1 : -1;
+            }
+        }
+
+        function loginProjectFieldsHtml(options = {}) {
+            const { disabled = false, oninput = false } = options;
+            const searchAttrs = [
+                'type="text"',
+                'id="projectSearchInput"',
+                'name="obra-busqueda"',
+                'placeholder="Buscar por CUI o nombre..."',
+                'class="auth-input w-full rounded-xl mb-2 font-bold shadow-sm"',
+                'autocomplete="off"',
+                'autocorrect="off"',
+                'autocapitalize="off"',
+                'spellcheck="false"',
+                'data-lpignore="true"',
+                'data-1p-ignore',
+                'data-form-type="other"',
+                disabled ? "disabled" : "",
+                oninput ? 'oninput="filterLoginProjects(this.value)"' : ""
+            ].filter(Boolean).join(" ");
+            const selectDisabled = disabled ? "disabled" : "";
+            return `<label class="label-gold">PROYECTO DE INVERSIÓN</label><input ${searchAttrs}><select id="projectSelector" ${selectDisabled} autocomplete="off" class="auth-input w-full rounded-xl font-bold shadow-sm"></select>`;
+        }
+
+        let loginAutofillCleanedOnce = false;
+
+        function clearBrowserAutofillOnLoginFields() {
+            if (currentMode !== "LOGIN") return;
+            const projectSearch = document.getElementById("projectSearchInput");
+            if (projectSearch && /@/.test(String(projectSearch.value || ""))) {
+                projectSearch.value = loginProjectQuery || "";
+            }
+            if (!loginAutofillCleanedOnce) {
+                const passInput = document.getElementById("password");
+                const selector = document.getElementById("projectSelector");
+                if (passInput?.value && !selector?.value && document.activeElement !== passInput) {
+                    passInput.value = "";
+                }
+                loginAutofillCleanedOnce = true;
+            }
+        }
+
         window.setMode = (mode) => {
             currentMode = mode;
             const container = document.getElementById('dynamicInputContainer');
@@ -5812,23 +5918,24 @@
             const applyMode = () => {
                 if (mode === 'LOGIN') {
                     if (!projectsLoaded || masterProjects.length === 0) {
-                        container.innerHTML = `<label class="label-gold">PROYECTO DE INVERSIÓN</label><input type="text" id="projectSearchInput" placeholder="Buscar por CUI o nombre..." class="auth-input w-full rounded-xl mb-2 font-bold shadow-sm" disabled><select id="projectSelector" disabled class="auth-input w-full rounded-xl font-bold shadow-sm"><option value="" selected>Cargando obras...</option></select>`;
+                        container.innerHTML = loginProjectFieldsHtml({ disabled: true });
                         submitBtn.disabled = true;
+                        configureAuthFormAutofill(mode);
                         updateAuthNavLabels();
                         if (container) container.classList.remove('form-fade');
                         return;
                     }
-                    container.innerHTML = `<label class="label-gold">PROYECTO DE INVERSIÓN</label><input type="text" id="projectSearchInput" placeholder="Buscar por CUI o nombre..." class="auth-input w-full rounded-xl mb-2 font-bold shadow-sm" oninput="filterLoginProjects(this.value)"><select id="projectSelector" class="auth-input w-full rounded-xl font-bold shadow-sm"></select>`;
+                    container.innerHTML = loginProjectFieldsHtml({ oninput: true });
                     const projectSearchInput = document.getElementById("projectSearchInput");
                     if (projectSearchInput) projectSearchInput.value = loginProjectQuery;
                     wireLoginProjectControls();
                     renderLoginProjectOptions(loginProjectQuery);
                     submitBtn.disabled = false;
                 } else if (mode === 'ADMIN') {
-                    container.innerHTML = `<label class="label-gold">CORREO INSTITUCIONAL</label><input type="email" id="adminEmail" value="" autocomplete="username" placeholder="Ingrese su correo institucional" class="auth-input w-full rounded-xl font-bold shadow-sm">`;
+                    container.innerHTML = `<label class="label-gold">CORREO INSTITUCIONAL</label><input type="email" id="adminEmail" name="admin-email" value="" autocomplete="username" placeholder="Ingrese su correo institucional" class="auth-input w-full rounded-xl font-bold shadow-sm">`;
                     submitBtn.disabled = false;
                 } else {
-                    container.innerHTML = `<label class="label-gold">NUEVO PROYECTO</label><input type="text" id="regCui" placeholder="Código CUI" class="auth-input w-full rounded-xl mb-2 font-bold"><textarea id="regName" placeholder="Denominación" class="auth-input w-full rounded-xl h-24 font-bold shadow-sm mb-2 resize-none"></textarea><input type="text" id="regResident" placeholder="Nombre del residente" class="auth-input w-full rounded-xl font-bold shadow-sm">`;
+                    container.innerHTML = `<label class="label-gold">NUEVO PROYECTO</label><input type="text" id="regCui" name="reg-cui" autocomplete="off" placeholder="Código CUI" class="auth-input w-full rounded-xl mb-2 font-bold"><textarea id="regName" name="reg-nombre" autocomplete="off" placeholder="Denominación" class="auth-input w-full rounded-xl h-24 font-bold shadow-sm mb-2 resize-none"></textarea><input type="text" id="regResident" name="reg-residente" autocomplete="off" placeholder="Nombre del residente" class="auth-input w-full rounded-xl font-bold shadow-sm">`;
                     document.getElementById('regCui').value = prevRegCui;
                     document.getElementById('regName').value = prevRegName;
                     document.getElementById('regResident').value = prevRegResident;
@@ -5836,6 +5943,13 @@
                 }
                 const passInput = document.getElementById("password");
                 if (passInput) passInput.value = "";
+                configureAuthFormAutofill(mode);
+                if (mode === "LOGIN") {
+                    loginAutofillCleanedOnce = false;
+                    requestAnimationFrame(() => clearBrowserAutofillOnLoginFields());
+                    setTimeout(clearBrowserAutofillOnLoginFields, 120);
+                    setTimeout(clearBrowserAutofillOnLoginFields, 450);
+                }
                 updateAuthNavLabels();
                 if (container) container.classList.remove('form-fade');
             };
