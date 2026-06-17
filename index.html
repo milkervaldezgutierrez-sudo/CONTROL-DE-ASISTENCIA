@@ -288,6 +288,40 @@
         body.light-mode .slot-status--no_cumplido { color: #b91c1c; }
         body.light-mode .slot-status--pendiente { color: #b45309; }
         body.light-mode .slot-status--no_aplica { color: #64748b; }
+        .slot-row--enviado { border: 1px solid rgba(56, 189, 248, 0.35); background: rgba(56, 189, 248, 0.1); }
+        .slot-row--aprobado { border: 1px solid rgba(34, 197, 94, 0.35); background: rgba(34, 197, 94, 0.1); }
+        .slot-row--rechazado { border: 1px solid rgba(239, 68, 68, 0.45); background: rgba(239, 68, 68, 0.12); }
+        .slot-row--sustentado { border: 1px solid rgba(14, 165, 233, 0.35); background: rgba(14, 165, 233, 0.1); }
+        .slot-status--enviado { color: #38bdf8; }
+        .slot-status--aprobado { color: #22c55e; }
+        .slot-status--rechazado { color: #f87171; }
+        .slot-status--sustentado { color: #0ea5e9; }
+        body.light-mode .slot-row--enviado { border-color: #7dd3fc; background: #f0f9ff; }
+        body.light-mode .slot-row--aprobado { border-color: #86efac; background: #ecfdf5; }
+        body.light-mode .slot-row--rechazado { border-color: #fca5a5; background: #fef2f2; }
+        body.light-mode .slot-row--sustentado { border-color: #7dd3fc; background: #f0f9ff; }
+        body.light-mode .slot-status--enviado { color: #0369a1; }
+        body.light-mode .slot-status--aprobado { color: #15803d; }
+        body.light-mode .slot-status--rechazado { color: #b91c1c; }
+        body.light-mode .slot-status--sustentado { color: #0369a1; }
+        .slot-status-note {
+            font-size: 0.5625rem;
+            font-weight: 600;
+            line-height: 1.35;
+            margin-top: 0.35rem;
+            text-transform: none;
+            letter-spacing: 0;
+            color: rgba(255, 255, 255, 0.65);
+        }
+        .slot-row--rechazado .slot-status-note { color: #fca5a5; }
+        .slot-row--aprobado .slot-status-note { color: #86efac; }
+        .slot-row--enviado .slot-status-note { color: #7dd3fc; }
+        .slot-row--sustentado .slot-status-note { color: #7dd3fc; }
+        body.light-mode .slot-status-note { color: #64748b; }
+        body.light-mode .slot-row--rechazado .slot-status-note { color: #b91c1c; }
+        body.light-mode .slot-row--aprobado .slot-status-note { color: #15803d; }
+        body.light-mode .slot-row--enviado .slot-status-note { color: #0369a1; }
+        body.light-mode .slot-row--sustentado .slot-status-note { color: #0369a1; }
 
         .upload-status-msg--ok { color: #22c55e; }
         .upload-status-msg--warn { color: #ef4444; }
@@ -1262,6 +1296,43 @@
             overflow: hidden;
         }
 
+        .evidence-followup-filter-btn {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.3rem 0.55rem;
+            border-radius: 999px;
+            border: 1px solid rgba(148, 163, 184, 0.22);
+            background: rgba(0, 0, 0, 0.06);
+            color: inherit;
+            font-size: 0.58rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            cursor: pointer;
+            transition:
+                background var(--duration-fast) var(--ease-out),
+                border-color var(--duration-fast) var(--ease-out),
+                color var(--duration-fast) var(--ease-out);
+        }
+
+        body.light-mode .evidence-followup-filter-btn {
+            background: rgba(255, 255, 255, 0.55);
+        }
+
+        .evidence-followup-filter-btn:hover {
+            border-color: rgba(250, 204, 21, 0.35);
+        }
+
+        .evidence-followup-filter-btn--active {
+            background: rgba(153, 27, 27, 0.18);
+            border-color: rgba(250, 204, 21, 0.45);
+            color: #facc15;
+        }
+
+        body.light-mode .evidence-followup-filter-btn--active {
+            color: #991b1b;
+        }
+
         .admin-sidebar-link--logout {
             color: #f87171 !important;
             border-color: rgba(248, 113, 113, 0.2) !important;
@@ -1924,10 +1995,12 @@
                 <div id="slotMananaRow" class="slot-row slot-row--pendiente">
                     <p class="text-[9px] font-black uppercase theme-label mb-1">Mañana</p>
                     <span id="slotMananaStatus" class="slot-status slot-status--pendiente">Pendiente</span>
+                    <p id="slotMananaNote" class="slot-status-note hidden"></p>
                 </div>
                 <div id="slotTardeRow" class="slot-row slot-row--pendiente">
                     <p class="text-[9px] font-black uppercase theme-label mb-1">Tarde</p>
                     <span id="slotTardeStatus" class="slot-status slot-status--pendiente">Pendiente</span>
+                    <p id="slotTardeNote" class="slot-status-note hidden"></p>
                 </div>
             </div>
             <p id="residentConsultHint" class="hidden text-[8px] font-bold text-center text-white/35 uppercase mt-2 leading-relaxed">Consulta histórica · el envío de evidencia siempre es para el día de hoy</p>
@@ -2036,7 +2109,6 @@
                         <tr class="bg-black/5 border-b border-gray-400/10">
                             <th class="admin-cell text-[#991b1b] text-[10px] font-black uppercase">CUI</th>
                             <th class="admin-cell text-[#991b1b] text-[10px] font-black uppercase">Proyecto</th>
-                            <th class="admin-cell text-[#991b1b] text-[10px] font-black uppercase text-center">Evid.</th>
                             <th class="admin-cell text-[#991b1b] text-[10px] font-black uppercase text-center">Gestión</th>
                         </tr>
                     </thead>
@@ -2091,6 +2163,15 @@
                     <span class="admin-settings-nav-text">
                         <strong>Sustento en bloque</strong>
                         <span id="settingsNavHintBulk" class="admin-settings-nav-hint">Evidencias</span>
+                    </span>
+                </button>
+                <button type="button" class="admin-settings-nav-btn" data-settings-panel="retention" onclick="switchSettingsPanel('retention')">
+                    <span class="admin-settings-nav-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m2 0H7m2-3h6a1 1 0 011 1v1H8V5a1 1 0 011-1z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </span>
+                    <span class="admin-settings-nav-text">
+                        <strong>Retención de archivos</strong>
+                        <span id="settingsNavHintRetention" class="admin-settings-nav-hint">4 días</span>
                     </span>
                 </button>
                 <button type="button" class="admin-settings-nav-btn" data-settings-panel="access" onclick="switchSettingsPanel('access')">
@@ -2225,6 +2306,36 @@
                     </div>
                 </section>
 
+                <section id="settingsPanelRetention" class="admin-settings-panel" data-settings-panel="retention">
+                    <div class="admin-settings-panel-head">
+                        <h4>Retención de fotos y videos</h4>
+                        <p>Define cuántos días se conservan los archivos en el servidor y desde qué fecha aplica la eliminación automática.</p>
+                    </div>
+                    <div class="admin-settings-panel-body">
+                        <div class="settings-form-grid settings-form-grid--single">
+                            <div class="settings-time-block settings-day-picker">
+                                <label for="configRetentionDays" class="text-[8px] font-bold uppercase opacity-60">Días de conservación</label>
+                                <output id="retentionDaysDisplay" for="configRetentionDays" class="settings-day-display">4<small>días en el servidor</small></output>
+                                <input type="range" id="configRetentionDays" min="1" max="90" value="4" class="settings-range">
+                                <p class="text-[9px] opacity-50 mt-1">Pasado este plazo se eliminan fotos y videos. El registro de cumplimiento se conserva.</p>
+                            </div>
+                            <div class="settings-time-block">
+                                <label for="configRetentionStartDate" class="text-[8px] font-bold uppercase opacity-60">Eliminar automáticamente desde</label>
+                                <input type="date" id="configRetentionStartDate" class="w-full rounded-xl px-3 py-2 text-sm font-bold bg-black/10 border border-gray-400/20 mt-1">
+                                <p class="text-[9px] opacity-50 mt-2 leading-relaxed">Opcional. Los envíos anteriores a esta fecha no se borran. Déjelo vacío para aplicar a todos.</p>
+                                <button type="button" onclick="clearRetentionStartDate()" class="text-[8px] font-black uppercase text-[#991b1b] mt-2 hover:opacity-80">Quitar fecha de inicio</button>
+                            </div>
+                            <div class="settings-preview-box">
+                                <p class="text-[8px] font-black uppercase text-[#991b1b] mb-1">Vista previa</p>
+                                <p id="retentionPreviewText" class="text-[9px] font-bold opacity-80 leading-relaxed"></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="admin-settings-panel-footer">
+                        <button type="button" onclick="saveRetentionSettings()" id="retentionSaveBtn" class="settings-save-btn btn-primary py-2.5 px-4 rounded-xl text-xs font-black uppercase">Guardar retención</button>
+                    </div>
+                </section>
+
                 <section id="settingsPanelAccess" class="admin-settings-panel" data-settings-panel="access">
                     <div class="admin-settings-panel-head">
                         <h4>Acceso administrativo</h4>
@@ -2258,8 +2369,27 @@
         <div id="adminEvidenceView" class="admin-tab-panel hidden admin-grid grid grid-cols-1 lg:grid-cols-12">
             <div class="admin-panel-col lg:col-span-5 bg-black/5 rounded-3xl border border-gray-400/10 overflow-hidden">
                 <div class="p-4 border-b border-gray-400/10 bg-black/5 shrink-0">
-                    <h4 class="text-[#991b1b] text-[10px] font-black uppercase">Seguimiento del día</h4>
-                    <p id="evidenceFollowUpSubtitle" class="text-[9px] opacity-50 mt-1">Solo actividad de hoy.</p>
+                    <h4 class="text-[#991b1b] text-[10px] font-black uppercase">Seguimiento por fecha</h4>
+                    <div class="flex flex-wrap items-center gap-2 mt-2">
+                        <label for="evidenceFollowUpDate" class="text-[8px] font-bold uppercase opacity-60 shrink-0">Fecha</label>
+                        <input
+                            type="date"
+                            id="evidenceFollowUpDate"
+                            class="flex-1 min-w-[8.5rem] rounded-lg px-2 py-1 text-[10px] font-bold bg-black/10 border border-gray-400/20"
+                            onchange="setEvidenceFollowUpDate(this.value)"
+                        >
+                        <button type="button" onclick="resetEvidenceFollowUpToday()" class="text-[8px] font-black uppercase text-[#991b1b] px-2 py-1 rounded-lg border border-[#991b1b]/25 hover:bg-[#991b1b]/10 transition-all shrink-0">Hoy</button>
+                    </div>
+                    <button
+                        type="button"
+                        id="evidenceUploadedOnlyBtn"
+                        onclick="toggleEvidenceUploadedOnlyFilter()"
+                        class="evidence-followup-filter-btn mt-1.5"
+                        title="Mostrar solo proyectos que subieron archivos ese día"
+                    >
+                        Solo con envío
+                    </button>
+                    <p id="evidenceFollowUpSubtitle" class="text-[9px] opacity-50 mt-1.5">Actividad del día seleccionado.</p>
                     <input
                         type="text"
                         id="evidenceProjectSearch"
@@ -2303,7 +2433,7 @@
                     <p class="text-[9px] opacity-60 mt-2">Solo aplica a turnos SIN CARGA del filtro actual.</p>
                 </div>
                 <p class="text-[9px] opacity-50 mb-1">El administrador puede revisar las entregas anteriores, aprobarlas o rechazarlas con observación.</p>
-                <p class="text-[9px] opacity-50 mb-2">Los videos y fotos se eliminan automáticamente 4 días después de la entrega.</p>
+                <p id="evidenceRetentionInfoText" class="text-[9px] opacity-50 mb-2">Los videos y fotos se eliminan automáticamente 4 días después de la entrega.</p>
                 <p class="text-[9px] opacity-55 mb-3 leading-relaxed">Cada envío registra IP, ubicación aproximada por red y GPS del dispositivo. Para cargar evidencia es obligatorio habilitar ubicación.</p>
                 <div id="evidenceReviewList" class="admin-panel-scroll space-y-4 pr-1"></div>
             </div>
@@ -2451,8 +2581,6 @@
         const db = getFirestore(app);
         const storage = getStorage(app, `gs://${firebaseConfig.storageBucket}`);
         const MAX_UPLOAD_BYTES = 80 * 1024 * 1024;
-        const EVIDENCE_RETENTION_MS = 4 * 24 * 60 * 60 * 1000;
-        const EVIDENCE_RETENTION_CALENDAR_DAYS = 4;
         const evidenceCleanupInFlight = new Set();
         const HOLIDAY_YMD = new Set([
             "2026-05-01"
@@ -2478,8 +2606,11 @@
         };
 
         const DEFAULT_EVIDENCE_SETTINGS = {
-            bulk_sustento_enabled: true
+            bulk_sustento_enabled: true,
+            file_retention_days: 4,
+            file_retention_start_ymd: ""
         };
+        const MAX_FILE_RETENTION_DAYS = 90;
 
         let uploadSchedule = { ...DEFAULT_UPLOAD_SCHEDULE };
         let faultCountSettings = { ...DEFAULT_FAULT_COUNT_SETTINGS };
@@ -2504,6 +2635,8 @@
         let projectsLoadTimeoutId = null;
         let evidenceSelectedProjectId = null;
         let evidenceFilterDate = "";
+        let evidenceFollowUpDate = "";
+        let evidenceFollowUpUploadedOnly = false;
         let residentConsultDateYmd = null;
         const MIN_RESIDENT_REPORT_OFFSET = -90;
         let loginProjectQuery = "";
@@ -2799,6 +2932,7 @@
             if (accessHint) {
                 accessHint.textContent = email.length > 22 ? `${email.slice(0, 20)}…` : email;
             }
+            updateRetentionPreview();
         }
 
         let activeSettingsPanel = "schedule";
@@ -2814,10 +2948,122 @@
         };
 
         function normalizeEvidenceSettings(raw) {
+            const days = Number(raw?.file_retention_days);
+            const startYmd = String(raw?.file_retention_start_ymd || "").slice(0, 10);
             return {
-                bulk_sustento_enabled: raw?.bulk_sustento_enabled !== false
+                bulk_sustento_enabled: raw?.bulk_sustento_enabled !== false,
+                file_retention_days:
+                    Number.isFinite(days) && days >= 1 && days <= MAX_FILE_RETENTION_DAYS
+                        ? Math.floor(days)
+                        : DEFAULT_EVIDENCE_SETTINGS.file_retention_days,
+                file_retention_start_ymd: /^\d{4}-\d{2}-\d{2}$/.test(startYmd) ? startYmd : ""
             };
         }
+
+        function getEvidenceRetentionDays() {
+            return evidenceSettings.file_retention_days || DEFAULT_EVIDENCE_SETTINGS.file_retention_days;
+        }
+
+        function getEvidenceRetentionMs() {
+            return getEvidenceRetentionDays() * 24 * 60 * 60 * 1000;
+        }
+
+        function getEvidenceRetentionStartYmd() {
+            return evidenceSettings.file_retention_start_ymd || "";
+        }
+
+        function ymdFromMsLima(ms) {
+            try {
+                const parts = new Intl.DateTimeFormat("en-CA", {
+                    timeZone: "America/Lima",
+                    year: "numeric",
+                    month: "2-digit",
+                    day: "2-digit"
+                }).formatToParts(new Date(ms));
+                const y = parts.find((p) => p.type === "year").value;
+                const mo = parts.find((p) => p.type === "month").value;
+                const da = parts.find((p) => p.type === "day").value;
+                return `${y}-${mo}-${da}`;
+            } catch {
+                return new Date(ms).toISOString().slice(0, 10);
+            }
+        }
+
+        function batchYmdForRetention(batch) {
+            const fechaYmd = String(batch?.fecha || "").slice(0, 10);
+            if (/^\d{4}-\d{2}-\d{2}$/.test(fechaYmd)) return fechaYmd;
+            const ms = parseEvidenceUploadedAtMs(batch);
+            return Number.isFinite(ms) ? ymdFromMsLima(ms) : "";
+        }
+
+        function isRetentionPolicyActiveForBatch(batch) {
+            const startYmd = getEvidenceRetentionStartYmd();
+            if (!startYmd) return true;
+            const batchYmd = batchYmdForRetention(batch);
+            if (!batchYmd) return true;
+            return batchYmd >= startYmd;
+        }
+
+        function formatRetentionPolicySummary(settings) {
+            const cfg = normalizeEvidenceSettings(settings || evidenceSettings);
+            const days = cfg.file_retention_days;
+            const startYmd = cfg.file_retention_start_ymd;
+            let text = `Los videos y fotos se eliminan automáticamente ${days} día${days === 1 ? "" : "s"} después de la entrega.`;
+            if (startYmd) {
+                text += ` La eliminación automática aplica desde el ${formatEvidenceDateShort(startYmd)}.`;
+            }
+            return text;
+        }
+
+        function updateEvidenceRetentionInfoTexts(settings) {
+            const summary = formatRetentionPolicySummary(settings);
+            const info = document.getElementById("evidenceRetentionInfoText");
+            if (info) info.textContent = summary;
+        }
+
+        function readEvidenceRetentionFromForm() {
+            const daysEl = document.getElementById("configRetentionDays");
+            const startEl = document.getElementById("configRetentionStartDate");
+            const days = Number(daysEl?.value);
+            const startYmd = String(startEl?.value || "").slice(0, 10);
+            return {
+                file_retention_days: days,
+                file_retention_start_ymd: /^\d{4}-\d{2}-\d{2}$/.test(startYmd) ? startYmd : ""
+            };
+        }
+
+        function updateRetentionPreview() {
+            const draft = normalizeEvidenceSettings({
+                ...evidenceSettings,
+                ...readEvidenceRetentionFromForm()
+            });
+            const days = draft.file_retention_days;
+            const display = document.getElementById("retentionDaysDisplay");
+            const slider = document.getElementById("configRetentionDays");
+            if (slider) slider.value = String(days);
+            if (display) display.innerHTML = `${days}<small>día${days === 1 ? "" : "s"} en el servidor</small>`;
+            const preview = document.getElementById("retentionPreviewText");
+            if (preview) {
+                if (draft.file_retention_start_ymd) {
+                    preview.textContent = `Se borrarán archivos ${days} día${days === 1 ? "" : "s"} después de cada entrega, solo para envíos del ${formatEvidenceDateShort(draft.file_retention_start_ymd)} en adelante. Los anteriores no se eliminan automáticamente.`;
+                } else {
+                    preview.textContent = `Se borrarán fotos y videos ${days} día${days === 1 ? "" : "s"} después de cada entrega. El historial de cumplimiento permanece en el sistema.`;
+                }
+            }
+            const hint = document.getElementById("settingsNavHintRetention");
+            if (hint) {
+                hint.textContent = draft.file_retention_start_ymd
+                    ? `${days} d · desde ${formatEvidenceDateShort(draft.file_retention_start_ymd)}`
+                    : `${days} día${days === 1 ? "" : "s"}`;
+            }
+            updateEvidenceRetentionInfoTexts(draft);
+        }
+
+        window.clearRetentionStartDate = () => {
+            const startEl = document.getElementById("configRetentionStartDate");
+            if (startEl) startEl.value = "";
+            updateRetentionPreview();
+        };
 
         function isBulkSustentoEnabled() {
             return !!evidenceSettings.bulk_sustento_enabled;
@@ -2972,6 +3218,18 @@
             const bulkToggle = document.getElementById("configBulkSustentoEnabled");
             if (bulkToggle) bulkToggle.onchange = updateSettingsNavHints;
 
+            const retentionDaysEl = document.getElementById("configRetentionDays");
+            const retentionStartEl = document.getElementById("configRetentionStartDate");
+            if (retentionDaysEl) {
+                retentionDaysEl.value = String(getEvidenceRetentionDays());
+                retentionDaysEl.oninput = updateRetentionPreview;
+            }
+            if (retentionStartEl) {
+                retentionStartEl.value = getEvidenceRetentionStartYmd();
+                retentionStartEl.onchange = updateRetentionPreview;
+            }
+            updateRetentionPreview();
+
             refreshBulkSustentoPanelVisibility();
             switchSettingsPanel(activeSettingsPanel);
         }
@@ -3034,7 +3292,10 @@
         };
 
         window.saveBulkSustentoSettings = async () => {
-            const settings = { bulk_sustento_enabled: readBulkSustentoEnabledFromForm() };
+            const settings = normalizeEvidenceSettings({
+                ...evidenceSettings,
+                bulk_sustento_enabled: readBulkSustentoEnabledFromForm()
+            });
             try {
                 await persistSettingsSection(
                     { evidence_settings: { ...settings, updated_at: new Date().toISOString() } },
@@ -3045,6 +3306,28 @@
                 );
                 evidenceSettings = settings;
                 refreshBulkSustentoPanelVisibility();
+                const p = masterProjects.find((x) => x.id === evidenceSelectedProjectId);
+                if (p) renderEvidenceReview(p);
+            } catch {
+                /* feedback shown */
+            }
+        };
+
+        window.saveRetentionSettings = async () => {
+            const settings = normalizeEvidenceSettings({
+                ...evidenceSettings,
+                ...readEvidenceRetentionFromForm()
+            });
+            try {
+                await persistSettingsSection(
+                    { evidence_settings: { ...settings, updated_at: new Date().toISOString() } },
+                    "Retención de archivos guardada.",
+                    document.getElementById("retentionSaveBtn")
+                );
+                evidenceSettings = settings;
+                updateRetentionPreview();
+                updateEvidenceRetentionInfoTexts();
+                queueEvidenceRetentionCleanup(masterProjects);
                 const p = masterProjects.find((x) => x.id === evidenceSelectedProjectId);
                 if (p) renderEvidenceReview(p);
             } catch {
@@ -3098,6 +3381,7 @@
                     }
                 }
                 updateUploadScheduleFooter();
+                updateEvidenceRetentionInfoTexts();
                 renderUploadScheduleAdminForm();
                 refreshBulkSustentoPanelVisibility();
                 const report = document.getElementById("adminReportView");
@@ -3331,13 +3615,16 @@
         }
 
         function isEvidenceBatchExpired(batch, nowMs) {
+            if (!isRetentionPolicyActiveForBatch(batch)) return false;
             const now = Number.isFinite(nowMs) ? nowMs : Date.now();
+            const retentionDays = getEvidenceRetentionDays();
+            const retentionMs = getEvidenceRetentionMs();
             const fechaYmd = String(batch?.fecha || "").slice(0, 10);
             const todayYmd = fechaCarpetaLima();
 
             if (/^\d{4}-\d{2}-\d{2}$/.test(fechaYmd) && /^\d{4}-\d{2}-\d{2}$/.test(todayYmd)) {
                 const calDays = diffCalendarDaysYmd(fechaYmd, todayYmd);
-                if (Number.isFinite(calDays) && calDays < EVIDENCE_RETENTION_CALENDAR_DAYS) return false;
+                if (Number.isFinite(calDays) && calDays < retentionDays) return false;
             }
 
             let uploadedAtMs = parseEvidenceUploadedAtMs(batch);
@@ -3345,7 +3632,7 @@
                 uploadedAtMs = Date.parse(`${fechaYmd}T12:00:00-05:00`);
             }
             if (!Number.isFinite(uploadedAtMs)) return false;
-            return now - uploadedAtMs > EVIDENCE_RETENTION_MS;
+            return now - uploadedAtMs > retentionMs;
         }
 
         function batchFilesForDisplay(batch) {
@@ -4203,6 +4490,7 @@
 
             if (tab === 'report') renderElegantFaultReport();
             if (tab === 'evidence') {
+                syncEvidenceFollowUpDateInput();
                 renderEvidenceAdminProjectTable();
                 renderAdminAlertsWidget();
                 refreshBulkSustentoPanelVisibility();
@@ -4488,6 +4776,71 @@
             });
         }
 
+        function getMinEvidenceFollowUpDateYmd() {
+            const today = fechaCarpetaLima();
+            const [y, m, d] = today.split("-").map(Number);
+            const dt = new Date(y, m - 1, d);
+            dt.setDate(dt.getDate() + MIN_RESIDENT_REPORT_OFFSET);
+            return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}-${String(dt.getDate()).padStart(2, "0")}`;
+        }
+
+        function getEvidenceFollowUpDateYmd() {
+            return evidenceFollowUpDate || fechaCarpetaLima();
+        }
+
+        function syncEvidenceFollowUpDateInput() {
+            const input = document.getElementById("evidenceFollowUpDate");
+            const todayYmd = fechaCarpetaLima();
+            if (!input) return;
+            input.min = getMinEvidenceFollowUpDateYmd();
+            input.max = todayYmd;
+            input.value = getEvidenceFollowUpDateYmd();
+        }
+
+        window.setEvidenceFollowUpDate = (ymd) => {
+            const todayYmd = fechaCarpetaLima();
+            const minYmd = getMinEvidenceFollowUpDateYmd();
+            let next = String(ymd || "").slice(0, 10);
+            if (!next || next > todayYmd) next = todayYmd;
+            if (next < minYmd) next = minYmd;
+            evidenceFollowUpDate = next === todayYmd ? "" : next;
+            syncEvidenceFollowUpDateInput();
+            const viewYmd = getEvidenceFollowUpDateYmd();
+            evidenceFilterDate = viewYmd;
+            const p = masterProjects.find((x) => x.id === evidenceSelectedProjectId);
+            if (p) {
+                updateEvidenceDateFilterOptions(p);
+                const sel = document.getElementById("evidenceDateFilter");
+                if (sel) sel.value = viewYmd;
+                const label = document.getElementById("evidenceSelectedLabel");
+                if (label) {
+                    label.textContent = `CUI ${p.cui} — ${p.nombre} · ${formatEvidenceDateShort(viewYmd)}`;
+                }
+                renderEvidenceReview(p);
+            }
+            renderEvidenceAdminProjectTable();
+        };
+
+        window.resetEvidenceFollowUpToday = () => {
+            evidenceFollowUpDate = "";
+            setEvidenceFollowUpDate(fechaCarpetaLima());
+        };
+
+        function projectHasEvidenceUploadOnDate(p, ymd) {
+            return (Array.isArray(p.evidence_log) ? p.evidence_log : []).some((b) => {
+                if (String(b.fecha || "") !== ymd) return false;
+                const files = Array.isArray(b.files) ? b.files : [];
+                return files.length > 0;
+            });
+        }
+
+        window.toggleEvidenceUploadedOnlyFilter = () => {
+            evidenceFollowUpUploadedOnly = !evidenceFollowUpUploadedOnly;
+            const btn = document.getElementById("evidenceUploadedOnlyBtn");
+            if (btn) btn.classList.toggle("evidence-followup-filter-btn--active", evidenceFollowUpUploadedOnly);
+            renderEvidenceAdminProjectTable();
+        };
+
         function collectEvidenceDates(p) {
             const s = new Set();
             const todayYmd = fechaCarpetaLima();
@@ -4502,6 +4855,13 @@
             if (Array.isArray(p.evidence_log)) {
                 p.evidence_log.forEach((b) => {
                     if (b.fecha) s.add(String(b.fecha));
+                    else {
+                        const ms = parseEvidenceUploadedAtMs(b);
+                        if (Number.isFinite(ms)) {
+                            const ymd = new Date(ms).toISOString().slice(0, 10);
+                            s.add(ymd);
+                        }
+                    }
                 });
             }
             const rev = p.evidence_reviews || {};
@@ -4562,13 +4922,19 @@
 
         function buildEvidenceFollowUpRows() {
             const rows = [];
+            const viewYmd = getEvidenceFollowUpDateYmd();
             const todayYmd = fechaCarpetaLima();
+            const isToday = viewYmd === todayYmd;
             const filteredProjects = masterProjects.filter((p) => projectMatchesQuery(p, adminEvidenceQuery));
             filteredProjects.forEach((p) => {
-                const manana = getTurnoReviewStatus(p, todayYmd, "mañana");
-                const tarde = getTurnoReviewStatus(p, todayYmd, "tarde");
-                if (manana === "empty" && tarde === "empty") return;
-                rows.push({ p, fecha: todayYmd, manana, tarde });
+                const manana = getTurnoReviewStatus(p, viewYmd, "mañana");
+                const tarde = getTurnoReviewStatus(p, viewYmd, "tarde");
+                if (evidenceFollowUpUploadedOnly) {
+                    if (!projectHasEvidenceUploadOnDate(p, viewYmd)) return;
+                } else if (isToday && manana === "empty" && tarde === "empty") {
+                    return;
+                }
+                rows.push({ p, fecha: viewYmd, manana, tarde });
             });
             rows.sort((a, b) => String(a.p.cui || "").localeCompare(String(b.p.cui || "")));
             return rows;
@@ -4729,7 +5095,12 @@
             toggleAdminAlertsPanel(false);
             switchAdminTab("evidence");
             evidenceSelectedProjectId = projectId;
-            evidenceFilterDate = fecha || "";
+            if (fecha) {
+                const todayYmd = fechaCarpetaLima();
+                evidenceFollowUpDate = fecha === todayYmd ? "" : fecha;
+                syncEvidenceFollowUpDateInput();
+            }
+            evidenceFilterDate = fecha || getEvidenceFollowUpDateYmd();
             const p = masterProjects.find((x) => x.id === projectId);
             const label = document.getElementById("evidenceSelectedLabel");
             if (label && p) {
@@ -4815,30 +5186,6 @@
             return false;
         }
 
-        function evidenceReviewTableCell(p) {
-            const pendingManana = countPendingTurnoReviews(p, "mañana");
-            const pendingTarde = countPendingTurnoReviews(p, "tarde");
-            const hasFiles =
-                (Array.isArray(p.evidence_log) && p.evidence_log.length > 0) ||
-                (Array.isArray(p.last_evidence_files) && p.last_evidence_files.length > 0);
-            if (!hasFiles) return '<span class="text-[10px] opacity-30">—</span>';
-            if (pendingManana === 0 && pendingTarde === 0) {
-                return '<span class="text-green-500 text-xs font-black" title="Revisado">✓</span>';
-            }
-            const badges = [];
-            if (pendingManana > 0) {
-                badges.push(
-                    `<span class="evidence-shift-badge evidence-shift-badge--pending" title="${pendingManana} pendiente(s) en mañana">M!</span>`
-                );
-            }
-            if (pendingTarde > 0) {
-                badges.push(
-                    `<span class="evidence-shift-badge evidence-shift-badge--pending" title="${pendingTarde} pendiente(s) en tarde">T!</span>`
-                );
-            }
-            return `<div class="flex items-center justify-center gap-1">${badges.join("")}</div>`;
-        }
-
         window.deleteProject = async (projectId) => {
             const p = masterProjects.find((x) => x.id === projectId);
             if (!p) return;
@@ -4883,14 +5230,13 @@
             if(!body) return;
             const filteredProjects = masterProjects.filter((p) => projectMatchesQuery(p, adminListQuery));
             if (filteredProjects.length === 0) {
-                body.innerHTML = `<tr><td colspan="4" class="p-6 text-center opacity-40 text-xs font-bold uppercase">Sin proyectos que coincidan con la búsqueda</td></tr>`;
+                body.innerHTML = `<tr><td colspan="3" class="p-6 text-center opacity-40 text-xs font-bold uppercase">Sin proyectos que coincidan con la búsqueda</td></tr>`;
                 return;
             }
             body.innerHTML = filteredProjects.map(p => `
                 <tr class="hover:bg-black/5">
                     <td class="admin-cell font-mono text-[#991b1b] font-bold text-xs">${p.cui}</td>
                     <td class="admin-cell text-xs font-semibold">${p.nombre}</td>
-                    <td class="admin-cell text-center">${evidenceReviewTableCell(p)}</td>
                     <td class="admin-cell text-center">
                         <div class="flex flex-wrap gap-2 justify-center items-center">
                             <button type="button" onclick="editProject('${p.id}')" class="bg-[#991b1b]/5 text-[#991b1b] px-3 py-1 rounded text-[10px] font-black border border-[#991b1b]/10 hover:bg-[#991b1b] hover:text-white transition-all uppercase font-bold">Detalles</button>
@@ -4904,14 +5250,30 @@
             const tbody = document.getElementById("evidenceAdminTableBody");
             if (!tbody) return;
             const sel = evidenceSelectedProjectId;
+            const viewYmd = getEvidenceFollowUpDateYmd();
             const todayYmd = fechaCarpetaLima();
+            syncEvidenceFollowUpDateInput();
+            const uploadBtn = document.getElementById("evidenceUploadedOnlyBtn");
+            if (uploadBtn) uploadBtn.classList.toggle("evidence-followup-filter-btn--active", evidenceFollowUpUploadedOnly);
             const subtitle = document.getElementById("evidenceFollowUpSubtitle");
             if (subtitle) {
-                subtitle.textContent = `Solo actividad de hoy (${formatEvidenceDateShort(todayYmd)}).`;
+                const dateLabel = formatEvidenceDateShort(viewYmd);
+                if (evidenceFollowUpUploadedOnly) {
+                    subtitle.textContent = `Solo proyectos que subieron archivos el ${dateLabel}.`;
+                } else if (viewYmd === todayYmd) {
+                    subtitle.textContent = `Actividad de hoy (${dateLabel}). Elija otra fecha para revisar días anteriores.`;
+                } else {
+                    subtitle.textContent = `Actividad del ${dateLabel}. Proyectos con envío, sustento o revisión ese día.`;
+                }
             }
             const rows = buildEvidenceFollowUpRows();
             if (rows.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center opacity-40 text-[10px] font-bold uppercase">Sin actividad hoy</td></tr>`;
+                const emptyMsg = evidenceFollowUpUploadedOnly
+                    ? `Nadie envió evidencia el ${formatEvidenceDateShort(viewYmd)}`
+                    : viewYmd === todayYmd
+                      ? "Sin actividad hoy"
+                      : `Sin actividad el ${formatEvidenceDateShort(viewYmd)}`;
+                tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center opacity-40 text-[10px] font-bold uppercase">${emptyMsg}</td></tr>`;
                 return;
             }
             tbody.innerHTML = rows
@@ -5004,17 +5366,23 @@
 
         window.openEvidenceReviewTab = (id, fecha = "") => {
             evidenceSelectedProjectId = id;
-            evidenceFilterDate = fecha || "";
+            const viewYmd = fecha || getEvidenceFollowUpDateYmd();
+            if (fecha) {
+                const todayYmd = fechaCarpetaLima();
+                evidenceFollowUpDate = fecha === todayYmd ? "" : fecha;
+                syncEvidenceFollowUpDateInput();
+            }
+            evidenceFilterDate = viewYmd;
             const p = masterProjects.find((x) => x.id === id);
             const label = document.getElementById('evidenceSelectedLabel');
             if (label && p) {
-                label.textContent = fecha
-                    ? `CUI ${p.cui} — ${p.nombre} · ${formatEvidenceDateShort(fecha)}`
-                    : `CUI ${p.cui} — ${p.nombre}`;
+                label.textContent = `CUI ${p.cui} — ${p.nombre} · ${formatEvidenceDateShort(viewYmd)}`;
             }
             renderEvidenceAdminProjectTable();
             if (p) {
                 updateEvidenceDateFilterOptions(p);
+                const sel = document.getElementById("evidenceDateFilter");
+                if (sel) sel.value = viewYmd;
                 renderEvidenceReview(p);
             }
             else {
@@ -5191,7 +5559,7 @@
                     .join("");
             } else if (batchShowsRetentionMessage(batch)) {
                 const names = files.map((f) => (f.name || "archivo").replace(/</g, "")).join(", ");
-                mediaHtml = `<p class="text-[9px] opacity-50 col-span-full leading-relaxed">Archivos eliminados por retención (4 días). Registro de cumplimiento conservado.${names ? ` (${names})` : ""}</p>`;
+                mediaHtml = `<p class="text-[9px] opacity-50 col-span-full leading-relaxed">Archivos eliminados por retención (${getEvidenceRetentionDays()} día${getEvidenceRetentionDays() === 1 ? "" : "s"}). Registro de cumplimiento conservado.${names ? ` (${names})` : ""}</p>`;
             } else {
                 mediaHtml = "";
             }
@@ -5270,10 +5638,7 @@
             const reviews = p.evidence_reviews || {};
             const log = Array.isArray(p.evidence_log) ? p.evidence_log : [];
             const dates = collectEvidenceDates(p);
-            const effectiveDates =
-                evidenceFilterDate && dates.includes(evidenceFilterDate)
-                    ? [evidenceFilterDate]
-                    : dates;
+            const effectiveDates = evidenceFilterDate ? [evidenceFilterDate] : dates;
             const slots = ["mañana", "tarde"];
             const shownBatchKeys = new Set();
             const parts = [];
@@ -5348,7 +5713,15 @@
             evidenceDateFilterEl.onchange = () => {
                 evidenceFilterDate = evidenceDateFilterEl.value || "";
                 const p = masterProjects.find((x) => x.id === evidenceSelectedProjectId);
-                if (p) renderEvidenceReview(p);
+                if (p) {
+                    const label = document.getElementById("evidenceSelectedLabel");
+                    if (label) {
+                        label.textContent = evidenceFilterDate
+                            ? `CUI ${p.cui} — ${p.nombre} · ${formatEvidenceDateShort(evidenceFilterDate)}`
+                            : `CUI ${p.cui} — ${p.nombre}`;
+                    }
+                    renderEvidenceReview(p);
+                }
             };
         }
 
@@ -5666,6 +6039,97 @@
             if (rowEl) rowEl.className = `slot-row slot-row--${status}`;
         }
 
+        function getBatchesForSlot(log, fecha, turno) {
+            return (Array.isArray(log) ? log : [])
+                .filter((b) => String(b.fecha || "") === fecha && String(b.turno || "") === turno)
+                .sort((a, b) => {
+                    const ams = parseEvidenceUploadedAtMs(a) || 0;
+                    const bms = parseEvidenceUploadedAtMs(b) || 0;
+                    return bms - ams;
+                });
+        }
+
+        function getPrimaryBatchForSlot(project, fecha, turno) {
+            const batches = getBatchesForSlot(project?.evidence_log, fecha, turno);
+            return batches[0] || null;
+        }
+
+        function getResidentSlotStatusDetail(project, ymd, slot) {
+            const wd = weekdayShortForYmd(ymd);
+            if (wd === "Sun") return { code: "no_aplica", label: "No aplica", note: "" };
+            if (!isTurnoApplicableOnWeekday(wd, slot)) return { code: "no_aplica", label: "No aplica", note: "" };
+
+            const reviews = project?.evidence_reviews || {};
+            const batch = project ? getPrimaryBatchForSlot(project, ymd, slot) : null;
+            const sustKey = sustentoReviewKey(ymd, slot);
+            const sustRev = reviews[sustKey] || {};
+
+            if (batch) {
+                const rev = reviews[batchReviewKey(batch)] || {};
+                const st = rev.status || "pendiente";
+                if (st === "aprobado") {
+                    return {
+                        code: "aprobado",
+                        label: "Aprobado",
+                        note: String(rev.note || "").trim() || "Su asistencia fue aprobada."
+                    };
+                }
+                if (st === "rechazado") {
+                    return {
+                        code: "rechazado",
+                        label: "Rechazado",
+                        note: String(rev.note || "").trim() || "Sin motivo indicado. Contacte al administrador."
+                    };
+                }
+                if (st === "sustentado") {
+                    return {
+                        code: "sustentado",
+                        label: "Sustentado",
+                        note: String(rev.note || "").trim() || "Turno sustentado por el administrador."
+                    };
+                }
+                return {
+                    code: "enviado",
+                    label: "Enviado",
+                    note: "Pendiente de revisión por el administrador."
+                };
+            }
+
+            if (sustRev.status === "sustentado") {
+                return {
+                    code: "sustentado",
+                    label: "Sustentado",
+                    note: String(sustRev.note || "").trim() || "Turno sustentado por el administrador."
+                };
+            }
+
+            if (HOLIDAY_YMD.has(ymd)) return { code: "no_aplica", label: "No aplica", note: "" };
+
+            const todayYmd = fechaCarpetaLima();
+            if (ymd > todayYmd) return { code: "pendiente", label: "Pendiente", note: "" };
+            if (ymd < todayYmd) return { code: "no_cumplido", label: "No enviado", note: "" };
+
+            const { wd: todayWd, minutesOfDay } = getLimaNowParts();
+            const { end } = getTurnoWindowMinutes(todayWd, slot);
+            if (!isTurnoApplicableOnWeekday(todayWd, slot)) {
+                return { code: "no_aplica", label: "No aplica", note: "" };
+            }
+            if (minutesOfDay < end) return { code: "pendiente", label: "Pendiente", note: "" };
+            return { code: "no_cumplido", label: "No enviado", note: "" };
+        }
+
+        function applyResidentSlotStatus(statusEl, noteEl, rowEl, detail) {
+            if (!statusEl || !detail) return;
+            statusEl.textContent = detail.label;
+            statusEl.className = `slot-status slot-status--${detail.code}`;
+            if (rowEl) rowEl.className = `slot-row slot-row--${detail.code}`;
+            if (noteEl) {
+                const showNote = !!(detail.note && ["rechazado", "aprobado", "sustentado", "enviado"].includes(detail.code));
+                noteEl.classList.toggle("hidden", !showNote);
+                noteEl.textContent = detail.note || "";
+            }
+        }
+
         window.changeResidentReportDate = (offset) => {
             const current = getResidentViewDateYmd();
             const [y, m, d] = current.split("-").map(Number);
@@ -5725,6 +6189,8 @@
             const consultHint = document.getElementById("residentConsultHint");
             const slotMananaEl = document.getElementById("slotMananaStatus");
             const slotTardeEl = document.getElementById("slotTardeStatus");
+            const slotMananaNote = document.getElementById("slotMananaNote");
+            const slotTardeNote = document.getElementById("slotTardeNote");
             const slotMananaRow = document.getElementById("slotMananaRow");
             const slotTardeRow = document.getElementById("slotTardeRow");
             const p = masterProjects.find((x) => x.id === activeProjectId);
@@ -5754,10 +6220,10 @@
             if (btnGoToday) btnGoToday.classList.toggle("hidden", isViewingToday);
             if (consultHint) consultHint.classList.toggle("hidden", isViewingToday);
 
-            const mananaStatus = p ? getSlotComplianceStatus(p, viewYmd, "mañana") : "pendiente";
-            const tardeStatus = p ? getSlotComplianceStatus(p, viewYmd, "tarde") : "pendiente";
-            applySlotStatusEl(slotMananaEl, mananaStatus, slotMananaRow);
-            applySlotStatusEl(slotTardeEl, tardeStatus, slotTardeRow);
+            const mananaDetail = p ? getResidentSlotStatusDetail(p, viewYmd, "mañana") : { code: "pendiente", label: "Pendiente", note: "" };
+            const tardeDetail = p ? getResidentSlotStatusDetail(p, viewYmd, "tarde") : { code: "pendiente", label: "Pendiente", note: "" };
+            applyResidentSlotStatus(slotMananaEl, slotMananaNote, slotMananaRow, mananaDetail);
+            applyResidentSlotStatus(slotTardeEl, slotTardeNote, slotTardeRow, tardeDetail);
         }
 
         function refreshResidentUploadSection() {
