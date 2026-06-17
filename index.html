@@ -2454,7 +2454,6 @@
         const EVIDENCE_RETENTION_MS = 4 * 24 * 60 * 60 * 1000;
         const EVIDENCE_RETENTION_CALENDAR_DAYS = 4;
         const evidenceCleanupInFlight = new Set();
-        let evidenceUploadInFlight = false;
         const HOLIDAY_YMD = new Set([
             "2026-05-01"
         ]);
@@ -4404,23 +4403,6 @@
             return "t_" + String(batch.uploaded_at || "").replace(/[^a-zA-Z0-9_]/g, "_");
         }
 
-        function getBatchesForSlot(log, fecha, turno) {
-            return (Array.isArray(log) ? log : [])
-                .filter((b) => String(b.fecha || "") === fecha && String(b.turno || "") === turno)
-                .sort((a, b) => {
-                    const ams = parseEvidenceUploadedAtMs(a) || 0;
-                    const bms = parseEvidenceUploadedAtMs(b) || 0;
-                    return bms - ams;
-                });
-        }
-
-        function pickPrimaryBatchForSlot(log, fecha, turno) {
-            const batches = getBatchesForSlot(log, fecha, turno);
-            if (batches.length === 0) return null;
-            const withFiles = batches.find((b) => batchFilesForDisplay(b).length > 0);
-            return withFiles || batches[0];
-        }
-
         function sustentoReviewKey(fecha, turno) {
             return `sustento_${fecha}_${turno}`;
         }
@@ -4539,13 +4521,15 @@
         function getTurnoReviewStatus(p, fecha, turno) {
             const reviews = p.evidence_reviews || {};
             const log = Array.isArray(p.evidence_log) ? p.evidence_log : [];
-            const primary = pickPrimaryBatchForSlot(log, fecha, turno);
-            if (primary) {
-                const st = (reviews[batchReviewKey(primary)] || {}).status || "pendiente";
-                if (st === "pendiente") return "pending";
-                if (st === "rechazado") return "rejected";
-                if (st === "aprobado") return "approved";
-                if (st === "sustentado") return "sustentado";
+            const batches = log.filter(
+                (b) => String(b.fecha || "") === fecha && String(b.turno || "") === turno
+            );
+            if (batches.length > 0) {
+                const statuses = batches.map((b) => (reviews[batchReviewKey(b)] || {}).status || "pendiente");
+                if (statuses.some((s) => s === "pendiente")) return "pending";
+                if (statuses.some((s) => s === "rechazado")) return "rejected";
+                if (statuses.every((s) => s === "aprobado")) return "approved";
+                if (statuses.some((s) => s === "sustentado")) return "sustentado";
                 return "done";
             }
             const sustKey = sustentoReviewKey(fecha, turno);
@@ -4567,16 +4551,10 @@
 
         function countPendingTurnoReviews(p, turno) {
             const reviews = p.evidence_reviews || {};
-            const log = Array.isArray(p.evidence_log) ? p.evidence_log : [];
-            const fechas = new Set();
-            log.forEach((b) => {
-                if (String(b.turno || "") === turno && b.fecha) fechas.add(String(b.fecha));
-            });
             let count = 0;
-            fechas.forEach((fecha) => {
-                const primary = pickPrimaryBatchForSlot(log, fecha, turno);
-                if (!primary) return;
-                const st = (reviews[batchReviewKey(primary)] || {}).status || "pendiente";
+            (p.evidence_log || []).forEach((b) => {
+                if (String(b.turno || "") !== turno) return;
+                const st = (reviews[batchReviewKey(b)] || {}).status || "pendiente";
                 if (st === "pendiente") count++;
             });
             return count;
@@ -5172,7 +5150,7 @@
             return meta;
         }
 
-        function renderBatchReviewCardHtml(p, batch, reviews, duplicateCount = 0) {
+        function renderBatchReviewCardHtml(p, batch, reviews) {
             const bkey = batchReviewKey(batch);
             const safeId = safeReviewDomId(bkey);
             const rev = reviews[bkey] || {};
@@ -5218,10 +5196,6 @@
                 mediaHtml = "";
             }
             const originHtml = formatUploadOriginHtml(batch.upload_origin);
-            const duplicateNote =
-                duplicateCount > 0
-                    ? `<p class="text-[8px] opacity-45 mb-2 leading-relaxed">Hay ${duplicateCount + 1} envíos en este turno (reintento del residente). Se muestra el más reciente con archivos disponibles.</p>`
-                    : "";
             return `
                     <div id="evidenceBatch_${safeId}" class="rounded-xl border border-gray-400/20 p-3 bg-black/5">
                         <div class="flex flex-wrap justify-between gap-2 mb-2">
@@ -5232,7 +5206,6 @@
                             </div>
                             <span class="text-[9px] font-black ${stColor}">${stLabel}</span>
                         </div>
-                        ${duplicateNote}
                         ${originHtml}
                         ${displayFiles.length > 0 ? '<p class="evidence-media-grid-hint">Doble clic en foto o video para ver en tamaño completo</p>' : ""}
                         <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-2">${mediaHtml || '<p class="text-[9px] opacity-40">Sin archivos</p>'}</div>
@@ -5310,11 +5283,14 @@
                     <h5 class="text-[11px] font-black text-[#991b1b] uppercase tracking-widest mb-3 pb-2 border-b border-gray-400/15">${escHtml(fecha)}</h5>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">`);
                 slots.forEach((turno) => {
-                    const batchesHere = getBatchesForSlot(log, fecha, turno);
+                    const batchesHere = log
+                        .filter((b) => String(b.fecha || "") === fecha && String(b.turno || "") === turno)
+                        .sort((a, b) => String(b.uploaded_at || "").localeCompare(String(a.uploaded_at || "")));
                     if (batchesHere.length > 0) {
-                        const primary = pickPrimaryBatchForSlot(log, fecha, turno);
-                        parts.push(renderBatchReviewCardHtml(p, primary, reviews, batchesHere.length - 1));
-                        batchesHere.forEach((batch) => shownBatchKeys.add(batchReviewKey(batch)));
+                        batchesHere.forEach((batch) => {
+                            parts.push(renderBatchReviewCardHtml(p, batch, reviews));
+                            shownBatchKeys.add(batchReviewKey(batch));
+                        });
                     } else {
                         parts.push(renderEmptyTurnSlotHtml(p, fecha, turno, reviews));
                     }
@@ -6022,10 +5998,6 @@
 
         window.simulateUpload = async () => {
             const btn = document.getElementById('uploadBtn');
-            if (evidenceUploadInFlight) {
-                showFeedback("Ya hay una subida en curso. Espere a que termine.", "info");
-                return;
-            }
             if (!activeProjectId || selectedFiles.length === 0) {
                 showFeedback("Selecciona archivos antes de sincronizar.", "error");
                 return;
@@ -6078,7 +6050,6 @@
             }
 
             btn.disabled = true;
-            evidenceUploadInFlight = true;
             const originalLabel = btn.textContent;
             const uploadOriginPromise = collectUploadOriginMeta(requiredLocation);
             try {
@@ -6116,18 +6087,6 @@
                 }
                 btn.textContent = "Registrando origen...";
                 const upload_origin = await uploadOriginPromise;
-                const freshProject = masterProjects.find((p) => p.id === activeProjectId) || proyectoActivo;
-                const usedNow = todayEvidenceSlotsUsed(freshProject, fechaDir);
-                if (turnoDir === "mañana" && usedNow.manana) {
-                    showFeedback("Ya envió la evidencia del turno mañana hoy.", "error");
-                    refreshResidentEvidenceGate();
-                    return;
-                }
-                if (turnoDir === "tarde" && usedNow.tarde) {
-                    showFeedback("Ya envió la evidencia del turno tarde hoy.", "error");
-                    refreshResidentEvidenceGate();
-                    return;
-                }
                 const now = new Date().toISOString();
                 const projectRef = doc(db, "artifacts", appId, "public", "data", "projects", activeProjectId);
                 try {
@@ -6188,8 +6147,6 @@
                 );
                 btn.textContent = originalLabel;
                 btn.disabled = false;
-            } finally {
-                evidenceUploadInFlight = false;
             }
         };
 
