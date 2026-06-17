@@ -2833,13 +2833,16 @@
                     <div class="flex items-start justify-between gap-2">
                         <div>
                             <h4 class="text-[#991b1b] text-[10px] font-black uppercase">Avisos institucionales</h4>
-                            <p class="text-[9px] opacity-55 mt-1 leading-relaxed">Marque <strong class="opacity-80">Publicar</strong> en la lista para mostrar un aviso en ingreso. Los desmarcados quedan archivados.</p>
+                            <p class="text-[9px] opacity-55 mt-1 leading-relaxed">Marque <strong class="opacity-80">Publicar</strong> en un aviso para mostrarlo en ingreso. Solo uno puede estar activo a la vez.</p>
                         </div>
-                        <label class="flex items-center gap-2 cursor-pointer shrink-0">
+                        <label class="flex items-center gap-2 cursor-pointer shrink-0" title="Si está desactivado, no se muestra ningún aviso en la pantalla de ingreso">
                             <input type="checkbox" id="avisosEnabledToggle" class="rounded border-gray-400/30" onchange="toggleAvisosEnabled(this.checked)">
-                            <span class="text-[8px] font-bold uppercase">Activo</span>
+                            <span class="text-[8px] font-bold uppercase">Mostrar en ingreso</span>
                         </label>
                     </div>
+                    <p id="avisosEnabledHint" class="hidden text-[8px] font-bold text-amber-400/90 leading-relaxed rounded-lg border border-amber-500/25 bg-amber-500/10 px-2.5 py-2">
+                        Hay un aviso marcado como publicado, pero «Mostrar en ingreso» está desactivado. Actívelo o vuelva a marcar Publicar.
+                    </p>
                     <div class="flex flex-wrap gap-2">
                         <button type="button" onclick="startNewAviso('text')" class="bg-[#991b1b]/10 text-[#991b1b] px-3 py-2 rounded-xl text-[9px] font-black uppercase border border-[#991b1b]/20 hover:bg-[#991b1b]/20 transition-all">+ Texto</button>
                         <button type="button" onclick="startNewAviso('image')" class="bg-amber-500/10 text-amber-300 px-3 py-2 rounded-xl text-[9px] font-black uppercase border border-amber-500/20 hover:bg-amber-500/20 transition-all">+ Imagen</button>
@@ -3057,6 +3060,8 @@
         let selectedAvisoId = null;
         let avisoEditorType = "text";
         let avisoPendingDraft = null;
+        let systemNoticesWriteLock = 0;
+        const avisoImageUrlCache = new Map();
         let avisoImageDraft = null;
         let avisoImageDraftUrl = "";
         let settingsSyncStarted = false;
@@ -3116,6 +3121,7 @@
             void el.offsetWidth;
             el.classList.add('view-animate-in');
             syncBodyLayoutClass(el);
+            if (el === authShell) void renderPublicAvisosPanel();
         }
 
         function replayAdminTabAnimation(panel) {
@@ -3547,7 +3553,6 @@
         }
 
         function normalizeSystemNotices(raw) {
-            const enabled = raw?.enabled !== false;
             const items = Array.isArray(raw?.items)
                 ? raw.items
                       .map((item, idx) => {
@@ -3559,20 +3564,40 @@
                               body: String(item?.body || "").trim(),
                               image_url: String(item?.image_url || "").trim(),
                               storage_path: String(item?.storage_path || "").trim(),
-                              active: item?.active !== false,
+                              active: item?.active === true,
                               order: Number.isFinite(Number(item?.order)) ? Number(item.order) : idx,
                               updated_at: String(item?.updated_at || "")
                           };
                       })
                       .sort((a, b) => a.order - b.order)
                 : [];
-            return { enabled, items };
+            const hasPublished = items.some((item) => item.active === true);
+            const enabled = hasPublished ? true : raw?.enabled !== false;
+            return {
+                enabled,
+                items,
+                updated_at: String(raw?.updated_at || "")
+            };
+        }
+
+        function applyPublishStateForItems(items, publishId, published) {
+            const now = new Date().toISOString();
+            if (!published) {
+                return items.map((x) =>
+                    x.id === publishId ? { ...x, active: false, updated_at: now } : x
+                );
+            }
+            return items.map((x) => ({
+                ...x,
+                active: x.id === publishId,
+                updated_at: x.id === publishId ? now : x.updated_at
+            }));
         }
 
         function getActiveAvisos() {
-            if (!systemNotices?.enabled) return [];
+            if (systemNotices?.enabled === false) return [];
             return (systemNotices.items || [])
-                .filter((item) => item.active !== false)
+                .filter((item) => item.active === true)
                 .filter((item) => {
                     if (item.type === "image") return !!(item.image_url || item.storage_path);
                     return !!(item.body || item.title);
@@ -3606,16 +3631,49 @@
             </article>`;
         }
 
-        function renderPublicAvisosPanel() {
+        async function resolveAvisoImageUrl(item) {
+            const direct = String(item?.image_url || "").trim();
+            if (direct) return direct;
+            const path = String(item?.storage_path || "").trim();
+            if (!path) return "";
+            if (avisoImageUrlCache.has(path)) return avisoImageUrlCache.get(path);
+            try {
+                const url = await getDownloadURL(ref(storage, path));
+                avisoImageUrlCache.set(path, url);
+                return url;
+            } catch {
+                return "";
+            }
+        }
+
+        async function renderPublicAvisosPanel() {
             const shell = document.getElementById("authShell");
             const panel = document.getElementById("publicAvisosPanel");
             const list = document.getElementById("publicAvisosList");
             if (!shell || !panel || !list) return;
             const active = getActiveAvisos();
-            const hasAvisos = active.length > 0;
+            const cards = [];
+            for (const item of active) {
+                let displayItem = item;
+                if (item.type === "image" && !item.image_url) {
+                    const url = await resolveAvisoImageUrl(item);
+                    if (url) displayItem = { ...item, image_url: url };
+                }
+                const card = renderPublicAvisoCardHtml(displayItem);
+                if (card) cards.push(card);
+            }
+            const hasAvisos = cards.length > 0;
             panel.classList.toggle("hidden", !hasAvisos);
             shell.classList.toggle("auth-shell--has-avisos", hasAvisos);
-            list.innerHTML = hasAvisos ? active.map(renderPublicAvisoCardHtml).join("") : "";
+            list.innerHTML = cards.join("");
+        }
+
+        function applySystemNoticesFromRemote(raw) {
+            if (!raw || systemNoticesWriteLock > 0) return;
+            const incomingTs = String(raw.updated_at || "");
+            const localTs = String(systemNotices.updated_at || "");
+            if (incomingTs && localTs && incomingTs < localTs) return;
+            systemNotices = normalizeSystemNotices(raw);
         }
 
         function avisoHasContent(item) {
@@ -3653,7 +3711,7 @@
             document.getElementById("avisoEditId").value = item.id;
             document.getElementById("avisoEditTitle").value = item.title || "";
             document.getElementById("avisoEditBody").value = item.body || "";
-            document.getElementById("avisoEditActive").checked = item.active !== false;
+            document.getElementById("avisoEditActive").checked = item.active === true;
             setAvisoEditorType(item.type === "image" ? "image" : "text");
             const preview = document.getElementById("avisoImagePreview");
             const clearBtn = document.getElementById("avisoClearImageBtn");
@@ -3727,6 +3785,12 @@
             if (enabledToggle) enabledToggle.checked = systemNotices.enabled !== false;
             if (!listEl) return;
             const items = [...(systemNotices.items || [])].sort((a, b) => a.order - b.order);
+            const enabledHint = document.getElementById("avisosEnabledHint");
+            const hasPublished = items.some((i) => i.active === true);
+            if (enabledHint) {
+                const hidden = systemNotices.enabled === false && hasPublished;
+                enabledHint.classList.toggle("hidden", !hidden);
+            }
             if (!items.length) {
                 listEl.innerHTML = `<p class="text-[9px] opacity-50 text-center py-6">No hay avisos creados.</p>`;
                 return;
@@ -3734,18 +3798,18 @@
             listEl.innerHTML = items
                 .map((item) => {
                     const activeCls = item.id === selectedAvisoId ? " avisos-admin-item--active" : "";
-                    const publishedCls = item.active !== false ? " avisos-admin-item--published" : " avisos-admin-item--draft";
+                    const publishedCls = item.active === true ? " avisos-admin-item--published" : " avisos-admin-item--draft";
                     const badgeCls = item.type === "text" ? " avisos-admin-item__badge--text" : "";
-                    const status = item.active !== false ? "Publicado en ingreso" : "Archivado";
+                    const status = item.active === true ? "Publicado en ingreso" : "Archivado";
                     const canPublish = avisoHasContent(item);
                     const checkDisabled = !canPublish ? " disabled" : "";
                     const checkTitle = canPublish
-                        ? "Publicar en pantalla de ingreso"
+                        ? "Publicar este aviso en ingreso (desactiva los demás)"
                         : "Complete el aviso antes de publicar";
                     const safeId = escAttr(item.id);
                     return `<div class="avisos-admin-item${activeCls}${publishedCls}">
                         <label class="avisos-admin-item__check" title="${escAttr(checkTitle)}">
-                            <input type="checkbox" data-aviso-publish="${safeId}"${item.active !== false ? " checked" : ""}${checkDisabled}>
+                            <input type="checkbox" data-aviso-publish="${safeId}"${item.active === true ? " checked" : ""}${checkDisabled}>
                             <span>Publicar</span>
                         </label>
                         <button type="button" class="avisos-admin-item__open" data-aviso-open="${safeId}">
@@ -3908,20 +3972,36 @@
         }
 
         async function persistSystemNotices(successMsg, btn) {
+            const updatedAt = new Date().toISOString();
+            const items = (systemNotices.items || []).map((item, idx) => ({
+                id: String(item.id),
+                type: item.type === "image" ? "image" : "text",
+                title: String(item.title || "").trim(),
+                body: String(item.body || "").trim(),
+                image_url: String(item.image_url || "").trim(),
+                storage_path: String(item.storage_path || "").trim(),
+                active: item.active === true,
+                order: idx,
+                updated_at: item.updated_at || updatedAt
+            }));
+            const hasPublished = items.some((item) => item.active === true);
+            const enabled = hasPublished ? true : systemNotices.enabled !== false;
+            systemNotices = { enabled, items, updated_at: updatedAt };
             const payload = {
                 system_notices: {
-                    enabled: systemNotices.enabled !== false,
-                    items: (systemNotices.items || []).map((item, idx) => ({
-                        ...item,
-                        order: idx,
-                        updated_at: item.updated_at || new Date().toISOString()
-                    })),
-                    updated_at: new Date().toISOString()
+                    enabled,
+                    items,
+                    updated_at: updatedAt
                 }
             };
-            await persistSettingsSection(payload, successMsg, btn);
-            renderPublicAvisosPanel();
-            renderAvisosAdminList();
+            systemNoticesWriteLock++;
+            try {
+                await persistSettingsSection(payload, successMsg, btn);
+                await renderPublicAvisosPanel();
+                renderAvisosAdminList();
+            } finally {
+                systemNoticesWriteLock = Math.max(0, systemNoticesWriteLock - 1);
+            }
         }
 
         window.toggleAvisosEnabled = async (enabled) => {
@@ -3945,15 +4025,19 @@
                 renderAvisosAdminList();
                 return;
             }
-            const items = (systemNotices.items || []).map((x) =>
-                x.id === id
-                    ? { ...x, active: !!published, updated_at: new Date().toISOString() }
-                    : x
-            );
-            systemNotices = { ...systemNotices, items };
+            const items = applyPublishStateForItems(systemNotices.items || [], id, published);
+            systemNotices = {
+                ...systemNotices,
+                items,
+                enabled: published ? true : systemNotices.enabled
+            };
+            if (published) {
+                const enabledToggle = document.getElementById("avisosEnabledToggle");
+                if (enabledToggle) enabledToggle.checked = true;
+            }
             if (selectedAvisoId === id) {
                 const activeEl = document.getElementById("avisoEditActive");
-                if (activeEl) activeEl.checked = !!published;
+                if (activeEl) activeEl.checked = published;
             }
             try {
                 await persistSystemNotices(
@@ -4018,7 +4102,7 @@
                     body: avisoEditorType === "text" ? draft.body : "",
                     image_url: avisoEditorType === "image" ? image_url : "",
                     storage_path: avisoEditorType === "image" ? storage_path : "",
-                    active: draft.active,
+                    active: draft.active === true,
                     order: isNew ? (systemNotices.items || []).length : current.order,
                     updated_at: new Date().toISOString()
                 };
@@ -4029,14 +4113,25 @@
                     nextItem.storage_path = "";
                 }
 
-                const items = [...(systemNotices.items || [])];
+                let items = [...(systemNotices.items || [])];
                 if (isNew) {
                     items.push(nextItem);
                     avisoPendingDraft = null;
                 } else {
                     items[idx] = nextItem;
                 }
-                systemNotices = { ...systemNotices, items };
+                if (nextItem.active === true) {
+                    items = applyPublishStateForItems(items, nextItem.id, true);
+                }
+                systemNotices = {
+                    ...systemNotices,
+                    items,
+                    enabled: items.some((i) => i.active === true) ? true : systemNotices.enabled
+                };
+                if (items.some((i) => i.active === true)) {
+                    const enabledToggle = document.getElementById("avisosEnabledToggle");
+                    if (enabledToggle) enabledToggle.checked = true;
+                }
                 resetAvisoImageDraft();
                 await persistSystemNotices("Aviso guardado correctamente.", btn);
                 openAvisoEditor(draft.id);
@@ -4374,14 +4469,14 @@
                         evidenceSettings = normalizeEvidenceSettings(data.evidence_settings);
                     }
                     if (data?.system_notices) {
-                        systemNotices = normalizeSystemNotices(data.system_notices);
+                        applySystemNoticesFromRemote(data.system_notices);
                     }
                 }
                 updateUploadScheduleFooter();
                 updateEvidenceRetentionInfoTexts();
                 renderUploadScheduleAdminForm();
                 refreshBulkSustentoPanelVisibility();
-                renderPublicAvisosPanel();
+                void renderPublicAvisosPanel();
                 const avisosView = document.getElementById("adminAvisosView");
                 if (avisosView && !avisosView.classList.contains("hidden")) {
                     renderAvisosAdminList();
@@ -4492,7 +4587,7 @@
             initialLoader.classList.add('loader-exit');
             setTimeout(() => initialLoader.classList.add('hidden'), 380);
             revealAppView(authShell);
-            renderPublicAvisosPanel();
+            void renderPublicAvisosPanel();
 
             if (window.location.protocol === "file:") {
                 showFeedback(
