@@ -692,6 +692,25 @@
             border-color: rgba(248, 113, 113, 0.45);
         }
 
+        .avisos-admin-item__edit {
+            flex-shrink: 0;
+            padding: 0.35rem 0.5rem;
+            border-radius: 0.55rem;
+            font-size: 0.55rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            color: #facc15;
+            border: 1px solid rgba(250, 204, 21, 0.25);
+            background: rgba(250, 204, 21, 0.08);
+            cursor: pointer;
+            transition: background 0.2s ease, border-color 0.2s ease;
+        }
+
+        .avisos-admin-item__edit:hover {
+            background: rgba(250, 204, 21, 0.16);
+            border-color: rgba(250, 204, 21, 0.45);
+        }
+
         .avisos-admin-item--published {
             border-color: rgba(34, 197, 94, 0.25);
         }
@@ -3658,7 +3677,51 @@
             return body ? body.slice(0, 48) + (body.length > 48 ? "…" : "") : "Sin contenido";
         }
 
+        function escAttr(s) {
+            return String(s ?? "")
+                .replace(/&/g, "&amp;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#39;")
+                .replace(/</g, "&lt;");
+        }
+
+        function wireAvisosAdminList() {
+            const listEl = document.getElementById("avisosAdminList");
+            if (!listEl || listEl.dataset.avisoWired === "1") return;
+            listEl.dataset.avisoWired = "1";
+            listEl.addEventListener("click", (e) => {
+                const deleteBtn = e.target.closest("[data-aviso-delete]");
+                if (deleteBtn) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const id = deleteBtn.getAttribute("data-aviso-delete");
+                    if (id) deleteAvisoById(id);
+                    return;
+                }
+                const editBtn = e.target.closest("[data-aviso-edit]");
+                if (editBtn) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const id = editBtn.getAttribute("data-aviso-edit");
+                    if (id) openAvisoEditor(id);
+                    return;
+                }
+                const openBtn = e.target.closest("[data-aviso-open]");
+                if (openBtn) {
+                    const id = openBtn.getAttribute("data-aviso-open");
+                    if (id) openAvisoEditor(id);
+                }
+            });
+            listEl.addEventListener("change", (e) => {
+                const cb = e.target;
+                if (!cb?.matches?.("[data-aviso-publish]")) return;
+                const id = cb.getAttribute("data-aviso-publish");
+                if (id) toggleAvisoPublished(id, cb.checked);
+            });
+        }
+
         function renderAvisosAdminList() {
+            wireAvisosAdminList();
             const listEl = document.getElementById("avisosAdminList");
             const enabledToggle = document.getElementById("avisosEnabledToggle");
             if (enabledToggle) enabledToggle.checked = systemNotices.enabled !== false;
@@ -3679,19 +3742,21 @@
                     const checkTitle = canPublish
                         ? "Publicar en pantalla de ingreso"
                         : "Complete el aviso antes de publicar";
+                    const safeId = escAttr(item.id);
                     return `<div class="avisos-admin-item${activeCls}${publishedCls}">
-                        <label class="avisos-admin-item__check" title="${checkTitle}" onclick="event.stopPropagation()">
-                            <input type="checkbox"${item.active !== false ? " checked" : ""}${checkDisabled} onchange="toggleAvisoPublished(${JSON.stringify(item.id)}, this.checked)">
+                        <label class="avisos-admin-item__check" title="${escAttr(checkTitle)}">
+                            <input type="checkbox" data-aviso-publish="${safeId}"${item.active !== false ? " checked" : ""}${checkDisabled}>
                             <span>Publicar</span>
                         </label>
-                        <button type="button" class="avisos-admin-item__open" onclick="openAvisoEditor(${JSON.stringify(item.id)})">
+                        <button type="button" class="avisos-admin-item__open" data-aviso-open="${safeId}">
                             <span class="avisos-admin-item__badge${badgeCls}">${item.type === "image" ? "IMG" : "TXT"}</span>
                             <span class="avisos-admin-item__meta">
                                 <span class="avisos-admin-item__title">${escHtml(avisoListLabel(item))}</span>
                                 <span class="avisos-admin-item__sub">${status}</span>
                             </span>
                         </button>
-                        <button type="button" class="avisos-admin-item__delete" title="Eliminar aviso" onclick="deleteAvisoById(${JSON.stringify(item.id)})">Eliminar</button>
+                        <button type="button" class="avisos-admin-item__edit" data-aviso-edit="${safeId}">Editar</button>
+                        <button type="button" class="avisos-admin-item__delete" data-aviso-delete="${safeId}">Eliminar</button>
                     </div>`;
                 })
                 .join("");
@@ -3770,13 +3835,14 @@
             }
         }
 
-        window.openAvisoEditor = (id) => {
+        function openAvisoEditor(id) {
             avisoPendingDraft = null;
             selectedAvisoId = id || null;
             const item = (systemNotices.items || []).find((x) => x.id === id);
             if (!item) return;
             openAvisoEditorUi(item, false);
-        };
+        }
+        window.openAvisoEditor = openAvisoEditor;
 
         window.startNewAviso = (type) => {
             avisoPendingDraft = {
@@ -3871,7 +3937,7 @@
             }
         };
 
-        window.toggleAvisoPublished = async (id, published) => {
+        async function toggleAvisoPublished(id, published) {
             const item = (systemNotices.items || []).find((x) => x.id === id);
             if (!item) return;
             if (published && !avisoHasContent(item)) {
@@ -3897,7 +3963,8 @@
             } catch {
                 renderAvisosAdminList();
             }
-        };
+        }
+        window.toggleAvisoPublished = toggleAvisoPublished;
 
         window.saveAvisoEditor = async () => {
             const btn = document.getElementById("avisoSaveBtn");
@@ -3984,7 +4051,7 @@
             }
         };
 
-        window.deleteAvisoById = async (id) => {
+        async function deleteAvisoById(id) {
             if (!id) return;
             if (avisoPendingDraft?.id === id) {
                 closeAvisoEditor();
@@ -4017,7 +4084,8 @@
                     btn.textContent = original;
                 }
             }
-        };
+        }
+        window.deleteAvisoById = deleteAvisoById;
 
         window.deleteAvisoEditor = () => {
             const id = document.getElementById("avisoEditId")?.value || selectedAvisoId;
