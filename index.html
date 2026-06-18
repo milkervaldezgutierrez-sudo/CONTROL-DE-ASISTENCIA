@@ -2365,8 +2365,8 @@
                     <option value="" selected>Cargando obras...</option>
                 </select>
             </div>
-            <div class="auth-field">
-                <label class="label-gold">CLAVE DE SEGURIDAD</label>
+            <div class="auth-field hidden" id="authPasswordField">
+                <label class="label-gold" id="authPasswordLabel">CLAVE DE SEGURIDAD</label>
                 <input type="password" id="password" name="clave-proyecto" placeholder="••••••••" autocomplete="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore data-form-type="other" class="auth-input auth-input--lg w-full rounded-xl shadow-sm">
             </div>
             <button type="submit" id="submitBtn" class="auth-btn w-full btn-primary rounded-xl shadow-lg text-sm">
@@ -3217,7 +3217,6 @@
                 configureAuthFormAutofill(currentMode);
                 void renderPublicAvisosPanel();
                 if (currentMode === "LOGIN") {
-                    loginAutofillCleanedOnce = false;
                     setTimeout(clearBrowserAutofillOnLoginFields, 80);
                     setTimeout(clearBrowserAutofillOnLoginFields, 400);
                 }
@@ -3278,7 +3277,7 @@
                     <p class="text-[10px] font-bold text-red-400 leading-relaxed">${safeMsg}</p>
                     <button type="button" onclick="retryProjectsLoad()" class="mt-2 w-full py-2 rounded-lg text-[10px] font-black uppercase border border-red-500/40 text-red-500 hover:bg-red-500/10 transition-colors">Reintentar conexión</button>
                 </div>
-                <input type="text" id="projectSearchInput" name="obra-busqueda" placeholder="Buscar por CUI o nombre..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore data-form-type="other" class="auth-input w-full rounded-xl mb-2 font-bold shadow-sm" disabled>
+                <input type="text" id="projectSearchInput" name="obra-busqueda" placeholder="Buscar por CUI (solo números)..." inputmode="numeric" pattern="[0-9]*" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore data-form-type="other" class="auth-input w-full rounded-xl mb-2 font-bold shadow-sm" disabled>
                 <select id="projectSelector" disabled autocomplete="off" class="auth-input w-full rounded-xl font-bold shadow-sm"><option value="" selected>Sin conexión con Firebase</option></select>`;
             if (submitBtn) submitBtn.disabled = true;
         }
@@ -4692,6 +4691,17 @@
                 .trim();
         }
 
+        function sanitizeCuiQuery(query) {
+            return String(query || "").replace(/\D/g, "");
+        }
+
+        function projectMatchesCuiQuery(p, query) {
+            const digits = sanitizeCuiQuery(query);
+            if (!digits) return true;
+            const cuiDigits = String(p.cui || "").replace(/\D/g, "");
+            return cuiDigits.includes(digits);
+        }
+
         function projectMatchesQuery(p, query) {
             const q = normalizeText(query);
             if (!q) return true;
@@ -4709,8 +4719,8 @@
         function renderLoginProjectOptions(query = loginProjectQuery) {
             const projectSelector = document.getElementById("projectSelector");
             if (!projectSelector || projectSelector.disabled) return;
-            loginProjectQuery = query || "";
-            const filtered = masterProjects.filter((p) => projectMatchesQuery(p, loginProjectQuery));
+            loginProjectQuery = sanitizeCuiQuery(query);
+            const filtered = masterProjects.filter((p) => projectMatchesCuiQuery(p, loginProjectQuery));
             const selectedValue = projectSelector.value || "";
             const optionsHtml = filtered
                 .map((p) => {
@@ -4758,7 +4768,12 @@
         }
 
         window.filterLoginProjects = (query) => {
-            renderLoginProjectOptions(query);
+            const digits = sanitizeCuiQuery(query);
+            const projectSearchInput = document.getElementById("projectSearchInput");
+            if (projectSearchInput && projectSearchInput.value !== digits) {
+                projectSearchInput.value = digits;
+            }
+            renderLoginProjectOptions(digits);
         };
 
         window.syncLoginSelectorToSearch = () => {
@@ -4769,9 +4784,9 @@
             if (!selectedId) return;
             const selectedProject = masterProjects.find((p) => p.id === selectedId);
             if (!selectedProject) return;
-            const syncText = `${selectedProject.cui} - ${selectedProject.nombre}`;
-            projectSearchInput.value = syncText;
-            loginProjectQuery = syncText;
+            const cuiDigits = sanitizeCuiQuery(selectedProject.cui);
+            projectSearchInput.value = cuiDigits;
+            loginProjectQuery = cuiDigits;
         };
 
         async function init() {
@@ -5831,14 +5846,20 @@
         }
 
         function configureAuthFormAutofill(mode) {
+            const passField = document.getElementById("authPasswordField");
+            const passLabel = document.getElementById("authPasswordLabel");
             const passInput = document.getElementById("password");
-            const trapUser = document.getElementById("authAutofillTrapUser");
-            const trapPass = document.getElementById("authAutofillTrapPass");
+            if (passField) passField.classList.toggle("hidden", mode === "LOGIN");
+            if (passLabel) {
+                passLabel.textContent = mode === "REGISTER" ? "CLAVE DE SEGURIDAD" : "CLAVE DE SEGURIDAD";
+            }
             if (passInput) {
                 if (mode === "ADMIN") {
                     passInput.autocomplete = "current-password";
                     passInput.name = "admin-password";
                     passInput.removeAttribute("data-form-type");
+                } else if (mode === "LOGIN") {
+                    passInput.value = "";
                 } else {
                     passInput.autocomplete = "off";
                     passInput.name = "clave-proyecto";
@@ -5849,6 +5870,8 @@
             if (projectSearch) {
                 projectSearch.autocomplete = "off";
                 projectSearch.name = "obra-busqueda";
+                projectSearch.inputMode = "numeric";
+                projectSearch.pattern = "[0-9]*";
                 projectSearch.setAttribute("data-lpignore", "true");
                 projectSearch.setAttribute("data-1p-ignore", "");
                 projectSearch.setAttribute("data-form-type", "other");
@@ -5860,10 +5883,11 @@
                 adminEmail.autocomplete = "username";
                 adminEmail.name = "admin-email";
             }
+            const trapUser = document.getElementById("authAutofillTrapUser");
+            const trapPass = document.getElementById("authAutofillTrapPass");
             if (trapUser && trapPass) {
                 trapUser.value = "";
                 trapPass.value = "";
-                trapUser.tabIndex = mode === "LOGIN" ? -1 : -1;
             }
         }
 
@@ -5873,7 +5897,9 @@
                 'type="text"',
                 'id="projectSearchInput"',
                 'name="obra-busqueda"',
-                'placeholder="Buscar por CUI o nombre..."',
+                'placeholder="Buscar por CUI (solo números)..."',
+                'inputmode="numeric"',
+                'pattern="[0-9]*"',
                 'class="auth-input w-full rounded-xl mb-2 font-bold shadow-sm"',
                 'autocomplete="off"',
                 'autocorrect="off"',
@@ -5889,21 +5915,16 @@
             return `<label class="label-gold">PROYECTO DE INVERSIÓN</label><input ${searchAttrs}><select id="projectSelector" ${selectDisabled} autocomplete="off" class="auth-input w-full rounded-xl font-bold shadow-sm"></select>`;
         }
 
-        let loginAutofillCleanedOnce = false;
-
         function clearBrowserAutofillOnLoginFields() {
             if (currentMode !== "LOGIN") return;
             const projectSearch = document.getElementById("projectSearchInput");
-            if (projectSearch && /@/.test(String(projectSearch.value || ""))) {
-                projectSearch.value = loginProjectQuery || "";
-            }
-            if (!loginAutofillCleanedOnce) {
-                const passInput = document.getElementById("password");
-                const selector = document.getElementById("projectSelector");
-                if (passInput?.value && !selector?.value && document.activeElement !== passInput) {
-                    passInput.value = "";
+            if (projectSearch) {
+                const digits = sanitizeCuiQuery(projectSearch.value);
+                if (projectSearch.value !== digits) {
+                    projectSearch.value = digits;
+                    loginProjectQuery = digits;
+                    renderLoginProjectOptions(digits);
                 }
-                loginAutofillCleanedOnce = true;
             }
         }
 
@@ -5945,7 +5966,6 @@
                 if (passInput) passInput.value = "";
                 configureAuthFormAutofill(mode);
                 if (mode === "LOGIN") {
-                    loginAutofillCleanedOnce = false;
                     requestAnimationFrame(() => clearBrowserAutofillOnLoginFields());
                     setTimeout(clearBrowserAutofillOnLoginFields, 120);
                     setTimeout(clearBrowserAutofillOnLoginFields, 450);
@@ -5965,7 +5985,7 @@
                 showFeedback("Aun estamos cargando proyectos, intenta en unos segundos.", "error");
                 return;
             }
-            const pass = document.getElementById('password').value;
+            const pass = currentMode === "LOGIN" ? "" : (document.getElementById('password')?.value || "");
             if (currentMode === 'ADMIN') {
                 const adminEmail = document.getElementById('adminEmail')?.value || "";
                 if (adminLoginMatches(adminEmail, pass)) {
@@ -5980,7 +6000,7 @@
                     return;
                 }
                 const p = masterProjects.find(x => x.id === pId);
-                if (p && p.pass === pass) {
+                if (p) {
                     activeProjectId = pId;
                     revealAppView(residentModuleView);
                     refreshResidentProfileUI();
@@ -5991,7 +6011,9 @@
                     renderPreviews();
                     refreshResidentEvidenceGate();
                     startResidentGateTimer();
-                } else showFeedback("Clave incorrecta", "error");
+                } else {
+                    showFeedback("Proyecto no encontrado.", "error");
+                }
             } else if (currentMode === 'REGISTER') {
                 const regCui = document.getElementById('regCui').value.trim();
                 const regName = document.getElementById('regName').value.trim();
