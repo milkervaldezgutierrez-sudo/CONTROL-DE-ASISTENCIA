@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>GRA Ayacucho - Control de Inversiones</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -2293,6 +2293,255 @@
         .evidence-export-cell--pending { color: #ca8a04; }
         .evidence-export-cell--sky { color: #0284c7; }
         .evidence-export-cell--empty { color: #94a3b8; }
+
+        /* ——— Compatibilidad móvil (panel admin) ——— */
+        body.admin-fullscreen {
+            padding-left: env(safe-area-inset-left);
+            padding-right: env(safe-area-inset-right);
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+
+        body.admin-fullscreen .theme-toggle {
+            top: auto;
+            bottom: max(1rem, env(safe-area-inset-bottom));
+            left: max(1rem, env(safe-area-inset-left));
+            right: auto;
+        }
+
+        .admin-mobile-back {
+            display: none;
+            align-items: center;
+            gap: 0.35rem;
+            margin-bottom: 0.75rem;
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.65rem;
+            font-size: 0.6rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: #facc15;
+            border: 1px solid rgba(250, 204, 21, 0.28);
+            background: rgba(250, 204, 21, 0.08);
+            transition: background 0.2s ease, border-color 0.2s ease;
+        }
+
+        .admin-mobile-back:hover {
+            background: rgba(250, 204, 21, 0.14);
+            border-color: rgba(250, 204, 21, 0.45);
+        }
+
+        @media (max-width: 1023px) {
+            .admin-mobile-back {
+                display: inline-flex;
+            }
+
+            .admin-sidebar {
+                flex-wrap: wrap;
+                overflow-x: visible;
+                padding: 0.55rem 0.65rem;
+                padding-top: max(0.55rem, env(safe-area-inset-top));
+                gap: 0.45rem;
+            }
+
+            .admin-sidebar-nav {
+                flex-wrap: wrap;
+                min-width: 0;
+                width: 100%;
+                gap: 0.35rem;
+            }
+
+            .admin-sidebar-link {
+                flex: 1 1 calc(33.333% - 0.35rem);
+                min-width: 5.5rem;
+                justify-content: center;
+                flex-direction: column;
+                gap: 0.2rem;
+                padding: 0.45rem 0.35rem;
+                font-size: 0.5rem;
+                line-height: 1.15;
+                white-space: normal;
+                text-align: center;
+            }
+
+            .admin-sidebar-link svg {
+                width: 0.95rem;
+                height: 0.95rem;
+            }
+
+            .admin-sidebar-link--logout {
+                flex: 1 1 100%;
+                flex-direction: row;
+                justify-content: center;
+                margin-top: 0.15rem;
+                padding-top: 0.55rem;
+                border-top: 1px solid rgba(148, 163, 184, 0.12);
+            }
+
+            body.admin-fullscreen .admin-topbar {
+                padding: 0.65rem 0.75rem;
+            }
+
+            body.admin-fullscreen .admin-content {
+                padding: 0.65rem 0.75rem 1rem;
+            }
+
+            .admin-split-view.admin-split-view--detail-open .admin-split-list {
+                display: none !important;
+            }
+
+            .admin-split-view:not(.admin-split-view--detail-open) .admin-split-detail {
+                display: none !important;
+            }
+
+            .admin-split-view.admin-split-view--detail-open .admin-split-detail {
+                display: flex !important;
+                flex-direction: column;
+                min-height: 0;
+            }
+
+            .admin-split-list .admin-panel-scroll {
+                max-height: min(48vh, 22rem);
+            }
+
+            .admin-alerts-fab {
+                bottom: max(1.5rem, calc(env(safe-area-inset-bottom) + 0.75rem));
+                right: max(1rem, env(safe-area-inset-right));
+            }
+
+            .admin-alerts-popup {
+                bottom: max(5.5rem, calc(env(safe-area-inset-bottom) + 4.75rem));
+                right: max(1rem, env(safe-area-inset-right));
+            }
+
+            #adminReportExportMenu,
+            #exportEvidenceBtn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            #adminReportExportMenu .admin-export-menu > button,
+            #exportEvidenceBtn {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 767px) {
+            .admin-data-table thead {
+                display: none;
+            }
+
+            .admin-data-table tbody tr {
+                display: block;
+                margin-bottom: 0.65rem;
+                padding: 0.65rem 0.75rem;
+                border-radius: 0.85rem;
+                border: 1px solid rgba(148, 163, 184, 0.15);
+                background: rgba(0, 0, 0, 0.08);
+            }
+
+            body.light-mode .admin-data-table tbody tr {
+                background: rgba(255, 255, 255, 0.65);
+            }
+
+            .admin-data-table tbody td {
+                display: flex;
+                align-items: flex-start;
+                justify-content: space-between;
+                gap: 0.75rem;
+                padding: 0.35rem 0 !important;
+                border: none !important;
+                text-align: right;
+            }
+
+            .admin-data-table tbody td::before {
+                content: attr(data-label);
+                font-size: 0.55rem;
+                font-weight: 900;
+                text-transform: uppercase;
+                color: #991b1b;
+                opacity: 0.85;
+                flex-shrink: 0;
+                text-align: left;
+                padding-top: 0.1rem;
+            }
+
+            .admin-data-table tbody td[data-label="Proyecto"] {
+                flex-direction: column;
+                align-items: stretch;
+                text-align: left;
+                gap: 0.25rem;
+            }
+
+            .admin-data-table tbody td[data-label="Gestión"] > div,
+            .admin-data-table tbody td[data-label="Abrir"] {
+                margin-left: auto;
+            }
+
+            .avisos-admin-item {
+                flex-wrap: wrap;
+                align-items: stretch;
+                gap: 0.45rem;
+            }
+
+            .avisos-admin-item__check {
+                order: 0;
+            }
+
+            .avisos-admin-item__open {
+                order: 1;
+                flex: 1 1 calc(100% - 3.5rem);
+                min-width: 0;
+            }
+
+            .avisos-admin-item__edit,
+            .avisos-admin-item__delete {
+                order: 2;
+                flex: 1 1 calc(50% - 0.25rem);
+                min-height: 2.35rem;
+                padding: 0.5rem 0.65rem;
+                font-size: 0.6rem;
+            }
+
+            #editSection .grid.grid-cols-2 {
+                grid-template-columns: 1fr;
+            }
+
+            #captureArea {
+                padding: 1rem !important;
+            }
+
+            #faultTableHead th,
+            #elegantFaultTable td {
+                padding: 0.45rem 0.3rem !important;
+            }
+
+            #elegantFaultTable .text-sm {
+                font-size: 0.72rem !important;
+                line-height: 1.25 !important;
+            }
+
+            #adminEvidenceView .admin-split-detail {
+                padding: 1rem !important;
+            }
+
+            #captureArea .flex.flex-wrap.gap-2,
+            #captureArea .flex.flex-wrap.gap-3 {
+                width: 100%;
+            }
+
+            #monthNavigator,
+            #weekNavigator {
+                flex-wrap: wrap;
+                max-width: 100%;
+            }
+
+            #currentWeekRange {
+                font-size: 0.58rem;
+                max-width: 8rem;
+                text-align: center;
+                line-height: 1.2;
+            }
+        }
     </style>
 </head>
 <body class="dark-mode">
@@ -2518,7 +2767,7 @@
                 </button>
                 <button type="button" onclick="goBackToHome(event)" class="admin-sidebar-link admin-sidebar-link--logout">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                    Cerrar sesión
+                    <span class="hidden min-[420px]:inline">Cerrar sesión</span><span class="min-[420px]:hidden">Salir</span>
                 </button>
             </nav>
             <div class="admin-sidebar-footer">
@@ -2550,8 +2799,8 @@
 
             <div class="admin-content">
 
-        <div id="adminListView" class="admin-tab-panel admin-grid grid grid-cols-1 lg:grid-cols-12">
-            <div class="admin-panel-col lg:col-span-8 bg-black/5 rounded-2xl border border-gray-400/10 overflow-hidden">
+        <div id="adminListView" class="admin-tab-panel admin-grid admin-split-view grid grid-cols-1 lg:grid-cols-12">
+            <div class="admin-panel-col admin-split-list lg:col-span-8 bg-black/5 rounded-2xl border border-gray-400/10 overflow-hidden">
                 <div class="p-3 border-b border-gray-400/10 bg-black/5 shrink-0">
                     <input
                         type="text"
@@ -2562,7 +2811,7 @@
                     >
                 </div>
                 <div class="admin-panel-scroll overflow-x-auto">
-                <table class="w-full text-left">
+                <table class="admin-data-table w-full text-left">
                     <thead>
                         <tr class="bg-black/5 border-b border-gray-400/10">
                             <th class="admin-cell text-[#991b1b] text-[10px] font-black uppercase">CUI</th>
@@ -2574,7 +2823,8 @@
                 </table>
                 </div>
             </div>
-            <div class="admin-panel-col lg:col-span-4 bg-black/5 rounded-2xl admin-form-panel border border-gray-400/10 opacity-30 pointer-events-none transition-all overflow-y-auto" id="editSection">
+            <div class="admin-panel-col admin-split-detail lg:col-span-4 bg-black/5 rounded-2xl admin-form-panel border border-gray-400/10 opacity-30 pointer-events-none transition-all overflow-y-auto" id="editSection">
+                <button type="button" class="admin-mobile-back" onclick="closeAdminSplitDetail('editSection')">← Volver a la lista</button>
                 <h4 class="text-[#991b1b] text-[10px] font-black uppercase mb-3">Detalles del Expediente</h4>
                 <div class="space-y-3">
                     <input type="hidden" id="editDocId">
@@ -2824,8 +3074,8 @@
             </div>
         </div>
 
-        <div id="adminEvidenceView" class="admin-tab-panel hidden admin-grid grid grid-cols-1 lg:grid-cols-12">
-            <div class="admin-panel-col lg:col-span-5 bg-black/5 rounded-3xl border border-gray-400/10 overflow-hidden">
+        <div id="adminEvidenceView" class="admin-tab-panel hidden admin-grid admin-split-view grid grid-cols-1 lg:grid-cols-12">
+            <div class="admin-panel-col admin-split-list lg:col-span-5 bg-black/5 rounded-3xl border border-gray-400/10 overflow-hidden">
                 <div class="p-4 border-b border-gray-400/10 bg-black/5 shrink-0">
                     <h4 class="text-[#991b1b] text-[10px] font-black uppercase">Seguimiento por fecha</h4>
                     <div class="flex flex-wrap items-center gap-2 mt-2">
@@ -2857,7 +3107,7 @@
                     >
                 </div>
                 <div class="admin-panel-scroll overflow-x-auto">
-                    <table class="w-full text-left">
+                    <table class="admin-data-table w-full text-left">
                         <thead>
                             <tr class="bg-black/5 border-b border-gray-400/10">
                                 <th class="p-3 text-[#991b1b] text-[9px] font-black uppercase">CUI</th>
@@ -2871,9 +3121,10 @@
                     </table>
                 </div>
             </div>
-            <div class="admin-panel-col lg:col-span-7 bg-black/5 rounded-3xl border border-gray-400/10 p-6 md:p-8 overflow-hidden">
+            <div class="admin-panel-col admin-split-detail lg:col-span-7 bg-black/5 rounded-3xl border border-gray-400/10 p-6 md:p-8 overflow-hidden" id="evidenceReviewSection">
+                <button type="button" class="admin-mobile-back" onclick="closeAdminSplitDetail('evidenceReviewSection')">← Volver a proyectos</button>
                 <h4 class="text-[#991b1b] text-[10px] font-black uppercase mb-2">Verificación de evidencias</h4>
-                <p id="evidenceSelectedLabel" class="text-[10px] font-bold opacity-60 mb-4">Seleccione un proyecto en la lista de la izquierda.</p>
+                <p id="evidenceSelectedLabel" class="text-[10px] font-bold opacity-60 mb-4">Seleccione un proyecto en la lista.</p>
                 <div class="flex flex-wrap items-center gap-2 mb-3">
                     <label for="evidenceDateFilter" class="text-[9px] font-bold uppercase opacity-70">Fecha</label>
                     <select id="evidenceDateFilter" class="rounded-lg px-2 py-1 text-[10px] font-bold bg-black/10 border border-gray-400/20">
@@ -2918,8 +3169,8 @@
             </div>
         </div>
 
-        <div id="adminAvisosView" class="admin-tab-panel hidden admin-grid grid grid-cols-1 lg:grid-cols-12">
-            <div class="admin-panel-col lg:col-span-5 bg-black/5 rounded-2xl border border-gray-400/10 overflow-hidden flex flex-col">
+        <div id="adminAvisosView" class="admin-tab-panel hidden admin-grid admin-split-view grid grid-cols-1 lg:grid-cols-12">
+            <div class="admin-panel-col admin-split-list lg:col-span-5 bg-black/5 rounded-2xl border border-gray-400/10 overflow-hidden flex flex-col">
                 <div class="p-4 border-b border-gray-400/10 bg-black/5 shrink-0 space-y-3">
                     <div class="flex items-start justify-between gap-2">
                         <div>
@@ -2941,7 +3192,8 @@
                 </div>
                 <div id="avisosAdminList" class="admin-panel-scroll p-3 avisos-admin-list flex-1"></div>
             </div>
-            <div class="admin-panel-col lg:col-span-7 bg-black/5 rounded-2xl border border-gray-400/10 p-5 md:p-6 overflow-y-auto" id="avisoEditorSection">
+            <div class="admin-panel-col admin-split-detail lg:col-span-7 bg-black/5 rounded-2xl border border-gray-400/10 p-5 md:p-6 overflow-y-auto" id="avisoEditorSection">
+                <button type="button" class="admin-mobile-back" onclick="closeAdminSplitDetail('avisoEditorSection')">← Volver a avisos</button>
                 <div id="avisoEditorEmpty" class="text-center py-10 opacity-45">
                     <p class="text-[10px] font-black uppercase">Seleccione un aviso o cree uno nuevo</p>
                     <p class="text-[9px] mt-2 leading-relaxed max-w-sm mx-auto">Puede publicar comunicados en texto o imágenes. El panel se adapta al contenido en la pantalla de ingreso.</p>
@@ -3913,6 +4165,7 @@
             wireAvisoEditorInputs();
             updateAvisoEditorPreview();
             renderAvisosAdminList();
+            openAdminSplitDetail("avisoEditorSection");
         }
 
         function avisoListLabel(item) {
@@ -5761,7 +6014,51 @@
             avisos: { title: "Avisos institucionales", subtitle: "Comunicados visibles en la pantalla de ingreso" }
         };
 
+        const ADMIN_MOBILE_SPLIT_MQ = window.matchMedia("(max-width: 1023px)");
+
+        function isAdminMobileSplit() {
+            return ADMIN_MOBILE_SPLIT_MQ.matches;
+        }
+
+        function openAdminSplitDetail(detailId) {
+            const detail = document.getElementById(detailId);
+            if (!detail || !isAdminMobileSplit()) return;
+            const grid = detail.closest(".admin-split-view");
+            if (!grid) return;
+            grid.classList.add("admin-split-view--detail-open");
+            requestAnimationFrame(() => {
+                detail.scrollIntoView({ behavior: "smooth", block: "start" });
+            });
+        }
+
+        window.closeAdminSplitDetail = (detailId) => {
+            const detail = document.getElementById(detailId);
+            if (!detail) return;
+            const grid = detail.closest(".admin-split-view");
+            if (grid) grid.classList.remove("admin-split-view--detail-open");
+            if (detailId === "editSection") {
+                detail.classList.add("opacity-30", "pointer-events-none");
+            }
+            const list = grid?.querySelector(".admin-split-list");
+            if (list && isAdminMobileSplit()) {
+                requestAnimationFrame(() => {
+                    list.scrollIntoView({ behavior: "smooth", block: "start" });
+                });
+            }
+        };
+
+        function resetAdminSplitViews() {
+            document.querySelectorAll(".admin-split-view--detail-open").forEach((el) => {
+                el.classList.remove("admin-split-view--detail-open");
+            });
+        }
+
+        ADMIN_MOBILE_SPLIT_MQ.addEventListener("change", () => {
+            if (!isAdminMobileSplit()) resetAdminSplitViews();
+        });
+
         window.switchAdminTab = (tab) => {
+            resetAdminSplitViews();
             const list = document.getElementById('adminListView');
             const report = document.getElementById('adminReportView');
             const evidence = document.getElementById('adminEvidenceView');
@@ -5814,7 +6111,7 @@
                     renderEvidenceReview(p);
                 } else {
                     evidenceSelectedProjectId = null;
-                    if (lbl) lbl.textContent = 'Seleccione un proyecto en la lista de la izquierda.';
+                    if (lbl) lbl.textContent = 'Seleccione un proyecto en la lista.';
                     if (revList) revList.innerHTML = '';
                 }
             } else if (adminAlertsPanelOpen) {
@@ -6607,7 +6904,7 @@
                     evidenceSelectedProjectId = null;
                     const lbl = document.getElementById('evidenceSelectedLabel');
                     const revList = document.getElementById('evidenceReviewList');
-                    if (lbl) lbl.textContent = 'Seleccione un proyecto en la lista de la izquierda.';
+                    if (lbl) lbl.textContent = 'Seleccione un proyecto en la lista.';
                     if (revList) revList.innerHTML = '';
                 }
                 const editId = document.getElementById('editDocId');
@@ -6644,12 +6941,12 @@
             }
             body.innerHTML = filteredProjects.map(p => `
                 <tr class="hover:bg-black/5">
-                    <td class="admin-cell font-mono text-[#991b1b] font-bold text-xs">${p.cui}</td>
-                    <td class="admin-cell text-xs font-semibold">${p.nombre}</td>
-                    <td class="admin-cell text-center">
+                    <td class="admin-cell font-mono text-[#991b1b] font-bold text-xs" data-label="CUI">${p.cui}</td>
+                    <td class="admin-cell text-xs font-semibold" data-label="Proyecto">${p.nombre}</td>
+                    <td class="admin-cell text-center" data-label="Gestión">
                         <div class="flex flex-wrap gap-2 justify-center items-center">
-                            <button type="button" onclick="editProject('${p.id}')" class="bg-[#991b1b]/5 text-[#991b1b] px-3 py-1 rounded text-[10px] font-black border border-[#991b1b]/10 hover:bg-[#991b1b] hover:text-white transition-all uppercase font-bold">Detalles</button>
-                            <button type="button" onclick="deleteProject('${p.id}')" class="bg-red-500/10 text-red-600 px-3 py-1 rounded text-[10px] font-black border border-red-500/20 hover:bg-red-600 hover:text-white transition-all uppercase font-bold">Eliminar</button>
+                            <button type="button" onclick="editProject('${p.id}')" class="bg-[#991b1b]/5 text-[#991b1b] px-3 py-1.5 rounded text-[10px] font-black border border-[#991b1b]/10 hover:bg-[#991b1b] hover:text-white transition-all uppercase font-bold min-h-[2rem]">Detalles</button>
+                            <button type="button" onclick="deleteProject('${p.id}')" class="bg-red-500/10 text-red-600 px-3 py-1.5 rounded text-[10px] font-black border border-red-500/20 hover:bg-red-600 hover:text-white transition-all uppercase font-bold min-h-[2rem]">Eliminar</button>
                         </div>
                     </td>
                 </tr>`).join('');
@@ -6690,12 +6987,12 @@
                     const rowClass = p.id === sel ? "bg-[#991b1b]/10" : "hover:bg-black/5";
                     return `
                 <tr class="${rowClass}">
-                    <td class="p-3 font-mono text-[#991b1b] font-bold text-xs align-top">${escHtml(String(p.cui || ""))}</td>
-                    <td class="p-3 text-xs font-semibold align-top">${escHtml(String(p.nombre || ""))}</td>
-                    <td class="p-3 text-center align-top">${evidenceShiftBadgeHtml(manana)}</td>
-                    <td class="p-3 text-center align-top">${evidenceShiftBadgeHtml(tarde)}</td>
-                    <td class="p-3 text-center align-top">
-                        <button type="button" onclick="openEvidenceReviewTab('${p.id}', '${fecha}')" class="bg-[#991b1b]/5 text-[#991b1b] px-3 py-1 rounded text-[10px] font-black border border-[#991b1b]/10 hover:bg-[#991b1b] hover:text-white transition-all uppercase font-bold">Revisar</button>
+                    <td class="p-3 font-mono text-[#991b1b] font-bold text-xs align-top" data-label="CUI">${escHtml(String(p.cui || ""))}</td>
+                    <td class="p-3 text-xs font-semibold align-top" data-label="Proyecto">${escHtml(String(p.nombre || ""))}</td>
+                    <td class="p-3 text-center align-top" data-label="Mañana">${evidenceShiftBadgeHtml(manana)}</td>
+                    <td class="p-3 text-center align-top" data-label="Tarde">${evidenceShiftBadgeHtml(tarde)}</td>
+                    <td class="p-3 text-center align-top" data-label="Abrir">
+                        <button type="button" onclick="openEvidenceReviewTab('${p.id}', '${fecha}')" class="bg-[#991b1b]/5 text-[#991b1b] px-3 py-1.5 rounded text-[10px] font-black border border-[#991b1b]/10 hover:bg-[#991b1b] hover:text-white transition-all uppercase font-bold min-h-[2rem]">Revisar</button>
                     </td>
                 </tr>`;
                 })
@@ -6793,6 +7090,7 @@
                 const sel = document.getElementById("evidenceDateFilter");
                 if (sel) sel.value = viewYmd;
                 renderEvidenceReview(p);
+                openAdminSplitDetail("evidenceReviewSection");
             }
             else {
                 const list = document.getElementById('evidenceReviewList');
@@ -7190,6 +7488,7 @@
             document.getElementById('editSupervisor').value = p.supervisor || '';
             document.getElementById('editFaults').value = p.faults_accumulated || 0;
             document.getElementById('editSection').classList.remove('opacity-30', 'pointer-events-none');
+            openAdminSplitDetail('editSection');
         };
 
         window.saveEdit = async () => {
